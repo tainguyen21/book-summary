@@ -1,0 +1,10 @@
+{
+  "name": "bookwise",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "test": "pnpm --dir apps/web test",
+    "lint": "pnpm --dir apps/web lint",
+    "dev:web": "pnpm --dir apps/web dev"
+  }
+}
