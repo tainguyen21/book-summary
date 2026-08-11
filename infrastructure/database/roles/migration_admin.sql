@@ -1,0 +1,3 @@
+GRANT USAGE, CREATE ON SCHEMA app, data TO migration_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA app, data TO migration_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA app, data TO migration_admin;
