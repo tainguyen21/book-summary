@@ -9,6 +9,6 @@
     "dev:web": "pnpm --dir apps/web dev",
     "lint:api": "pnpm --dir services/api lint",
     "lint:web": "pnpm --dir apps/web lint",
-    "migrate:local": "powershell -File infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise_next"
+    "migrate:local": "pwsh -NoProfile -ExecutionPolicy Bypass -File infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise_next"
   }
 }
