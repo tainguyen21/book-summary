@@ -1,5 +1,8 @@
 # Book Summarization System Implementation Roadmap
 
+> **Superseded:** Use `2026-08-11-nestjs-python-roadmap.md`. This roadmap
+> describes the replaced FastAPI-centric architecture.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver the approved invite-only, evidence-first book summarization web application through five independently reviewable implementation plans.

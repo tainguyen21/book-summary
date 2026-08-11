@@ -1,5 +1,7 @@
 # Evidence and Summarization Implementation Plan
 
+> **Superseded:** Use the August 11, 2026 NestJS and Python plan suite.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Extract source-linked evidence from every chunk, reject unsupported claims, complete the coverage ledger, and publish recursively synthesized section through whole-book summaries.

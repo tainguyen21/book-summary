@@ -1,5 +1,7 @@
 # Production Hardening Implementation Plan
 
+> **Superseded:** Use the August 11, 2026 NestJS and Python plan suite.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Satisfy the approved security, reliability, evaluation, load, backup, restore, observability, and deployment release criteria.

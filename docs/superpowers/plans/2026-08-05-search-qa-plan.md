@@ -1,5 +1,7 @@
 # Search and Question Answering Implementation Plan
 
+> **Superseded:** Use the August 11, 2026 NestJS and Python plan suite.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make verified book evidence searchable by exact text and semantic similarity, then answer user questions only from resolved private evidence with valid source citations.
