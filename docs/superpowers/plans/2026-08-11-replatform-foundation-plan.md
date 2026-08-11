@@ -162,7 +162,7 @@ Run:
 ```bash
 docker compose up -d postgres
 powershell -File infrastructure/database/migrate.ps1 -DatabaseUrl <local-url>
-docker compose exec -T postgres psql -U bookwise -d bookwise -c "\dn"
+docker compose exec -T postgres psql -U bookwise -d bookwise_next -c "\dn"
 ```
 
 - [ ] **Step 5: Commit**
