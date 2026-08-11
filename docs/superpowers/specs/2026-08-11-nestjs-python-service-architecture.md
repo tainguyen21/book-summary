@@ -1,6 +1,6 @@
 # NestJS Application and Python Processing Architecture
 
-Status: Draft for review
+Status: Revised draft for review
 Date: 2026-08-11
 
 ## 1. Decision
@@ -20,7 +20,8 @@ those records to serve the frontend.
 
 NestJS owns:
 
-- Authentication, invitations, authorization, and tenant access checks.
+- OIDC authentication, automatic user provisioning, authorization, and tenant
+  access checks.
 - Upload commands, library actions, search and reader APIs, and frontend data
   composition.
 - Business commands such as retry, cancel, approve, publish, archive, and
@@ -64,7 +65,7 @@ owned by the other.
 
 The `app` schema contains:
 
-- Users, invitations, roles, and tenant access metadata.
+- Users, roles, and tenant access metadata.
 - Books, original upload metadata, and user library state.
 - Processing commands requested by users or administrators.
 - Publication records and active publication pointers.
@@ -130,7 +131,27 @@ publish that new version without discarding earlier versions.
 
 ## 5. Data and Event Flow
 
-### 5.1 Book processing
+### 5.1 User provisioning
+
+```text
+User signs in with OIDC
+       -> Next.js sends bearer token to NestJS
+       -> NestJS validates issuer, audience, signature, expiration, and email
+       -> NestJS creates app.users when the identity is new
+       -> NestJS returns the authenticated principal
+```
+
+Every valid identity from the configured OIDC provider may establish a
+session. The first successful session creates an `app.users` record. That
+record starts without libraries, books, summaries, or other user content;
+users create those resources explicitly through later NestJS commands.
+
+The OIDC subject is the stable account identity. A verified normalized email
+may update the existing account only when it does not conflict with another
+user. Administrator access is assigned by an application-controlled user role,
+not by self-service registration or an untrusted OIDC claim.
+
+### 5.2 Book processing
 
 ```text
 Next.js -> NestJS upload command -> app.books + app.processing_commands
@@ -144,7 +165,7 @@ Processing commands and events are durable database records. Redis may deliver
 worker notifications, but it is not canonical state. Each command and event is
 idempotent and versioned.
 
-### 5.2 Manual edit and publication
+### 5.3 Manual edit and publication
 
 ```text
 Next.js -> NestJS edit/approve/publish command
@@ -234,6 +255,8 @@ relocate them before introducing NestJS and the Python processing service.
 ## 8. Operational Boundaries
 
 - NestJS exposes the only public HTTP API consumed by the frontend.
+- Any valid identity from the configured OIDC provider can establish a
+  NestJS session; users do not require invitations.
 - Python is private to the worker network and does not expose browser-facing
   endpoints.
 - Object storage is private; NestJS creates user-authorized upload/download

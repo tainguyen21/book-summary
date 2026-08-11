@@ -4,8 +4,8 @@
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Deliver invite-only NestJS identity, private-library, upload-command,
-and processing-command APIs.
+**Goal:** Deliver public OIDC identity provisioning, private-library,
+upload-command, and processing-command APIs.
 
 **Architecture:** NestJS use cases operate on domain ports. PostgreSQL
 repositories write `app` records, object storage remains private, and command
@@ -30,6 +30,7 @@ storage, Redis notifications.
 - Create: `services/api/src/infrastructure/identity/oidc-token-verifier.ts`
 - Create: `services/api/src/infrastructure/database/app-user.repository.ts`
 - Create: `services/api/src/interfaces/http/session.controller.ts`
+- Create: `infrastructure/database/migrations/004_remove_app_invitations.sql`
 
 **Interfaces:**
 - Produces: `POST /v1/session/sync`.
@@ -37,8 +38,8 @@ storage, Redis notifications.
 
 - [ ] **Step 1: Define identity ports and use case**
 
-Define `TokenVerifier.verify(token)` and `UserRepository.syncInvitedIdentity`.
-Reject identities without an active invitation.
+Define `TokenVerifier.verify(token)` and `UserRepository.syncIdentity`.
+Every identity with a valid configured OIDC token may establish a session.
 
 - [ ] **Step 2: Implement OIDC adapter**
 
@@ -47,19 +48,32 @@ the configured OIDC discovery and JWKS endpoints.
 
 - [ ] **Step 3: Implement `app` repository**
 
-Lock the invitation record, create or update the matching `app.users` record,
-and mark the invitation accepted in one transaction.
+Lock the matching `app.users` record by OIDC subject or normalized email.
+Create the user when absent, update an existing matching user with the verified
+subject and email, and return its application-controlled administrator state in
+one transaction. Reject inconsistent subject-to-email matches or inactive
+users. Never create a library, book, summary, or other user content while
+provisioning the identity.
 
-- [ ] **Step 4: Verify manually**
+- [ ] **Step 4: Retire invitation-based access state**
 
-Run NestJS locally with configured OIDC settings and send one invited and one
-uninvited bearer token through `/v1/session/sync`.
+Add `004_remove_app_invitations.sql` to drop `app.invitations`. Do not modify
+the already-applied foundation migration `002_create_app_foundation.sql`.
+Existing installations must advance through the new migration; fresh
+installations apply both migrations in lexical order.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Verify manually**
+
+Run NestJS locally with configured OIDC settings. Send a valid bearer token for
+a new identity and confirm that `app.users` receives one row with no related
+library or book rows. Send the same token again and confirm it returns the same
+principal. Send an invalid token and confirm the request is rejected.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add services/api
-git commit -m "feat: add NestJS invite-only identity"
+git add services/api infrastructure/database/migrations
+git commit -m "feat: add NestJS public identity provisioning"
 ```
 
 ### Task 2: Add private upload commands and durable handoff
@@ -115,7 +129,7 @@ git commit -m "feat: add NestJS private book uploads"
 - Create: `services/api/src/application/books/get-book-status.use-case.ts`
 - Create: `services/api/src/infrastructure/database/book-read.repository.ts`
 - Create: `services/api/src/interfaces/http/library.controller.ts`
-- Create: `infrastructure/database/migrations/004_create_app_data_projections.sql`
+- Create: `infrastructure/database/migrations/005_create_app_data_projections.sql`
 
 **Interfaces:**
 - Produces: `GET /v1/books`.
@@ -151,7 +165,8 @@ git commit -m "feat: expose NestJS library projections"
 ## Plan Acceptance Checkpoint
 
 - NestJS is the only public API.
-- Uninvited identities cannot create a library session.
+- A valid OIDC identity can establish a session and is provisioned exactly once.
+- New users begin without library or book records.
 - Upload finalization writes one private object record and one idempotent
   processing command.
 - NestJS reads Python processing state without writing `data` records.

@@ -78,7 +78,8 @@ does not change Python-owned rows.
 
 1. The NestJS API and Python service build independently against the same
    central SQL migration history.
-2. An invited user can create a private book upload command through NestJS.
+2. An authenticated user can create a private book upload command through
+   NestJS.
 3. Python can claim the command and persist a complete generated-summary
    version with provenance.
 4. NestJS can create manual summary revisions and publish one effective
