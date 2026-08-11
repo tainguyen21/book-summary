@@ -30,8 +30,13 @@ export class OidcTokenVerifier implements TokenVerifier {
 
       const subject = this.requiredClaim(payload.sub);
       const email = this.normalizeEmail(payload.email);
+      const exp = payload.exp;
 
       if (payload.email_verified === false) {
+        throw new InvalidTokenError();
+      }
+
+      if (typeof exp !== "number" || !Number.isFinite(exp)) {
         throw new InvalidTokenError();
       }
 

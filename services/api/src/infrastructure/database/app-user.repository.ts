@@ -70,10 +70,13 @@ export class AppUserRepository implements UserRepository {
        FOR UPDATE`,
       [identity.email],
     );
+    if (result.rows.length !== 1) {
+      throw new InvitationRejectedError();
+    }
+
     const invitation = result.rows[0];
 
     if (
-      !invitation ||
       (invitation.accepted_subject !== null &&
         invitation.accepted_subject !== identity.subject) ||
       (invitation.accepted_subject === null &&
