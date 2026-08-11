@@ -1,6 +1,6 @@
 # Evidence-First Book Summarization System
 
-Status: Approved design
+Status: Superseded by `2026-08-11-nestjs-python-service-architecture.md`
 Date: 2026-08-05
 
 ## 1. Summary
