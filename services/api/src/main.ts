@@ -26,7 +26,7 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
 
 async function start(): Promise<void> {
   const app = await bootstrap();
-  const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+  const port = Number.parseInt(process.env.PORT ?? "3001", 10);
 
   await app.listen({ host: "0.0.0.0", port });
 }

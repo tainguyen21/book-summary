@@ -1,4 +1,4 @@
-name: CI
+name: Verify
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [master]
 
 jobs:
-  smoke:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,15 @@ jobs:
           cache: pnpm
       - uses: astral-sh/setup-uv@v6
       - run: pnpm install --frozen-lockfile
-      - run: uv sync --project services/backend
+      - run: pnpm --dir apps/web lint
+      - run: pnpm --dir apps/web build
+      - run: pnpm --dir services/api lint
+      - run: pnpm --dir services/api build
+      - run: pnpm --dir services/api format:check
+      - run: uv sync --project services/data --locked
+      - run: uv run --project services/data ruff check services/data
+      - run: uv run --project services/data python -m compileall -q services/data/src
       - run: docker compose config
-      - run: pnpm --dir apps/web test
-      - run: uv run --project services/backend pytest services/backend/tests/test_package_import.py -v
+      - run: docker compose up -d postgres
+      - run: ./infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise
+        shell: pwsh

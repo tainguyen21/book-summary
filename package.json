@@ -3,8 +3,12 @@
   "private": true,
   "packageManager": "pnpm@11.21.0",
   "scripts": {
-    "test": "pnpm --dir apps/web test",
-    "lint": "pnpm --dir apps/web lint",
-    "dev:web": "pnpm --dir apps/web dev"
+    "build:api": "pnpm --dir services/api build",
+    "compile:data": "uv run --project services/data python -m compileall -q services/data/src",
+    "dev:api": "pnpm --dir services/api start:dev",
+    "dev:web": "pnpm --dir apps/web dev",
+    "lint:api": "pnpm --dir services/api lint",
+    "lint:web": "pnpm --dir apps/web lint",
+    "migrate:local": "powershell -File infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise"
   }
 }

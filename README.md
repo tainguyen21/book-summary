@@ -1,6 +1,7 @@
 # Bookwise
 
-Evidence-first, private book summarization.
+Evidence-first, private book summarization with a NestJS application backend
+and a private Python processing service.
 
 ## Local development
 
@@ -8,13 +9,18 @@ Copy `.env.example` to `.env`, then run:
 
 ```bash
 pnpm install
-uv sync --project services/backend
+uv sync --project services/data
 docker compose up -d
+pnpm run migrate:local
 ```
 
-Run the smoke checks with:
+Run the development services with:
 
 ```bash
-pnpm --dir apps/web test
-uv run --project services/backend pytest services/backend/tests/test_package_import.py -v
+pnpm run dev:web
+pnpm run dev:api
+uv run --project services/data python -m bookwise_data.workers.main
 ```
+
+NestJS listens on port `3001`; the Next.js app reads its public API URL from
+`NEXT_PUBLIC_API_URL`.

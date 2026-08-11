@@ -1,1 +1,0 @@
-"""Bookwise backend package."""
