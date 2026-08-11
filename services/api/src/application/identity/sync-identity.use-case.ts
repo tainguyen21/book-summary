@@ -13,7 +13,7 @@ export class SyncIdentityUseCase {
   async execute(token: string): Promise<AuthPrincipal> {
     const identity = await this.tokenVerifier.verify(token);
 
-    return this.userRepository.syncInvitedIdentity(identity);
+    return this.userRepository.syncIdentity(identity);
   }
 }
 

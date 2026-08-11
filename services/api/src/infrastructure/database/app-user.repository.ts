@@ -1,17 +1,11 @@
 import { Pool, type PoolClient } from "pg";
 
 import {
-  InvitationRejectedError,
+  IdentityRejectedError,
   type AuthPrincipal,
   type OidcIdentity,
   type UserRepository,
 } from "../../domain/identity/auth-principal";
-
-interface InvitationRow {
-  id: string;
-  expires_at: Date;
-  accepted_subject: string | null;
-}
 
 interface UserRow {
   id: string;
@@ -24,26 +18,18 @@ interface UserRow {
 export class AppUserRepository implements UserRepository {
   constructor(private readonly pool: Pool) {}
 
-  async syncInvitedIdentity(identity: OidcIdentity): Promise<AuthPrincipal> {
+  async syncIdentity(identity: OidcIdentity): Promise<AuthPrincipal> {
     const client = await this.pool.connect();
 
     try {
       await client.query("BEGIN");
-      const invitation = await this.lockInvitation(client, identity);
+      await this.lockIdentityKeys(client, identity);
       const user = await this.syncUser(client, identity);
 
       if (!user.is_active) {
-        throw new InvitationRejectedError();
+        throw new IdentityRejectedError();
       }
 
-      await client.query(
-        `UPDATE app.invitations
-         SET accepted_at = COALESCE(accepted_at, now()),
-             accepted_subject = COALESCE(accepted_subject, $2),
-             updated_at = now()
-         WHERE id = $1`,
-        [invitation.id, identity.subject],
-      );
       await client.query("COMMIT");
 
       return {
@@ -59,33 +45,18 @@ export class AppUserRepository implements UserRepository {
     }
   }
 
-  private async lockInvitation(
+  private async lockIdentityKeys(
     client: PoolClient,
     identity: OidcIdentity,
-  ): Promise<InvitationRow> {
-    const result = await client.query<InvitationRow>(
-      `SELECT id, expires_at, accepted_subject
-       FROM app.invitations
-       WHERE lower(email) = $1
-       FOR UPDATE`,
-      [identity.email],
-    );
-    if (result.rows.length !== 1) {
-      throw new InvitationRejectedError();
+  ): Promise<void> {
+    const lockKeys = [
+      `email:${identity.email}`,
+      `subject:${identity.subject}`,
+    ].sort();
+
+    for (const key of lockKeys) {
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [key]);
     }
-
-    const invitation = result.rows[0];
-
-    if (
-      (invitation.accepted_subject !== null &&
-        invitation.accepted_subject !== identity.subject) ||
-      (invitation.accepted_subject === null &&
-        invitation.expires_at.getTime() <= Date.now())
-    ) {
-      throw new InvitationRejectedError();
-    }
-
-    return invitation;
   }
 
   private async syncUser(
@@ -101,7 +72,7 @@ export class AppUserRepository implements UserRepository {
     );
 
     if (existing.rows.length > 1) {
-      throw new InvitationRejectedError();
+      throw new IdentityRejectedError();
     }
 
     const user = existing.rows[0];
@@ -111,7 +82,7 @@ export class AppUserRepository implements UserRepository {
     }
 
     if (user.oidc_subject !== null && user.oidc_subject !== identity.subject) {
-      throw new InvitationRejectedError();
+      throw new IdentityRejectedError();
     }
 
     const updated = await client.query<UserRow>(

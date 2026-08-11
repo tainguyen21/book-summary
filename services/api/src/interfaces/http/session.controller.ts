@@ -8,8 +8,8 @@ import {
 } from "@nestjs/common";
 
 import {
+  IdentityRejectedError,
   InvalidTokenError,
-  InvitationRejectedError,
   type AuthPrincipal,
 } from "../../domain/identity/auth-principal";
 import {
@@ -31,7 +31,7 @@ export class SessionController {
     try {
       return await this.syncIdentity.execute(this.bearerToken(authorization));
     } catch (error) {
-      if (error instanceof InvitationRejectedError) {
+      if (error instanceof IdentityRejectedError) {
         throw new ForbiddenException(error.message);
       }
 

@@ -32,7 +32,7 @@ export class OidcTokenVerifier implements TokenVerifier {
       const email = this.normalizeEmail(payload.email);
       const exp = payload.exp;
 
-      if (payload.email_verified === false) {
+      if (payload.email_verified !== true) {
         throw new InvalidTokenError();
       }
 

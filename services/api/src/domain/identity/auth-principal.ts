@@ -14,7 +14,7 @@ export interface TokenVerifier {
 }
 
 export interface UserRepository {
-  syncInvitedIdentity(identity: OidcIdentity): Promise<AuthPrincipal>;
+  syncIdentity(identity: OidcIdentity): Promise<AuthPrincipal>;
 }
 
 export const TOKEN_VERIFIER = Symbol("TokenVerifier");
@@ -26,8 +26,8 @@ export class InvalidTokenError extends Error {
   }
 }
 
-export class InvitationRejectedError extends Error {
+export class IdentityRejectedError extends Error {
   constructor() {
-    super("The identity does not have an active invitation.");
+    super("The user account is unavailable.");
   }
 }
