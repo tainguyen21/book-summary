@@ -4,8 +4,12 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { config as loadEnvironment } from "dotenv";
+import { resolve } from "node:path";
 
 import { AppModule } from "./app.module";
+
+loadEnvironment({ path: resolve(__dirname, "../../../.env"), quiet: true });
 
 export async function bootstrap(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
