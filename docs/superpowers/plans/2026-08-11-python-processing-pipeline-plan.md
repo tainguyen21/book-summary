@@ -75,7 +75,7 @@ git commit -m "feat: add Python processing command worker"
 - Create: `services/data/src/bookwise_data/infrastructure/parsers/docx.py`
 - Create: `services/data/src/bookwise_data/infrastructure/parsers/text.py`
 - Create: `services/data/src/bookwise_data/infrastructure/storage/object-storage.py`
-- Modify: `infrastructure/database/migrations/003_create_data_foundation.sql`
+- Create: `infrastructure/database/migrations/003_create_data_ingestion.sql`
 
 **Interfaces:**
 - Produces: `data.source_documents`, `data.source_spans`, and
@@ -116,7 +116,7 @@ git commit -m "feat: add Python book ingestion"
 - Create: `services/data/src/bookwise_data/application/build_embeddings.py`
 - Create: `services/data/src/bookwise_data/infrastructure/providers/model-provider.py`
 - Create: `services/data/src/bookwise_data/infrastructure/database/generated-summary-repository.py`
-- Modify: `infrastructure/database/migrations/003_create_data_foundation.sql`
+- Create: `infrastructure/database/migrations/004_create_data_generation.sql`
 
 **Interfaces:**
 - Produces: immutable `data.generated_summaries`.

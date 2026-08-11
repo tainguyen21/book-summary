@@ -30,7 +30,6 @@ storage, Redis notifications.
 - Create: `services/api/src/infrastructure/identity/oidc-token-verifier.ts`
 - Create: `services/api/src/infrastructure/database/app-user.repository.ts`
 - Create: `services/api/src/interfaces/http/session.controller.ts`
-- Create: `infrastructure/database/migrations/004_remove_app_invitations.sql`
 
 **Interfaces:**
 - Produces: `POST /v1/session/sync`.
@@ -55,24 +54,17 @@ one transaction. Reject inconsistent subject-to-email matches or inactive
 users. Never create a library, book, summary, or other user content while
 provisioning the identity.
 
-- [ ] **Step 4: Retire invitation-based access state**
-
-Add `004_remove_app_invitations.sql` to drop `app.invitations`. Do not modify
-the already-applied foundation migration `002_create_app_foundation.sql`.
-Existing installations must advance through the new migration; fresh
-installations apply both migrations in lexical order.
-
-- [ ] **Step 5: Verify manually**
+- [ ] **Step 4: Verify manually**
 
 Run NestJS locally with configured OIDC settings. Send a valid bearer token for
 a new identity and confirm that `app.users` receives one row with no related
 library or book rows. Send the same token again and confirm it returns the same
 principal. Send an invalid token and confirm the request is rejected.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add services/api infrastructure/database/migrations
+git add services/api
 git commit -m "feat: add NestJS public identity provisioning"
 ```
 
@@ -86,7 +78,6 @@ git commit -m "feat: add NestJS public identity provisioning"
 - Create: `services/api/src/infrastructure/database/book.repository.ts`
 - Create: `services/api/src/infrastructure/database/processing-command.repository.ts`
 - Create: `services/api/src/interfaces/http/books.controller.ts`
-- Modify: `infrastructure/database/migrations/002_create_app_foundation.sql`
 
 **Interfaces:**
 - Produces: `POST /v1/books/uploads`.
@@ -129,7 +120,7 @@ git commit -m "feat: add NestJS private book uploads"
 - Create: `services/api/src/application/books/get-book-status.use-case.ts`
 - Create: `services/api/src/infrastructure/database/book-read.repository.ts`
 - Create: `services/api/src/interfaces/http/library.controller.ts`
-- Create: `infrastructure/database/migrations/005_create_app_data_projections.sql`
+- Create: `infrastructure/database/migrations/002_create_app_data_projections.sql`
 
 **Interfaces:**
 - Produces: `GET /v1/books`.

@@ -13,7 +13,7 @@ function Invoke-DatabaseQuery {
     param([string]$Query)
 
     if ($useDocker) {
-        $result = & docker compose exec -T postgres psql -U bookwise -d bookwise -Atc $Query
+        $result = & docker compose exec -T postgres psql "--dbname=$DatabaseUrl" -Atc $Query
     } else {
         $result = & $psql.Source "--dbname=$DatabaseUrl" -Atc $Query
     }
@@ -29,7 +29,7 @@ function Invoke-DatabaseScript {
     param([string]$Script)
 
     if ($useDocker) {
-        $Script | docker compose exec -T postgres psql -U bookwise -d bookwise -v ON_ERROR_STOP=1
+        $Script | docker compose exec -T postgres psql "--dbname=$DatabaseUrl" -v ON_ERROR_STOP=1
     } else {
         $Script | & $psql.Source "--dbname=$DatabaseUrl" -v ON_ERROR_STOP=1
     }
@@ -73,7 +73,7 @@ foreach ($file in $migrationFiles) {
             Write-Host "Skipping applied migration $version"
             continue
         }
-    } elseif ($file.Name -ne "001_create_service_schemas.sql") {
+    } elseif ($file.Name -ne "001_create_initial_schema.sql") {
         throw "The first migration must create public.schema_migrations."
     }
 

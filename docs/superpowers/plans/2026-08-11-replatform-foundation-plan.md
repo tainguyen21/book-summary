@@ -5,8 +5,8 @@
 > checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Establish a clean NestJS application service, a clean Python
-processing service, and one central SQL migration history with PostgreSQL
-schema ownership.
+processing service, and one fresh central SQL migration baseline with
+PostgreSQL schema ownership.
 
 **Architecture:** NestJS exposes the public API through Fastify. Python runs
 private command workers. Both services map PostgreSQL records through
@@ -121,9 +121,7 @@ git commit -m "feat: add Python processing service shell"
 ### Task 3: Establish central SQL migrations and schema roles
 
 **Files:**
-- Create: `infrastructure/database/migrations/001_create_service_schemas.sql`
-- Create: `infrastructure/database/migrations/002_create_app_foundation.sql`
-- Create: `infrastructure/database/migrations/003_create_data_foundation.sql`
+- Create: `infrastructure/database/migrations/001_create_initial_schema.sql`
 - Create: `infrastructure/database/roles/app_rw.sql`
 - Create: `infrastructure/database/roles/data_rw.sql`
 - Create: `infrastructure/database/roles/migration_admin.sql`
@@ -135,31 +133,29 @@ git commit -m "feat: add Python processing service shell"
 - Produces: `app_rw`, `data_rw`, and `migration_admin` roles.
 - Produces: `migrate.ps1 -DatabaseUrl <url>`.
 
-- [ ] **Step 1: Define the migration ledger and schemas**
+- [ ] **Step 1: Define the fresh migration baseline**
 
-`001_create_service_schemas.sql` creates `schema_migrations`, `app`, and
+`001_create_initial_schema.sql` creates `schema_migrations`, `app`, and
 `data`. The ledger has `version`, `applied_at`, and `checksum` columns.
 
-- [ ] **Step 2: Define role privileges**
+- [ ] **Step 2: Define role privileges and foundation records**
 
 Grant `app_rw` usage and DML only in `app`, with select-only access to approved
 `data` views. Grant `data_rw` usage and DML only in `data`, with select-only
 access to required `app` books and commands.
 
-- [ ] **Step 3: Define foundation records**
-
-Create `app.users`, `app.invitations`, `app.books`, `app.book_objects`, and
+Create `app.users`, `app.books`, `app.book_objects`, and
 `app.processing_commands`. Create `data.processing_runs`,
 `data.processing_events`, and `data.generated_summaries`. Every owner-scoped
 table includes `owner_id`, UUID primary keys, and timezone-aware timestamps.
 
-- [ ] **Step 4: Implement the migration runner**
+- [ ] **Step 3: Implement the migration runner**
 
 `migrate.ps1` applies lexically ordered SQL files in one transaction per file,
 stores its SHA-256 checksum in `schema_migrations`, and stops if an applied
 file checksum differs.
 
-- [ ] **Step 5: Verify the database contract**
+- [ ] **Step 4: Verify the database contract**
 
 Run:
 
@@ -169,7 +165,7 @@ powershell -File infrastructure/database/migrate.ps1 -DatabaseUrl <local-url>
 docker compose exec -T postgres psql -U bookwise -d bookwise -c "\dn"
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add infrastructure/database docker-compose.yml

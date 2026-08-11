@@ -244,9 +244,11 @@ docs/
 ```
 
 Database migrations are language-neutral SQL files under
-`infrastructure/database/migrations`. The migration runner is the only writer
-of schema definitions. NestJS and Python map their owned schemas but do not
-generate independent migration histories.
+`infrastructure/database/migrations`. The fresh baseline is
+`001_create_initial_schema.sql`; later work adds new, lexically ordered files
+without modifying that applied baseline. The migration runner is the only
+writer of schema definitions. NestJS and Python map their owned schemas but do
+not generate independent migration histories.
 
 The current FastAPI application and Alembic foundation are provisional work
 from the superseded design. The replacement implementation plan must remove or
