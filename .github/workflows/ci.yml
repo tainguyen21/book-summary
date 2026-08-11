@@ -29,5 +29,5 @@ jobs:
       - run: uv run --project services/data python -m compileall -q services/data/src
       - run: docker compose config
       - run: docker compose up -d postgres
-      - run: ./infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise
+      - run: ./infrastructure/database/migrate.ps1 -DatabaseUrl postgresql://bookwise:bookwise@localhost:5432/bookwise_next
         shell: pwsh
