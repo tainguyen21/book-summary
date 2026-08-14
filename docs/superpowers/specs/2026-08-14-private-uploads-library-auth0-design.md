@@ -150,6 +150,7 @@ Response:
 {
   "bookId": "uuid",
   "objectId": "uuid",
+  "contentType": "application/pdf",
   "uploadUrl": "short-lived presigned URL",
   "expiresAt": "2026-08-14T12:00:00Z"
 }
