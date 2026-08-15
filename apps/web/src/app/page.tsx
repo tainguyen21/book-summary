@@ -14,7 +14,11 @@ export default async function HomePage() {
     );
   }
 
-  const email = session.user.email ?? session.user.name ?? "Signed in user";
+  const email = session.user.email?.trim();
+
+  if (!email) {
+    throw new Error("Authenticated user email is required.");
+  }
 
   return (
     <main>
