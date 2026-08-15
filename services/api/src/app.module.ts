@@ -11,6 +11,7 @@ import {
 } from "./application/identity/sync-identity.use-case";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
 import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier";
+import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-principal";
 import { SessionController } from "./interfaces/http/session.controller";
 
 const APP_DATABASE_POOL = Symbol("AppDatabasePool");
@@ -56,6 +57,7 @@ function requiredEnvironment(name: string): string {
       ) => new SyncIdentityUseCase(tokenVerifier, userRepository),
       inject: [TOKEN_VERIFIER, USER_REPOSITORY],
     },
+    AuthenticatedPrincipalGuard,
   ],
 })
 export class AppModule {}
