@@ -1,24 +1,40 @@
+"use client";
+
+import { useAuth0 } from "@auth0/auth0-react";
 import { AccountMenu } from "../components/auth/account-menu";
-import { auth0 } from "../lib/auth0";
 
-export default async function HomePage() {
-  const session = await auth0.getSession();
+export default function HomePage() {
+  const { error, isAuthenticated, isLoading, loginWithRedirect, user } =
+    useAuth0();
 
-  if (!session) {
+  if (isLoading) {
+    return <main>Loading...</main>;
+  }
+
+  if (!isAuthenticated) {
     return (
       <main>
         <h1>Bookwise</h1>
         <p>Your private library is one sign-in away.</p>
-        <a href="/auth/login">Sign in</a>
+        {error && <p>Error: {error.message}</p>}
+        <button type="button" onClick={() => loginWithRedirect()}>
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            loginWithRedirect({
+              authorizationParams: { screen_hint: "signup" },
+            })
+          }
+        >
+          Sign up
+        </button>
       </main>
     );
   }
 
-  const email = session.user.email?.trim();
-
-  if (!email) {
-    throw new Error("Authenticated user email is required.");
-  }
+  const email = user?.email?.trim() || user?.name || "Signed in user";
 
   return (
     <main>
