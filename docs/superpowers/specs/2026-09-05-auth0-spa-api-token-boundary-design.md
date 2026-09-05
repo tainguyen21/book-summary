@@ -22,9 +22,15 @@ The web application will:
 - Render connecting, connected, and retryable error states on the
   authenticated home page.
 
-NestJS remains unchanged. Its existing `SessionController`, token verifier,
-identity synchronization use case, and authenticated principal guard already
-provide the required token verification and identity-provisioning boundary.
+NestJS retains its existing `SessionController`, token verifier, identity
+synchronization use case, and authenticated principal guard. The application
+bootstrap adds a narrow CORS policy so the local SPA can reach that established
+boundary:
+
+- Allow only origin `http://localhost:3000`.
+- Allow only `POST` and `OPTIONS` methods.
+- Allow only `authorization` and `content-type` request headers.
+- Do not allow credentials or use a wildcard origin.
 
 ## Architecture
 
@@ -45,6 +51,10 @@ helper, which:
 The access token remains in the Auth0 SDK and request headers only. It is not
 rendered, logged, stored, included in state, or sent to a Next.js route
 handler.
+
+Because the local SPA and API use different origins, the browser preflights
+the bearer-token request. The NestJS CORS policy permits that preflight without
+weakening the API to arbitrary origins or headers.
 
 ## User Experience
 
