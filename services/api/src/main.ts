@@ -17,6 +17,13 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
     new FastifyAdapter(),
   );
 
+  app.enableCors({
+    origin: "http://localhost:3000",
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: ["authorization", "content-type"],
+    credentials: false,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
