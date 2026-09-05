@@ -2,6 +2,7 @@
 
 import { useAuth0 } from "@auth0/auth0-react";
 import { AccountMenu } from "../components/auth/account-menu";
+import { SessionSyncStatus } from "../components/auth/session-sync-status";
 
 export default function HomePage() {
   const { error, isAuthenticated, isLoading, loginWithRedirect, user } =
@@ -40,6 +41,10 @@ export default function HomePage() {
     <main>
       <h1>Your library</h1>
       <AccountMenu email={email} />
+      <SessionSyncStatus
+        key={user?.sub ?? email}
+        identityKey={user?.sub ?? email}
+      />
       <p>Private uploads and saved books will appear here soon.</p>
     </main>
   );
