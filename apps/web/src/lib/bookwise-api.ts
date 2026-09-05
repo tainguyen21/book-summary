@@ -3,8 +3,6 @@
 import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import { z } from "zod";
 
-import { publicConfig } from "./config";
-
 const bookwisePrincipalSchema = z.object({
   userId: z.string().uuid(),
   email: z.string().email(),
@@ -26,6 +24,7 @@ export async function syncBookwiseIdentity(
   getAccessTokenSilently: GetAccessTokenSilently,
 ): Promise<BookwisePrincipal> {
   const token = await getAccessTokenSilently();
+  const { publicConfig } = await import("./config");
   const response = await fetch(
     new URL("/v1/session/sync", publicConfig.NEXT_PUBLIC_API_URL),
     {
