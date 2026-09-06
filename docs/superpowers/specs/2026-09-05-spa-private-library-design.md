@@ -46,9 +46,14 @@ Book objects remain private. NestJS generates each storage key and creates
 The API never returns object keys. The web UI never renders or logs presigned
 URLs or bearer tokens.
 
-MinIO CORS permits only `http://localhost:3000`, `PUT` and `HEAD` methods,
-and the `content-type` request header. It does not permit public reads,
-credentials, wildcard origins, or broad headers.
+The community MinIO server supports CORS through the global
+`MINIO_API_CORS_ALLOW_ORIGIN` setting rather than per-bucket CORS rules. The
+local deployment permits only `http://localhost:3000`; browser upload
+preflights are limited to `PUT`/`HEAD` and the `content-type` request header.
+It does not permit public reads or wildcard origins. MinIO emits its
+credentials response header globally, but Bookwise direct uploads use the
+browser default `withCredentials = false` and MinIO has no browser session
+cookie.
 
 ## Upload Flow
 
@@ -154,8 +159,8 @@ S3_BUCKET
 S3_PRESIGNED_URL_EXPIRY_SECONDS
 ```
 
-Docker Compose adds a one-shot MinIO initialization service that creates the
-private `bookwise` bucket and applies the restrictive CORS policy.
+Docker Compose configures restrictive global MinIO CORS and adds a one-shot
+MinIO initialization service that creates the private `bookwise` bucket.
 
 ## Error Handling
 

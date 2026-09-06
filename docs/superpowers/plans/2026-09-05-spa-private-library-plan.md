@@ -28,9 +28,10 @@ Fastify, PostgreSQL, MinIO/S3, AWS SDK v3, Zod.
   missing and cross-owner books return `404`.
 - Objects stay private; PUT URLs last 600 seconds, contain server-generated
   keys, and require the exact ticket content type.
-- MinIO allows only `http://localhost:3000`, `PUT`/`HEAD`, and
-  `content-type`; it permits no public reads, credentials, wildcards, or
-  broad request headers.
+- Community MinIO allows only `http://localhost:3000` through
+  `MINIO_API_CORS_ALLOW_ORIGIN`; upload preflights allow `PUT`/`HEAD` and
+  `content-type`, with no public reads or wildcard origin. Browser uploads
+  keep the default `XMLHttpRequest.withCredentials = false`.
 - Finalized books remain `queued`; do not implement Python claiming,
   processing, or simulated completion.
 - Do not create or modify automated tests, fixtures, mocks, or test
@@ -44,7 +45,6 @@ Fastify, PostgreSQL, MinIO/S3, AWS SDK v3, Zod.
 ```text
 infrastructure/
   database/migrations/002_create_app_data_projections.sql
-  storage/minio-cors.json
 
 services/api/src/
   application/books/
@@ -83,7 +83,6 @@ apps/web/src/
 - Modify: `services/api/package.json`
 - Modify: `pnpm-lock.yaml`
 - Modify: `docker-compose.yml`
-- Create: `infrastructure/storage/minio-cors.json`
 - Modify: `services/api/src/main.ts`
 
 **Interfaces:**
@@ -101,27 +100,15 @@ pnpm --filter @bookwise/api add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 Expected: `services/api/package.json` lists both packages and
 `pnpm-lock.yaml` reflects the resolved graph.
 
-- [ ] **Step 2: Define the bucket CORS policy**
-
-Create `infrastructure/storage/minio-cors.json`:
-
-```json
-[
-  {
-    "AllowedOrigins": ["http://localhost:3000"],
-    "AllowedMethods": ["PUT", "HEAD"],
-    "AllowedHeaders": ["content-type"],
-    "ExposeHeaders": ["etag"],
-    "MaxAgeSeconds": 3000
-  }
-]
-```
-
-- [ ] **Step 3: Initialize the private bucket in Compose**
+- [ ] **Step 2: Configure global CORS and initialize the private bucket**
 
 Add this service to `docker-compose.yml` beside `minio`:
 
 ```yaml
+  minio:
+    environment:
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:3000
+
   minio-init:
     image: minio/mc:latest
     depends_on:
@@ -131,20 +118,18 @@ Add this service to `docker-compose.yml` beside `minio`:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
       S3_BUCKET: bookwise
-    volumes:
-      - ./infrastructure/storage/minio-cors.json:/config/minio-cors.json:ro
     entrypoint:
       - /bin/sh
       - -c
       - >-
         mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
         && mc mb --ignore-existing "local/$$S3_BUCKET"
-        && mc cors set "local/$$S3_BUCKET" /config/minio-cors.json
 ```
 
-Do not add an anonymous bucket policy.
+Community MinIO does not support per-bucket CORS rules. Do not add an
+anonymous bucket policy.
 
-- [ ] **Step 4: Permit authenticated library GET requests**
+- [ ] **Step 3: Permit authenticated library GET requests**
 
 In `services/api/src/main.ts`, replace the existing `methods` value with:
 
@@ -154,7 +139,7 @@ methods: ["GET", "POST", "OPTIONS"],
 
 Keep the existing fixed origin, allowed headers, and `credentials: false`.
 
-- [ ] **Step 5: Verify storage configuration**
+- [ ] **Step 4: Verify storage configuration**
 
 Run:
 
@@ -167,13 +152,22 @@ docker compose up -d minio minio-init
 docker compose logs minio-init
 ```
 
-Expected: API checks pass, Compose validates, and `minio-init` exits
-successfully after creating/configuring the private bucket.
-
-- [ ] **Step 6: Commit storage setup**
+Expected: API checks pass, Compose validates, `minio-init` exits successfully
+after creating the private bucket, and this preflight returns
+`Access-Control-Allow-Origin: http://localhost:3000`:
 
 ```powershell
-git add services/api/package.json pnpm-lock.yaml docker-compose.yml infrastructure/storage services/api/src/main.ts
+curl.exe -i -sS -X OPTIONS `
+  -H "Origin: http://localhost:3000" `
+  -H "Access-Control-Request-Method: PUT" `
+  -H "Access-Control-Request-Headers: content-type" `
+  http://localhost:9000/bookwise/example
+```
+
+- [ ] **Step 5: Commit storage setup**
+
+```powershell
+git add services/api/package.json pnpm-lock.yaml docker-compose.yml services/api/src/main.ts
 git commit -m "feat: provision private upload storage"
 ```
 
