@@ -74,8 +74,36 @@ export interface BookUploadRepository {
   }): Promise<QueuedProcessingCommand>;
 }
 
+export interface LibraryBook {
+  id: string;
+  title: string;
+  filename: string;
+  bookStatus: string;
+  uploadState: string;
+  createdAt: string;
+  commandStatus?: string;
+}
+
+export interface BookProcessingStatus {
+  bookId: string;
+  bookStatus: string;
+  commandStatus?: string;
+  runStatus?: string;
+  latestEventType?: string;
+  latestEventAt?: string;
+}
+
+export interface BookReadRepository {
+  listLibrary(ownerId: string): Promise<LibraryBook[]>;
+  getProcessingStatus(
+    ownerId: string,
+    bookId: string,
+  ): Promise<BookProcessingStatus | undefined>;
+}
+
 export const OBJECT_STORAGE = Symbol("ObjectStorage");
 export const BOOK_REPOSITORY = Symbol("BookRepository");
+export const BOOK_READ_REPOSITORY = Symbol("BookReadRepository");
 export const PROCESSING_COMMAND_REPOSITORY = Symbol(
   "ProcessingCommandRepository",
 );

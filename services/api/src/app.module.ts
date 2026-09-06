@@ -7,6 +7,7 @@ import {
 } from "./domain/identity/auth-principal";
 import {
   BOOK_REPOSITORY,
+  BOOK_READ_REPOSITORY,
   OBJECT_STORAGE,
   PROCESSING_COMMAND_REPOSITORY,
   type ObjectStorage,
@@ -20,16 +21,26 @@ import {
   FINALIZE_UPLOAD_USE_CASE,
 } from "./application/books/finalize-upload.use-case";
 import {
+  GetBookStatusUseCase,
+  GET_BOOK_STATUS_USE_CASE,
+} from "./application/books/get-book-status.use-case";
+import {
+  ListLibraryUseCase,
+  LIST_LIBRARY_USE_CASE,
+} from "./application/books/list-library.use-case";
+import {
   SyncIdentityUseCase,
   SYNC_IDENTITY_USE_CASE,
 } from "./application/identity/sync-identity.use-case";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
+import { BookReadRepository } from "./infrastructure/database/book-read.repository";
 import { BookRepository } from "./infrastructure/database/book.repository";
 import { ProcessingCommandRepository } from "./infrastructure/database/processing-command.repository";
 import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier";
 import { S3ObjectStorage } from "./infrastructure/storage/s3-object-storage";
 import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-principal";
 import { BooksController } from "./interfaces/http/books.controller";
+import { LibraryController } from "./interfaces/http/library.controller";
 import { SessionController } from "./interfaces/http/session.controller";
 
 const APP_DATABASE_POOL = Symbol("AppDatabasePool");
@@ -55,7 +66,7 @@ function positiveIntegerEnvironment(name: string): number {
 }
 
 @Module({
-  controllers: [SessionController, BooksController],
+  controllers: [SessionController, BooksController, LibraryController],
   providers: [
     {
       provide: APP_DATABASE_POOL,
@@ -88,6 +99,11 @@ function positiveIntegerEnvironment(name: string): number {
         processingCommands: ProcessingCommandRepository,
       ) => new BookRepository(pool, processingCommands),
       inject: [APP_DATABASE_POOL, PROCESSING_COMMAND_REPOSITORY],
+    },
+    {
+      provide: BOOK_READ_REPOSITORY,
+      useFactory: (pool: Pool) => new BookReadRepository(pool),
+      inject: [APP_DATABASE_POOL],
     },
     {
       provide: OBJECT_STORAGE,
@@ -123,6 +139,17 @@ function positiveIntegerEnvironment(name: string): number {
       useFactory: (books: BookRepository, storage: ObjectStorage) =>
         new FinalizeUploadUseCase(books, storage),
       inject: [BOOK_REPOSITORY, OBJECT_STORAGE],
+    },
+    {
+      provide: LIST_LIBRARY_USE_CASE,
+      useFactory: (books: BookReadRepository) => new ListLibraryUseCase(books),
+      inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: GET_BOOK_STATUS_USE_CASE,
+      useFactory: (books: BookReadRepository) =>
+        new GetBookStatusUseCase(books),
+      inject: [BOOK_READ_REPOSITORY],
     },
     AuthenticatedPrincipalGuard,
   ],
