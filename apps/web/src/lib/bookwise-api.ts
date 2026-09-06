@@ -20,18 +20,23 @@ export class BookwiseConnectionError extends Error {
   }
 }
 
-export async function syncBookwiseIdentity(
+export async function bookwiseApi<T>(
   getAccessTokenSilently: GetAccessTokenSilently,
-): Promise<BookwisePrincipal> {
+  path: string,
+  init: RequestInit,
+  schema: z.ZodType<T>,
+): Promise<T> {
   const token = await getAccessTokenSilently();
   const { publicConfig } = await import("./config");
+  const headers = new Headers(init.headers);
+
+  headers.set("authorization", `Bearer ${token}`);
+
   const response = await fetch(
-    new URL("/v1/session/sync", publicConfig.NEXT_PUBLIC_API_URL),
+    new URL(path, publicConfig.NEXT_PUBLIC_API_URL),
     {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
+      ...init,
+      headers,
       cache: "no-store",
     },
   );
@@ -40,13 +45,24 @@ export async function syncBookwiseIdentity(
     throw new BookwiseConnectionError();
   }
 
-  const principal = bookwisePrincipalSchema.safeParse(
+  const result = schema.safeParse(
     await response.json().catch(() => undefined),
   );
 
-  if (!principal.success) {
+  if (!result.success) {
     throw new BookwiseConnectionError();
   }
 
-  return principal.data;
+  return result.data;
+}
+
+export async function syncBookwiseIdentity(
+  getAccessTokenSilently: GetAccessTokenSilently,
+): Promise<BookwisePrincipal> {
+  return bookwiseApi(
+    getAccessTokenSilently,
+    "/v1/session/sync",
+    { method: "POST" },
+    bookwisePrincipalSchema,
+  );
 }
