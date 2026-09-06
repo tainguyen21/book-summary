@@ -32,9 +32,67 @@ export interface StoredObjectHead {
   etag?: string;
 }
 
+export interface ObjectStorage {
+  createPutUrl(input: {
+    objectKey: string;
+    contentType: string;
+    expiresInSeconds: number;
+  }): Promise<{ uploadUrl: string; expiresAt: string }>;
+  head(objectKey: string): Promise<StoredObjectHead | undefined>;
+}
+
+export interface UploadTicket {
+  bookId: string;
+  objectId: string;
+  contentType: string;
+  uploadUrl: string;
+  expiresAt: string;
+}
+
+export interface FinalizableBookUpload extends PendingBookUpload {
+  bookStatus: string;
+  objectState: string;
+  commandId?: string;
+  commandStatus?: string;
+}
+
+export interface QueuedProcessingCommand {
+  commandId: string;
+  commandStatus: "queued";
+}
+
+export interface BookUploadRepository {
+  createPendingUpload(input: CreateUploadInput): Promise<PendingBookUpload>;
+  findOwnedUploadForFinalization(input: {
+    ownerId: string;
+    bookId: string;
+  }): Promise<FinalizableBookUpload | undefined>;
+  finalizeOwnedUpload(input: {
+    ownerId: string;
+    bookId: string;
+    head: StoredObjectHead;
+  }): Promise<QueuedProcessingCommand>;
+}
+
+export const OBJECT_STORAGE = Symbol("ObjectStorage");
+export const BOOK_REPOSITORY = Symbol("BookRepository");
+export const PROCESSING_COMMAND_REPOSITORY = Symbol(
+  "ProcessingCommandRepository",
+);
+
 export class InvalidUploadInputError extends Error {
   readonly publicMessage: string;
   readonly statusCode = 422;
+
+  constructor(publicMessage: string) {
+    super(publicMessage);
+    this.publicMessage = publicMessage;
+  }
+}
+
+export class UploadConflictError extends Error {
+  readonly publicMessage: string;
+  readonly statusCode = 409;
 
   constructor(publicMessage: string) {
     super(publicMessage);
