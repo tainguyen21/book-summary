@@ -16,7 +16,7 @@ interface PendingUploadRow {
   object_id: string;
   object_key: string;
   content_type: string;
-  size_bytes: number;
+  size_bytes: string;
 }
 
 interface FinalizableUploadRow extends PendingUploadRow {
@@ -276,7 +276,7 @@ export class BookRepository implements BookUploadRepository {
   ): void {
     if (
       head.contentType.trim().toLowerCase() !== upload.content_type ||
-      head.sizeBytes !== upload.size_bytes
+      head.sizeBytes !== Number(upload.size_bytes)
     ) {
       throw new UploadConflictError(
         "The uploaded file does not match the upload request.",
@@ -290,7 +290,7 @@ export class BookRepository implements BookUploadRepository {
       objectId: row.object_id,
       objectKey: row.object_key,
       contentType: row.content_type,
-      sizeBytes: row.size_bytes,
+      sizeBytes: Number(row.size_bytes),
     };
   }
 
