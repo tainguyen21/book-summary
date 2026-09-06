@@ -3,6 +3,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { AccountMenu } from "../components/auth/account-menu";
 import { SessionSyncStatus } from "../components/auth/session-sync-status";
+import { LibraryScreen } from "../components/library/library-screen";
 
 export default function HomePage() {
   const { error, isAuthenticated, isLoading, loginWithRedirect, user } =
@@ -45,7 +46,7 @@ export default function HomePage() {
         key={user?.sub ?? email}
         identityKey={user?.sub ?? email}
       />
-      <p>Private uploads and saved books will appear here soon.</p>
+      <LibraryScreen />
     </main>
   );
 }
