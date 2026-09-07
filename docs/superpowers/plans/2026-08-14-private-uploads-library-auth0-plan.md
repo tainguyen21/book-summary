@@ -1,5 +1,10 @@
 # Private Uploads, Library, and Auth0 Implementation Plan
 
+> **Superseded:** Do not execute this plan. It depends on the server-session
+> `@auth0/nextjs-auth0` BFF architecture, which was replaced by the Auth0 React
+> SPA integration in `2026-09-03-auth0-react-spa-migration-design.md`. Retain
+> its upload and library requirements as reference material only.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:subagent-driven-development` (recommended) or
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use

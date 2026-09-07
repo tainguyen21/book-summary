@@ -3,6 +3,11 @@
 Evidence-first, private book summarization with a NestJS application backend
 and a private Python processing service.
 
+## Project timeline
+
+See the [project timeline](docs/project-timeline.md) for completed work, the
+current private-library delivery slice, and upcoming milestones.
+
 ## Local development
 
 Copy `.env.example` to `.env`, then run:

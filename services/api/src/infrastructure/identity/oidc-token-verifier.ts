@@ -6,6 +6,9 @@ import {
   type TokenVerifier,
 } from "../../domain/identity/auth-principal";
 
+const AUTH0_EMAIL_CLAIM = "https://bookwise.local/email";
+const AUTH0_EMAIL_VERIFIED_CLAIM = "https://bookwise.local/email_verified";
+
 interface OidcDiscoveryDocument {
   issuer: string;
   jwks_uri: string;
@@ -29,10 +32,10 @@ export class OidcTokenVerifier implements TokenVerifier {
       });
 
       const subject = this.requiredClaim(payload.sub);
-      const email = this.normalizeEmail(payload.email);
+      const email = this.normalizeEmail(payload[AUTH0_EMAIL_CLAIM]);
       const exp = payload.exp;
 
-      if (payload.email_verified !== true) {
+      if (payload[AUTH0_EMAIL_VERIFIED_CLAIM] !== true) {
         throw new InvalidTokenError();
       }
 

@@ -2,9 +2,9 @@
   "name": "@bookwise/web",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/run-next-with-root-env.mjs dev --port 3000",
+    "build": "node scripts/run-next-with-root-env.mjs build",
+    "start": "node scripts/run-next-with-root-env.mjs start",
     "test": "vitest run",
     "lint": "eslint ."
   },

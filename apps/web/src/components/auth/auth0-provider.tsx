@@ -3,14 +3,16 @@
 import { Auth0Provider } from "@auth0/auth0-react";
 import type { ReactNode } from "react";
 
+import { publicAuth0Config } from "../../lib/auth0-config";
+
 export function BookwiseAuth0Provider({ children }: { children: ReactNode }) {
   return (
     <Auth0Provider
-      domain="dev-p8c5tpe1ghv8qtxf.us.auth0.com"
-      clientId="U3USwzKKexcx7Y2FkWVTRznXrK7dTdaq"
+      domain={publicAuth0Config.NEXT_PUBLIC_AUTH0_DOMAIN}
+      clientId={publicAuth0Config.NEXT_PUBLIC_AUTH0_CLIENT_ID}
       authorizationParams={{
-        audience: "https://api.bookwise.local",
-        redirect_uri: "http://localhost:3000",
+        audience: publicAuth0Config.NEXT_PUBLIC_AUTH0_AUDIENCE,
+        redirect_uri: publicAuth0Config.NEXT_PUBLIC_AUTH0_REDIRECT_URI,
       }}
     >
       {children}
