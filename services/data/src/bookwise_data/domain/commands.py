@@ -4,15 +4,21 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 
-class ProcessingRunStatus(StrEnum):
-    """Python-owned states for a processing run."""
+class ProcessingCommandStatus(StrEnum):
+    """Immutable application-command states read from the app schema."""
 
     QUEUED = "queued"
+
+
+class ProcessingRunStatus(StrEnum):
+    """Python-owned states supported by data.processing_runs."""
+
     RUNNING = "running"
     COMPLETED = "completed"
     RETRYABLE_FAILED = "retryable_failed"
@@ -29,8 +35,11 @@ class ProcessingEventType(StrEnum):
     COMMAND_FAILED = "command_failed"
 
 
-_ALLOWED_TRANSITIONS: dict[ProcessingRunStatus, frozenset[ProcessingRunStatus]] = {
-    ProcessingRunStatus.QUEUED: frozenset(
+_ALLOWED_TRANSITIONS: dict[
+    ProcessingCommandStatus | ProcessingRunStatus,
+    frozenset[ProcessingRunStatus],
+] = {
+    ProcessingCommandStatus.QUEUED: frozenset(
         {
             ProcessingRunStatus.RUNNING,
             ProcessingRunStatus.RETRYABLE_FAILED,
@@ -46,10 +55,10 @@ _ALLOWED_TRANSITIONS: dict[ProcessingRunStatus, frozenset[ProcessingRunStatus]] 
 
 
 def can_transition(
-    current: ProcessingRunStatus,
+    current: ProcessingCommandStatus | ProcessingRunStatus,
     target: ProcessingRunStatus,
 ) -> bool:
-    """Return whether a processing run can move to the requested state."""
+    """Return whether a request or data run can move to the requested state."""
 
     return target in _ALLOWED_TRANSITIONS.get(current, frozenset())
 
@@ -65,6 +74,20 @@ class ClaimedCommand:
     payload: Mapping[str, Any]
     processing_version: str
     run_id: UUID
+    lease_started_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class ProcessingStatus:
+    """The application-facing processing projection for one command."""
+
+    book_id: UUID
+    owner_id: UUID
+    command_id: UUID
+    command_status: str
+    run_status: ProcessingRunStatus | None
+    latest_event_type: str | None
+    latest_event_at: datetime | None
 
 
 @dataclass(frozen=True, slots=True)

@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from contextlib import AbstractContextManager
 from typing import Protocol
+from uuid import UUID
 
 from bookwise_data.application.emit_event import EmitEvent
 from bookwise_data.domain.commands import (
     ClaimedCommand,
     ProcessingEvent,
     ProcessingEventType,
+    ProcessingRunStatus,
+    ProcessingStatus,
 )
 
 
@@ -39,6 +42,20 @@ class ProcessingCommandRepository(Protocol):
         command: ClaimedCommand,
     ) -> bool:
         """Move a running command's data run to retryable_failed."""
+
+    def heartbeat(
+        self,
+        transaction: object,
+        command: ClaimedCommand,
+    ) -> bool:
+        """Renew a running command's active lease."""
+
+    def read_status(
+        self,
+        transaction: object,
+        command_id: UUID,
+    ) -> ProcessingStatus | None:
+        """Read the application-facing processing status projection."""
 
 
 class ClaimCommand:
@@ -80,15 +97,21 @@ class ClaimCommand:
                         },
                     ),
                 )
+                self._require_projected_status(
+                    transaction,
+                    command,
+                    ProcessingRunStatus.RUNNING,
+                    ProcessingEventType.STAGE_STARTED,
+                )
 
         return commands
 
-    def complete(self, command: ClaimedCommand) -> None:
+    def complete(self, command: ClaimedCommand) -> ProcessingStatus | None:
         """Mark successfully handled work as completed and emit its event."""
 
         with self._repository.transaction() as transaction:
             if not self._repository.complete(transaction, command):
-                return
+                return None
 
             self._emit_event.execute(
                 transaction,
@@ -101,17 +124,23 @@ class ClaimCommand:
                     },
                 ),
             )
+            return self._require_projected_status(
+                transaction,
+                command,
+                ProcessingRunStatus.COMPLETED,
+                ProcessingEventType.STAGE_COMPLETED,
+            )
 
     def fail_retryably(
         self,
         command: ClaimedCommand,
         error: Exception,
-    ) -> None:
+    ) -> ProcessingStatus | None:
         """Record a retryable failure without changing the immutable request."""
 
         with self._repository.transaction() as transaction:
             if not self._repository.fail_retryably(transaction, command):
-                return
+                return None
 
             self._emit_event.execute(
                 transaction,
@@ -120,11 +149,42 @@ class ClaimCommand:
                     ProcessingEventType.COMMAND_FAILED,
                     {
                         "run_id": str(command.run_id),
-                        "error_type": type(error).__name__,
-                        "message": str(error),
+                        "error_code": _error_code(error),
+                        "message": "Retryable processing failure.",
                     },
                 ),
             )
+            return self._require_projected_status(
+                transaction,
+                command,
+                ProcessingRunStatus.RETRYABLE_FAILED,
+                ProcessingEventType.COMMAND_FAILED,
+            )
+
+    def heartbeat(self, command: ClaimedCommand) -> bool:
+        """Renew the command's current lease while external work is active."""
+
+        with self._repository.transaction() as transaction:
+            return self._repository.heartbeat(transaction, command)
+
+    def _require_projected_status(
+        self,
+        transaction: object,
+        command: ClaimedCommand,
+        expected_run_status: ProcessingRunStatus,
+        expected_event_type: ProcessingEventType,
+    ) -> ProcessingStatus:
+        status = self._repository.read_status(transaction, command.id)
+        if (
+            status is None
+            or status.run_status != expected_run_status
+            or status.latest_event_type != expected_event_type.value
+        ):
+            raise RuntimeError(
+                "processing status projection did not reflect the state change"
+            )
+
+        return status
 
     @staticmethod
     def _event_for(
@@ -140,3 +200,13 @@ class ClaimCommand:
             event_type=event_type,
             payload=payload,
         )
+
+
+def _error_code(error: Exception) -> str:
+    """Convert an exception type to a bounded, non-sensitive event code."""
+
+    normalized = "".join(
+        character.lower() if character.isalnum() else "_"
+        for character in type(error).__name__
+    ).strip("_")
+    return normalized[:64] or "processing_error"

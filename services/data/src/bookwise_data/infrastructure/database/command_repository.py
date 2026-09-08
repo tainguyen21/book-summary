@@ -6,11 +6,18 @@ import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import text
 from sqlalchemy.engine import Connection, Engine
 
-from bookwise_data.domain.commands import ClaimedCommand
+from bookwise_data.domain.commands import (
+    ClaimedCommand,
+    ProcessingRunStatus,
+    ProcessingStatus,
+)
+
+DEFAULT_CLAIM_LEASE_SECONDS = 300
 
 _CLAIM_CANDIDATES = text(
     """
@@ -26,7 +33,16 @@ _CLAIM_CANDIDATES = text(
         ON run.command_id = command.id
         AND run.processing_version = command.processing_version
     WHERE command.status = 'queued'
-        AND (run.id IS NULL OR run.status = 'retryable_failed')
+        AND (
+            run.id IS NULL
+            OR run.status = 'retryable_failed'
+            OR (
+                run.status = 'running'
+                AND run.updated_at < (
+                    clock_timestamp() - make_interval(secs => :lease_seconds)
+                )
+            )
+        )
         AND NOT EXISTS (
             SELECT 1
             FROM data.processing_runs AS completed_run
@@ -66,8 +82,8 @@ _CREATE_OR_REOPEN_RUN = text(
         started_at = clock_timestamp(),
         completed_at = NULL,
         updated_at = clock_timestamp()
-    WHERE data.processing_runs.status = 'retryable_failed'
-    RETURNING id
+    WHERE data.processing_runs.status IN ('retryable_failed', 'running')
+    RETURNING id, started_at
     """
 )
 
@@ -81,6 +97,7 @@ _COMPLETE_RUN = text(
     WHERE id = :run_id
         AND command_id = :command_id
         AND processing_version = :processing_version
+        AND started_at = :lease_started_at
         AND status = 'running'
     RETURNING id
     """
@@ -95,8 +112,37 @@ _FAIL_RUN_RETRYABLY = text(
     WHERE id = :run_id
         AND command_id = :command_id
         AND processing_version = :processing_version
+        AND started_at = :lease_started_at
         AND status = 'running'
     RETURNING id
+    """
+)
+
+_HEARTBEAT_RUN = text(
+    """
+    UPDATE data.processing_runs
+    SET updated_at = clock_timestamp()
+    WHERE id = :run_id
+        AND command_id = :command_id
+        AND processing_version = :processing_version
+        AND started_at = :lease_started_at
+        AND status = 'running'
+    RETURNING id
+    """
+)
+
+_READ_PROCESSING_STATUS = text(
+    """
+    SELECT
+        book_id,
+        owner_id,
+        command_id,
+        command_status::text AS command_status,
+        run_status::text AS run_status,
+        latest_event_type,
+        latest_event_at
+    FROM data.book_processing_status
+    WHERE command_id = :command_id
     """
 )
 
@@ -104,8 +150,16 @@ _FAIL_RUN_RETRYABLY = text(
 class SqlAlchemyCommandRepository:
     """Read immutable app requests and own state in data.processing_runs."""
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        claim_lease_seconds: int = DEFAULT_CLAIM_LEASE_SECONDS,
+    ) -> None:
+        if claim_lease_seconds <= 0:
+            raise ValueError("claim_lease_seconds must be greater than zero")
+
         self._engine = engine
+        self._claim_lease_seconds = claim_lease_seconds
 
     @contextmanager
     def transaction(self) -> Iterator[Connection]:
@@ -121,20 +175,30 @@ class SqlAlchemyCommandRepository:
     ) -> list[ClaimedCommand]:
         """Lock claimable requests, then create or reopen their data runs."""
 
-        candidates = transaction.execute(_CLAIM_CANDIDATES, {"limit": limit})
+        candidates = transaction.execute(
+            _CLAIM_CANDIDATES,
+            {
+                "limit": limit,
+                "lease_seconds": self._claim_lease_seconds,
+            },
+        )
         commands: list[ClaimedCommand] = []
 
         for row in candidates.mappings():
-            run_id = transaction.execute(
-                _CREATE_OR_REOPEN_RUN,
-                {
-                    "owner_id": row["owner_id"],
-                    "book_id": row["book_id"],
-                    "command_id": row["id"],
-                    "processing_version": row["processing_version"],
-                },
-            ).scalar_one_or_none()
-            if run_id is None:
+            run = (
+                transaction.execute(
+                    _CREATE_OR_REOPEN_RUN,
+                    {
+                        "owner_id": row["owner_id"],
+                        "book_id": row["book_id"],
+                        "command_id": row["id"],
+                        "processing_version": row["processing_version"],
+                    },
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if run is None:
                 continue
 
             commands.append(
@@ -145,7 +209,8 @@ class SqlAlchemyCommandRepository:
                     command_type=row["command_type"],
                     payload=_payload_mapping(row["payload"]),
                     processing_version=row["processing_version"],
-                    run_id=run_id,
+                    run_id=run["id"],
+                    lease_started_at=run["started_at"],
                 )
             )
 
@@ -165,6 +230,7 @@ class SqlAlchemyCommandRepository:
                     "run_id": command.run_id,
                     "command_id": command.id,
                     "processing_version": command.processing_version,
+                    "lease_started_at": command.lease_started_at,
                 },
             ).scalar_one_or_none()
             is not None
@@ -184,9 +250,59 @@ class SqlAlchemyCommandRepository:
                     "run_id": command.run_id,
                     "command_id": command.id,
                     "processing_version": command.processing_version,
+                    "lease_started_at": command.lease_started_at,
                 },
             ).scalar_one_or_none()
             is not None
+        )
+
+    def heartbeat(
+        self,
+        transaction: Connection,
+        command: ClaimedCommand,
+    ) -> bool:
+        """Renew a lease only when this worker still owns its generation."""
+
+        return (
+            transaction.execute(
+                _HEARTBEAT_RUN,
+                {
+                    "run_id": command.run_id,
+                    "command_id": command.id,
+                    "processing_version": command.processing_version,
+                    "lease_started_at": command.lease_started_at,
+                },
+            ).scalar_one_or_none()
+            is not None
+        )
+
+    def read_status(
+        self,
+        transaction: Connection,
+        command_id: UUID,
+    ) -> ProcessingStatus | None:
+        """Read the existing application-facing processing status projection."""
+
+        row = (
+            transaction.execute(
+                _READ_PROCESSING_STATUS,
+                {"command_id": command_id},
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return None
+
+        run_status = row["run_status"]
+        return ProcessingStatus(
+            book_id=row["book_id"],
+            owner_id=row["owner_id"],
+            command_id=row["command_id"],
+            command_status=row["command_status"],
+            run_status=ProcessingRunStatus(run_status) if run_status else None,
+            latest_event_type=row["latest_event_type"],
+            latest_event_at=row["latest_event_at"],
         )
 
 
