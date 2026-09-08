@@ -82,7 +82,13 @@ _CREATE_OR_REOPEN_RUN = text(
         started_at = clock_timestamp(),
         completed_at = NULL,
         updated_at = clock_timestamp()
-    WHERE data.processing_runs.status IN ('retryable_failed', 'running')
+    WHERE data.processing_runs.status = 'retryable_failed'
+        OR (
+            data.processing_runs.status = 'running'
+            AND data.processing_runs.updated_at < (
+                clock_timestamp() - make_interval(secs => :lease_seconds)
+            )
+        )
     RETURNING id, started_at
     """
 )
@@ -193,6 +199,7 @@ class SqlAlchemyCommandRepository:
                         "book_id": row["book_id"],
                         "command_id": row["id"],
                         "processing_version": row["processing_version"],
+                        "lease_seconds": self._claim_lease_seconds,
                     },
                 )
                 .mappings()
