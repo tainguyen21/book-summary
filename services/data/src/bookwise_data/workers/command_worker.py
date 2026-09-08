@@ -6,6 +6,7 @@ from collections.abc import Callable
 
 from bookwise_data.application.claim_command import ClaimCommand
 from bookwise_data.domain.commands import ClaimedCommand
+from bookwise_data.domain.source import PermanentProcessingError
 
 CommandHandler = Callable[[ClaimedCommand, Callable[[], bool]], None]
 
@@ -34,6 +35,8 @@ class CommandWorker:
                     command,
                     lambda command=command: self._claim_command.heartbeat(command),
                 )
+            except PermanentProcessingError as error:
+                self._claim_command.fail_permanently(command, error)
             except Exception as error:  # noqa: BLE001
                 self._claim_command.fail_retryably(command, error)
             else:

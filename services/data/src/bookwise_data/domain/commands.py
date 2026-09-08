@@ -43,12 +43,14 @@ _ALLOWED_TRANSITIONS: dict[
         {
             ProcessingRunStatus.RUNNING,
             ProcessingRunStatus.RETRYABLE_FAILED,
+            ProcessingRunStatus.PERMANENT_FAILED,
         }
     ),
     ProcessingRunStatus.RUNNING: frozenset(
         {
             ProcessingRunStatus.COMPLETED,
             ProcessingRunStatus.RETRYABLE_FAILED,
+            ProcessingRunStatus.PERMANENT_FAILED,
         }
     ),
 }

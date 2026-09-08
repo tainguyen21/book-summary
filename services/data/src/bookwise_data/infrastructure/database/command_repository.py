@@ -124,6 +124,22 @@ _FAIL_RUN_RETRYABLY = text(
     """
 )
 
+_FAIL_RUN_PERMANENTLY = text(
+    """
+    UPDATE data.processing_runs
+    SET
+        status = 'permanent_failed',
+        completed_at = clock_timestamp(),
+        updated_at = clock_timestamp()
+    WHERE id = :run_id
+        AND command_id = :command_id
+        AND processing_version = :processing_version
+        AND started_at = :lease_started_at
+        AND status = 'running'
+    RETURNING id
+    """
+)
+
 _HEARTBEAT_RUN = text(
     """
     UPDATE data.processing_runs
@@ -253,6 +269,26 @@ class SqlAlchemyCommandRepository:
         return (
             transaction.execute(
                 _FAIL_RUN_RETRYABLY,
+                {
+                    "run_id": command.run_id,
+                    "command_id": command.id,
+                    "processing_version": command.processing_version,
+                    "lease_started_at": command.lease_started_at,
+                },
+            ).scalar_one_or_none()
+            is not None
+        )
+
+    def fail_permanently(
+        self,
+        transaction: Connection,
+        command: ClaimedCommand,
+    ) -> bool:
+        """Record a permanent terminal state in the Python-owned run."""
+
+        return (
+            transaction.execute(
+                _FAIL_RUN_PERMANENTLY,
                 {
                     "run_id": command.run_id,
                     "command_id": command.id,

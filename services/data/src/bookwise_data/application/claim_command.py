@@ -43,6 +43,13 @@ class ProcessingCommandRepository(Protocol):
     ) -> bool:
         """Move a running command's data run to retryable_failed."""
 
+    def fail_permanently(
+        self,
+        transaction: object,
+        command: ClaimedCommand,
+    ) -> bool:
+        """Move a running command's data run to permanent_failed."""
+
     def heartbeat(
         self,
         transaction: object,
@@ -161,6 +168,39 @@ class ClaimCommand:
                 ProcessingEventType.COMMAND_FAILED,
             )
 
+    def fail_permanently(
+        self,
+        command: ClaimedCommand,
+        error: Exception,
+    ) -> ProcessingStatus | None:
+        """Record a terminal input failure without changing the app command."""
+
+        with self._repository.transaction() as transaction:
+            if not self._repository.fail_permanently(transaction, command):
+                return None
+
+            self._emit_event.execute(
+                transaction,
+                self._event_for(
+                    command,
+                    ProcessingEventType.COMMAND_FAILED,
+                    {
+                        "run_id": str(command.run_id),
+                        "error_code": _error_code(error),
+                        "message": _error_message(
+                            error, "Permanent processing failure."
+                        ),
+                        "terminal_status": ProcessingRunStatus.PERMANENT_FAILED.value,
+                    },
+                ),
+            )
+            return self._require_projected_status(
+                transaction,
+                command,
+                ProcessingRunStatus.PERMANENT_FAILED,
+                ProcessingEventType.COMMAND_FAILED,
+            )
+
     def heartbeat(self, command: ClaimedCommand) -> bool:
         """Renew the command's current lease while external work is active."""
 
@@ -205,8 +245,19 @@ class ClaimCommand:
 def _error_code(error: Exception) -> str:
     """Convert an exception type to a bounded, non-sensitive event code."""
 
+    code = getattr(error, "code", None)
+    if isinstance(code, str) and code:
+        return code[:64]
+
     normalized = "".join(
         character.lower() if character.isalnum() else "_"
         for character in type(error).__name__
     ).strip("_")
     return normalized[:64] or "processing_error"
+
+
+def _error_message(error: Exception, default: str) -> str:
+    """Expose an intentionally safe message when a domain error supplies one."""
+
+    message = getattr(error, "public_message", None)
+    return message if isinstance(message, str) and message else default
