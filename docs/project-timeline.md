@@ -1,6 +1,6 @@
 # Project Timeline
 
-Last updated: September 7, 2026
+Last updated: September 9, 2026
 
 ## Completed
 
@@ -12,6 +12,8 @@ Last updated: September 7, 2026
 | September 3-4, 2026 | Auth0 SPA migration | Replaced the server-session SDK with the official Auth0 React SDK, added client-side sign-in, sign-up, sign-out, and fixed the web app to `http://localhost:3000`. Web tests, lint, and production build pass. |
 | September 5-6, 2026 | SPA private library | Implemented direct bearer-authenticated uploads to private MinIO/S3, idempotent queued ingest commands, owner-scoped library and processing reads, and the signed-in upload/library UI. Local static, storage, database, and two-owner adapter verification pass. |
 | September 7, 2026 | Browser acceptance | Configured the Auth0 access-token claim boundary and verified sign-in, identity provisioning, upload, queued status, library refresh, PostgreSQL persistence, and private MinIO storage in the local browser workflow. |
+| September 8, 2026 | Processing command worker | Added a Python worker that claims queued application commands with PostgreSQL row locking, records Python-owned processing runs and durable events, recovers abandoned leases, and preserves the NestJS status projection without writing the `app` schema. |
+| September 8, 2026 | Source ingestion | Added private-object retrieval, bounded PDF/EPUB/DOCX/TXT parsing, immutable source documents/spans/structure nodes, provenance and owner isolation, normalized private artifacts, and permanent failure handling for invalid or unsupported sources. |
 
 ## In Progress
 
@@ -19,7 +21,8 @@ The current delivery focus is the Python processing pipeline:
 
 1. Claim queued `ingest_book` commands safely.
 2. Read private source objects and parse PDF, EPUB, DOCX, and TXT uploads.
-3. Record processing runs and events, then update book and command status.
+3. Record Python-owned processing runs and events; NestJS reads the status
+   projection without Python mutating `app` records.
 4. Produce evidence-linked summary inputs for later publication.
 
 ## Next
