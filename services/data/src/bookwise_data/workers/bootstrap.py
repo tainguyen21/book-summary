@@ -8,15 +8,24 @@ from sqlalchemy import create_engine
 
 from bookwise_data.application.claim_command import ClaimCommand
 from bookwise_data.application.emit_event import EmitEvent
+from bookwise_data.application.generate_summary import GenerateSummary
 from bookwise_data.application.ingest_book import IngestBook
+from bookwise_data.domain.generation import DEFAULT_GENERATION_CHUNK_CHARS
 from bookwise_data.infrastructure.database.command_repository import (
     SqlAlchemyCommandRepository,
 )
 from bookwise_data.infrastructure.database.event_repository import (
     SqlAlchemyEventRepository,
 )
+from bookwise_data.infrastructure.database.generated_summary_repository import (
+    SqlAlchemyGeneratedSummaryRepository,
+)
 from bookwise_data.infrastructure.database.source_repository import (
     SqlAlchemySourceRepository,
+)
+from bookwise_data.infrastructure.providers.model_provider import (
+    generation_chunk_chars_from_environment,
+    provider_from_environment,
 )
 from bookwise_data.infrastructure.storage.object_storage import (
     S3ObjectStorage,
@@ -31,20 +40,32 @@ def run_worker() -> None:
     engine = create_engine(_required_environment("DATA_DATABASE_URL"))
     try:
         commands = SqlAlchemyCommandRepository(engine)
+        ingest_book = IngestBook(
+            SqlAlchemySourceRepository(engine),
+            S3ObjectStorage(
+                S3ObjectStorageConfig(
+                    endpoint_url=os.environ.get("S3_ENDPOINT_URL") or None,
+                    region=_required_environment("S3_REGION"),
+                    access_key_id=_required_environment("S3_ACCESS_KEY_ID"),
+                    secret_access_key=_required_environment("S3_SECRET_ACCESS_KEY"),
+                    bucket=_required_environment("S3_BUCKET"),
+                )
+            ),
+        )
+        generate_summary = GenerateSummary(
+            SqlAlchemyGeneratedSummaryRepository(engine),
+            provider_from_environment,
+            lambda: generation_chunk_chars_from_environment(
+                DEFAULT_GENERATION_CHUNK_CHARS
+            ),
+        )
         worker = CommandWorker(
             ClaimCommand(commands, EmitEvent(SqlAlchemyEventRepository())),
-            IngestBook(
-                SqlAlchemySourceRepository(engine),
-                S3ObjectStorage(
-                    S3ObjectStorageConfig(
-                        endpoint_url=os.environ.get("S3_ENDPOINT_URL") or None,
-                        region=_required_environment("S3_REGION"),
-                        access_key_id=_required_environment("S3_ACCESS_KEY_ID"),
-                        secret_access_key=_required_environment("S3_SECRET_ACCESS_KEY"),
-                        bucket=_required_environment("S3_BUCKET"),
-                    )
-                ),
-            ).handle,
+            lambda command, heartbeat: (
+                generate_summary.handle(command, heartbeat)
+                if command.command_type == "regenerate_summary"
+                else ingest_book.handle(command, heartbeat)
+            ),
         )
         worker.run_once(_positive_integer_environment("PROCESSING_BATCH_LIMIT", 1))
     finally:
