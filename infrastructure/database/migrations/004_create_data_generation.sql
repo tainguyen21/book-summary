@@ -237,22 +237,16 @@ CREATE INDEX ix_data_embedding_records_owner_id
 CREATE INDEX ix_data_embedding_records_book_id
     ON data.embedding_records(book_id);
 
-ALTER TABLE data.generated_summaries
-    ADD COLUMN current_summary_marker BOOLEAN
-    GENERATED ALWAYS AS (
-        CASE WHEN superseded_by_id IS NULL THEN TRUE ELSE NULL END
-    ) STORED;
-
-ALTER TABLE data.generated_summaries
-    ADD CONSTRAINT uq_data_generated_summaries_current_node
-    UNIQUE (
+CREATE UNIQUE INDEX uq_data_generated_summaries_current_node
+    ON data.generated_summaries (
         owner_id,
         book_id,
         source_document_id,
         source_node_id,
-        current_summary_marker
+        generation_version
     )
-    DEFERRABLE INITIALLY DEFERRED;
+    WHERE validation_status = 'accepted'
+        AND superseded_by_id IS NULL;
 
 CREATE FUNCTION data.reject_generated_row_mutation()
 RETURNS TRIGGER
@@ -379,21 +373,6 @@ BEGIN
             RAISE EXCEPTION
                 USING ERRCODE = '23503',
                     MESSAGE = 'generated summary citation must reference a source span from the same source document';
-        END IF;
-        IF NOT EXISTS (
-            SELECT 1
-            FROM data.generated_evidence_citations AS evidence_citation
-            JOIN data.generated_evidence AS evidence
-                ON evidence.id = evidence_citation.generated_evidence_id
-            WHERE evidence_citation.owner_id = NEW.owner_id
-                AND evidence_citation.book_id = NEW.book_id
-                AND evidence_citation.source_document_id = NEW.source_document_id
-                AND evidence_citation.source_span_id = span_id
-                AND evidence.validation_status = 'accepted'
-        ) THEN
-            RAISE EXCEPTION
-                USING ERRCODE = '23503',
-                    MESSAGE = 'accepted summary citation must correspond to accepted generated evidence';
         END IF;
     END LOOP;
 
