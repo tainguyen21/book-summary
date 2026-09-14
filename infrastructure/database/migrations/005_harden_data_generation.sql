@@ -1,3 +1,47 @@
+DO $$
+DECLARE
+    violating_summary_id UUID;
+    violating_source_span_id UUID;
+BEGIN
+    SELECT
+        summary_row.id,
+        (citation.item ->> 'source_span_id')::UUID
+    INTO violating_summary_id, violating_source_span_id
+    FROM data.generated_summaries AS summary_row
+    CROSS JOIN LATERAL jsonb_array_elements(summary_row.citation_data)
+        AS citation(item)
+    WHERE summary_row.validation_status = 'accepted'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM data.generated_evidence_citations AS evidence_citation
+            JOIN data.generated_evidence AS evidence
+                ON evidence.id = evidence_citation.generated_evidence_id
+            WHERE evidence_citation.owner_id = summary_row.owner_id
+                AND evidence_citation.book_id = summary_row.book_id
+                AND evidence_citation.source_document_id = summary_row.source_document_id
+                AND evidence_citation.source_span_id =
+                    (citation.item ->> 'source_span_id')::UUID
+                AND evidence.owner_id = summary_row.owner_id
+                AND evidence.book_id = summary_row.book_id
+                AND evidence.source_document_id = summary_row.source_document_id
+                AND evidence.validation_status = 'accepted'
+        )
+    LIMIT 1;
+
+    IF FOUND THEN
+        RAISE EXCEPTION
+            USING ERRCODE = '23514',
+                MESSAGE = 'cannot apply 005_harden_data_generation: accepted summary citations must have accepted evidence',
+                DETAIL = format(
+                    'Generated summary %s cites source span %s without an accepted evidence citation for the same owner, book, and source document.',
+                    violating_summary_id,
+                    violating_source_span_id
+                ),
+                HINT = 'Create accepted evidence matching every accepted summary citation before applying this migration.';
+    END IF;
+END;
+$$;
+
 -- Consolidate any legacy current rows before replacing the version-scoped
 -- uniqueness rule. The newest immutable row remains current; older rows gain
 -- only the permitted supersession link.
