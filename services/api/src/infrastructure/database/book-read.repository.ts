@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import type {
   BookProcessingStatus,
   BookReadRepository as BookReadRepositoryPort,
+  BookSummary,
   LibraryBook,
 } from "../../domain/books/book";
 
@@ -23,6 +24,22 @@ interface BookProcessingStatusRow {
   run_status: string | null;
   latest_event_type: string | null;
   latest_event_at: Date | null;
+}
+
+interface PublishedSummaryRow {
+  id: string;
+  book_id: string;
+  body: string;
+  generation_version: string;
+  provider: string;
+  model: string;
+  created_at: Date;
+}
+
+interface SummaryCitationRow {
+  source_span_id: string;
+  citation_order: number;
+  location: unknown;
 }
 
 export class BookReadRepository implements BookReadRepositoryPort {
@@ -93,7 +110,13 @@ export class BookReadRepository implements BookReadRepositoryPort {
            ON command.id = projection.command_id
          WHERE projection.owner_id = book.owner_id
            AND projection.book_id = book.id
-         ORDER BY command.created_at DESC
+         ORDER BY
+           CASE command.command_type
+             WHEN 'regenerate_summary' THEN 0
+             ELSE 1
+           END,
+           command.created_at DESC,
+           command.id DESC
          LIMIT 1
        ) AS status ON TRUE
        WHERE book.owner_id = $1
@@ -116,4 +139,70 @@ export class BookReadRepository implements BookReadRepositoryPort {
       latestEventAt: row.latest_event_at?.toISOString(),
     };
   }
+
+  async getPublishedSummary(
+    ownerId: string,
+    bookId: string,
+  ): Promise<BookSummary | undefined> {
+    const summaryResult = await this.pool.query<PublishedSummaryRow>(
+      `SELECT
+         id,
+         book_id,
+         body,
+         generation_version,
+         provider,
+         model,
+         created_at
+       FROM data.book_current_summaries
+       WHERE owner_id = $1
+         AND book_id = $2
+       ORDER BY created_at DESC, id DESC
+       LIMIT 1`,
+      [ownerId, bookId],
+    );
+    const summary = summaryResult.rows[0];
+
+    if (!summary) {
+      return undefined;
+    }
+
+    const citationResult = await this.pool.query<SummaryCitationRow>(
+      `SELECT source_span_id, citation_order, location
+       FROM data.book_current_summary_citations
+       WHERE owner_id = $1
+         AND book_id = $2
+         AND generated_summary_id = $3
+       ORDER BY citation_order`,
+      [ownerId, bookId, summary.id],
+    );
+
+    return {
+      bookId: summary.book_id,
+      summary: {
+        id: summary.id,
+        body: summary.body,
+        generationVersion: summary.generation_version,
+        provider: summary.provider,
+        model: summary.model,
+        createdAt: summary.created_at.toISOString(),
+        citations: citationResult.rows.map((citation) => ({
+          sourceSpanId: citation.source_span_id,
+          order: citation.citation_order,
+          location: locationRecord(citation.location),
+        })),
+      },
+    };
+  }
+}
+
+function locationRecord(value: unknown): Record<string, unknown> {
+  if (
+    value === null ||
+    Array.isArray(value) ||
+    typeof value !== "object"
+  ) {
+    throw new Error("Current summary citation location must be a JSON object.");
+  }
+
+  return value as Record<string, unknown>;
 }

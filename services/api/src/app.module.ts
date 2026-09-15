@@ -25,6 +25,10 @@ import {
   GET_BOOK_STATUS_USE_CASE,
 } from "./application/books/get-book-status.use-case";
 import {
+  GetBookSummaryUseCase,
+  GET_BOOK_SUMMARY_USE_CASE,
+} from "./application/books/get-book-summary.use-case";
+import {
   ListLibraryUseCase,
   LIST_LIBRARY_USE_CASE,
 } from "./application/books/list-library.use-case";
@@ -42,6 +46,7 @@ import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-pri
 import { BooksController } from "./interfaces/http/books.controller";
 import { LibraryController } from "./interfaces/http/library.controller";
 import { SessionController } from "./interfaces/http/session.controller";
+import { SummaryController } from "./interfaces/http/summary.controller";
 
 const APP_DATABASE_POOL = Symbol("AppDatabasePool");
 
@@ -66,7 +71,12 @@ function positiveIntegerEnvironment(name: string): number {
 }
 
 @Module({
-  controllers: [SessionController, BooksController, LibraryController],
+  controllers: [
+    SessionController,
+    BooksController,
+    LibraryController,
+    SummaryController,
+  ],
   providers: [
     {
       provide: APP_DATABASE_POOL,
@@ -149,6 +159,12 @@ function positiveIntegerEnvironment(name: string): number {
       provide: GET_BOOK_STATUS_USE_CASE,
       useFactory: (books: BookReadRepository) =>
         new GetBookStatusUseCase(books),
+      inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: GET_BOOK_SUMMARY_USE_CASE,
+      useFactory: (books: BookReadRepository) =>
+        new GetBookSummaryUseCase(books),
       inject: [BOOK_READ_REPOSITORY],
     },
     AuthenticatedPrincipalGuard,

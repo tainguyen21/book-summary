@@ -93,12 +93,37 @@ export interface BookProcessingStatus {
   latestEventAt?: string;
 }
 
+export interface SummaryCitation {
+  sourceSpanId: string;
+  order: number;
+  location: Record<string, unknown>;
+}
+
+export interface PublishedSummary {
+  id: string;
+  body: string;
+  generationVersion: string;
+  provider: string;
+  model: string;
+  createdAt: string;
+  citations: SummaryCitation[];
+}
+
+export interface BookSummary {
+  bookId: string;
+  summary: PublishedSummary;
+}
+
 export interface BookReadRepository {
   listLibrary(ownerId: string): Promise<LibraryBook[]>;
   getProcessingStatus(
     ownerId: string,
     bookId: string,
   ): Promise<BookProcessingStatus | undefined>;
+  getPublishedSummary(
+    ownerId: string,
+    bookId: string,
+  ): Promise<BookSummary | undefined>;
 }
 
 export const OBJECT_STORAGE = Symbol("ObjectStorage");
