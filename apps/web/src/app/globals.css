@@ -329,6 +329,20 @@ h2 {
   border-bottom: 1px solid #c8d0ca;
 }
 
+.book-row-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.book-row-link:hover {
+  background: #edf2ec;
+}
+
+.book-row-link:focus-visible {
+  outline: 3px solid #146c4c;
+  outline-offset: -3px;
+}
+
 .book-details,
 .book-meta {
   min-width: 0;
@@ -385,6 +399,84 @@ h2 {
 .status-running {
   color: #174f75;
   background: #d8e8f2;
+}
+
+.book-detail {
+  margin-top: 42px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: #146c4c;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.back-link:focus-visible {
+  outline: 3px solid #146c4c;
+  outline-offset: 3px;
+}
+
+.book-detail-state,
+.book-summary,
+.citation-list {
+  margin-top: 22px;
+  padding: 22px 0;
+  border-top: 1px solid #c8d0ca;
+  border-bottom: 1px solid #c8d0ca;
+}
+
+.book-detail-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #54615a;
+}
+
+.book-detail-state p {
+  margin-bottom: 0;
+}
+
+.book-detail-error {
+  color: #8d2a22;
+  border-color: #e0bcb6;
+}
+
+.book-summary {
+  max-width: 760px;
+  color: #26332b;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.book-summary p {
+  margin-bottom: 18px;
+}
+
+.book-summary p:last-child {
+  margin-bottom: 0;
+}
+
+.citation-list h2 {
+  margin-bottom: 14px;
+}
+
+.citation-list ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+  color: #52645a;
+}
+
+.citation-list p {
+  margin-bottom: 0;
+  color: #52645a;
 }
 
 .upload-dialog {
@@ -524,6 +616,14 @@ h2 {
 
   .book-meta {
     justify-content: space-between;
+  }
+
+  .book-detail {
+    margin-top: 30px;
+  }
+
+  .book-detail-state {
+    align-items: flex-start;
   }
 
   .primary-button {

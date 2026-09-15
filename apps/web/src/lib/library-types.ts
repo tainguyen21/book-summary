@@ -34,6 +34,27 @@ export interface BookProcessingStatus {
   latestEventAt?: string;
 }
 
+export interface SummaryCitation {
+  sourceSpanId: string;
+  order: number;
+  location: Record<string, unknown>;
+}
+
+export interface PublishedSummary {
+  id: string;
+  body: string;
+  generationVersion: string;
+  provider: string;
+  model: string;
+  createdAt: string;
+  citations: SummaryCitation[];
+}
+
+export interface BookSummary {
+  bookId: string;
+  summary: PublishedSummary;
+}
+
 export const libraryBookSchema: z.ZodType<LibraryBook> = z.object({
   id: z.string().uuid(),
   title: z.string(),
@@ -68,3 +89,22 @@ export const bookProcessingStatusSchema: z.ZodType<BookProcessingStatus> =
     latestEventType: z.string().optional(),
     latestEventAt: z.string().datetime().optional(),
   });
+
+export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
+  bookId: z.string().uuid(),
+  summary: z.object({
+    id: z.string().uuid(),
+    body: z.string().min(1),
+    generationVersion: z.string().min(1),
+    provider: z.string().min(1),
+    model: z.string().min(1),
+    createdAt: z.string().datetime(),
+    citations: z.array(
+      z.object({
+        sourceSpanId: z.string().uuid(),
+        order: z.number().int().positive(),
+        location: z.record(z.string(), z.unknown()),
+      }),
+    ),
+  }),
+});

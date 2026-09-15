@@ -2,6 +2,7 @@
 
 import { useAuth0 } from "@auth0/auth0-react";
 import { RefreshCw, Upload } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -256,17 +257,19 @@ export function LibraryScreen() {
       {state.kind === "ready" && state.books.length > 0 && (
         <ul className="book-list" aria-label="Your books">
           {state.books.map((book) => (
-            <li className="book-row" key={book.id}>
-              <div className="book-details">
-                <strong>{book.title}</strong>
-                <span>{book.filename}</span>
-              </div>
-              <div className="book-meta">
-                <span>{createdAt(book.createdAt)}</span>
-                <span className={`status status-${book.commandStatus ?? book.bookStatus}`}>
-                  {statusLabel(book)}
-                </span>
-              </div>
+            <li key={book.id}>
+              <Link className="book-row book-row-link" href={`/books/${book.id}`}>
+                <div className="book-details">
+                  <strong>{book.title}</strong>
+                  <span>{book.filename}</span>
+                </div>
+                <div className="book-meta">
+                  <span>{createdAt(book.createdAt)}</span>
+                  <span className={`status status-${book.commandStatus ?? book.bookStatus}`}>
+                    {statusLabel(book)}
+                  </span>
+                </div>
+              </Link>
             </li>
           ))}
         </ul>
