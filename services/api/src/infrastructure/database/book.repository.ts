@@ -214,6 +214,10 @@ export class BookRepository implements BookUploadRepository {
         ownerId: input.ownerId,
         bookId: input.bookId,
       });
+      await this.processingCommands.enqueueRegenerateSummary(client, {
+        ownerId: input.ownerId,
+        bookId: input.bookId,
+      });
 
       await client.query("COMMIT");
       return command;

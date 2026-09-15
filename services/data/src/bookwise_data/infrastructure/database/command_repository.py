@@ -26,12 +26,41 @@ _CLAIM_CANDIDATES = text(
         command.owner_id,
         command.book_id,
         command.command_type::text AS command_type,
-        command.payload,
+        CASE
+            WHEN command.command_type = 'regenerate_summary'
+                AND source.source_document_count = 1
+            THEN command.payload || jsonb_build_object(
+                'source_document_id',
+                source.source_document_id::text
+            )
+            ELSE command.payload
+        END AS payload,
         command.processing_version
     FROM app.processing_commands AS command
     LEFT JOIN data.processing_runs AS run
         ON run.command_id = command.id
         AND run.processing_version = command.processing_version
+    LEFT JOIN LATERAL (
+        SELECT
+            count(*) AS source_document_count,
+            (array_agg(id ORDER BY id))[1] AS source_document_id
+        FROM data.source_documents
+        WHERE owner_id = command.owner_id
+            AND book_id = command.book_id
+    ) AS source ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT ingest_run.status
+        FROM app.processing_commands AS ingest_command
+        JOIN data.processing_runs AS ingest_run
+            ON ingest_run.command_id = ingest_command.id
+            AND ingest_run.processing_version = ingest_command.processing_version
+        WHERE ingest_command.owner_id = command.owner_id
+            AND ingest_command.book_id = command.book_id
+            AND ingest_command.command_type = 'ingest_book'
+            AND ingest_command.processing_version = command.processing_version
+        ORDER BY ingest_run.updated_at DESC
+        LIMIT 1
+    ) AS ingest ON TRUE
     WHERE command.status = 'queued'
         AND (
             run.id IS NULL
@@ -49,6 +78,14 @@ _CLAIM_CANDIDATES = text(
             WHERE completed_run.command_id = command.id
                 AND completed_run.processing_version = command.processing_version
                 AND completed_run.status = 'completed'
+        )
+        AND (
+            command.command_type <> 'regenerate_summary'
+            OR source.source_document_count = 1
+            OR (
+                source.source_document_count = 0
+                AND ingest.status = 'permanent_failed'
+            )
         )
     ORDER BY command.created_at, command.id
     FOR UPDATE OF command SKIP LOCKED

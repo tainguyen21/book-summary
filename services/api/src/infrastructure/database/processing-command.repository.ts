@@ -7,10 +7,33 @@ interface ProcessingCommandRow {
   status: "queued";
 }
 
+type EnqueueableCommandType = "ingest_book" | "regenerate_summary";
+
 export class ProcessingCommandRepository {
   async enqueueIngest(
     client: PoolClient,
     input: { ownerId: string; bookId: string },
+  ): Promise<QueuedProcessingCommand> {
+    return this.enqueue(client, { ...input, commandType: "ingest_book" });
+  }
+
+  async enqueueRegenerateSummary(
+    client: PoolClient,
+    input: { ownerId: string; bookId: string },
+  ): Promise<QueuedProcessingCommand> {
+    return this.enqueue(client, {
+      ...input,
+      commandType: "regenerate_summary",
+    });
+  }
+
+  private async enqueue(
+    client: PoolClient,
+    input: {
+      ownerId: string;
+      bookId: string;
+      commandType: EnqueueableCommandType;
+    },
   ): Promise<QueuedProcessingCommand> {
     const result = await client.query<ProcessingCommandRow>(
       `INSERT INTO app.processing_commands (
@@ -19,11 +42,11 @@ export class ProcessingCommandRepository {
          command_type,
          processing_version
        )
-       VALUES ($1, $2, 'ingest_book', 'v1')
+       VALUES ($1, $2, $3, 'v1')
        ON CONFLICT (command_type, book_id, processing_version)
        DO UPDATE SET updated_at = app.processing_commands.updated_at
        RETURNING id, status`,
-      [input.ownerId, input.bookId],
+      [input.ownerId, input.bookId, input.commandType],
     );
 
     return {
