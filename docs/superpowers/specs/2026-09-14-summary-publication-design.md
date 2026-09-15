@@ -76,8 +76,15 @@ enqueue, update, or otherwise mutate application commands.
 ### Claim Eligibility
 
 The Python command-claim query continues to claim `ingest_book` commands
-normally. A `regenerate_summary` command is claimable only when one of these
-conditions is true:
+normally. It reads source readiness through a metadata-only
+`data.book_source_document_claim_state` projection. The projection is owned by
+the migration role, is readable by `data_rw`, and returns only owner ID, book
+ID, source-document count, and source-document ID; it does not expose source
+text. This lets a trusted cross-owner worker make claim decisions without
+disabling row-level security on the source tables.
+
+A `regenerate_summary` command is claimable only when one of these conditions
+is true:
 
 1. Exactly one normalized `data.source_documents` row exists for the command's
    owner and book. The command is ready to generate.
@@ -230,7 +237,8 @@ Browser finalizes upload
   application wiring: carry the resolved source-document identifier through a
   claimed generation command.
 - `infrastructure/database/migrations/`: add the owner-filtered current
-  summary projection and `app_rw` read grant.
+  summary projection and `app_rw` read grant, plus the metadata-only source
+  claim projection for `data_rw`.
 - `services/api/src/domain/books/`, application use cases, database read
   repository, controller, and module: expose the summary read contract and
   summary-aware processing status.

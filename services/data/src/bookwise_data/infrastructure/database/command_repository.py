@@ -40,14 +40,9 @@ _CLAIM_CANDIDATES = text(
     LEFT JOIN data.processing_runs AS run
         ON run.command_id = command.id
         AND run.processing_version = command.processing_version
-    LEFT JOIN LATERAL (
-        SELECT
-            count(*) AS source_document_count,
-            (array_agg(id ORDER BY id))[1] AS source_document_id
-        FROM data.source_documents
-        WHERE owner_id = command.owner_id
-            AND book_id = command.book_id
-    ) AS source ON TRUE
+    LEFT JOIN data.book_source_document_claim_state AS source
+        ON source.owner_id = command.owner_id
+        AND source.book_id = command.book_id
     LEFT JOIN LATERAL (
         SELECT ingest_run.status
         FROM app.processing_commands AS ingest_command
@@ -83,7 +78,7 @@ _CLAIM_CANDIDATES = text(
             command.command_type <> 'regenerate_summary'
             OR source.source_document_count = 1
             OR (
-                source.source_document_count = 0
+                COALESCE(source.source_document_count, 0) = 0
                 AND ingest.status = 'permanent_failed'
             )
         )

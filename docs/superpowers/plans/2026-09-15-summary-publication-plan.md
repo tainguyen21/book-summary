@@ -47,6 +47,7 @@ pgvector, Python 3.12, SQLAlchemy, Zod, Auth0 React SDK, and Lucide React.
 | File | Responsibility |
 | --- | --- |
 | `infrastructure/database/migrations/006_create_current_summary_projections.sql` | Owner-filtered read projections for current root summaries and ordered citation locations, plus `app_rw` grants. |
+| `infrastructure/database/migrations/007_create_source_document_claim_projection.sql` | Metadata-only source readiness projection for cross-owner `data_rw` command claims. |
 | `services/api/src/infrastructure/database/processing-command.repository.ts` | Idempotently enqueue `ingest_book` and `regenerate_summary` commands. |
 | `services/api/src/infrastructure/database/book.repository.ts` | Queue the paired commands inside the successful finalization transaction. |
 | `services/data/src/bookwise_data/infrastructure/database/command_repository.py` | Gate generation claims on source availability and inject the resolved source-document ID into the in-memory payload. |
@@ -170,6 +171,7 @@ git commit -m "feat: expose current summary projections"
 - Modify: `services/api/src/infrastructure/database/processing-command.repository.ts`
 - Modify: `services/api/src/infrastructure/database/book.repository.ts`
 - Modify: `services/data/src/bookwise_data/infrastructure/database/command_repository.py`
+- Create: `infrastructure/database/migrations/007_create_source_document_claim_projection.sql`
 - Verify: `services/data/src/bookwise_data/domain/commands.py`
 
 **Interfaces:**
@@ -238,19 +240,36 @@ await client.query("COMMIT");
 return command;
 ```
 
-- [ ] **Step 3: Gate generation rows in the Python claim query**
+- [ ] **Step 3: Add the source-claim metadata projection**
 
-In `_CLAIM_CANDIDATES` in `command_repository.py`, add two lateral joins:
+Create `007_create_source_document_claim_projection.sql`:
 
 ```sql
-LEFT JOIN LATERAL (
-    SELECT
-        count(*) AS source_document_count,
-        (array_agg(id ORDER BY id))[1] AS source_document_id
-    FROM data.source_documents
-    WHERE owner_id = command.owner_id
-        AND book_id = command.book_id
-) AS source ON TRUE
+CREATE VIEW data.book_source_document_claim_state AS
+SELECT
+    owner_id,
+    book_id,
+    count(*) AS source_document_count,
+    (array_agg(id ORDER BY id))[1] AS source_document_id
+FROM data.source_documents
+GROUP BY owner_id, book_id;
+
+GRANT SELECT ON data.book_source_document_claim_state TO data_rw;
+```
+
+The view returns no source text. It lets the cross-owner worker assess source
+readiness without setting one transaction-wide RLS owner context before
+claiming a batch.
+
+- [ ] **Step 4: Gate generation rows in the Python claim query**
+
+In `_CLAIM_CANDIDATES` in `command_repository.py`, join the source-claim
+projection and add the ingestion-run lateral join:
+
+```sql
+LEFT JOIN data.book_source_document_claim_state AS source
+    ON source.owner_id = command.owner_id
+    AND source.book_id = command.book_id
 LEFT JOIN LATERAL (
     SELECT run.status
     FROM app.processing_commands AS ingest_command
@@ -288,7 +307,7 @@ AND (
     command.command_type <> 'regenerate_summary'
     OR source.source_document_count = 1
     OR (
-        source.source_document_count = 0
+        COALESCE(source.source_document_count, 0) = 0
         AND ingest_run.status = 'permanent_failed'
     )
 )
@@ -298,14 +317,14 @@ This leaves generation queued during ingestion and retryable ingestion
 failures. It allows the existing `GenerateSummary.handle` missing-source path
 to produce a terminal generation failure after permanent ingestion failure.
 
-- [ ] **Step 4: Confirm no domain-record change is necessary**
+- [ ] **Step 5: Confirm no domain-record change is necessary**
 
 Review `ClaimedCommand` in `domain/commands.py`. Its immutable
 `payload: Mapping[str, Any]` already carries the resolved
 `source_document_id`; do not add a duplicate field or persist this derived
 value back into `app.processing_commands`.
 
-- [ ] **Step 5: Compile both services**
+- [ ] **Step 6: Compile both services**
 
 Run:
 
@@ -316,10 +335,10 @@ pnpm run compile:data
 
 Expected: TypeScript and Python compile successfully.
 
-- [ ] **Step 6: Commit command orchestration**
+- [ ] **Step 7: Commit command orchestration**
 
 ```powershell
-git add services/api/src/infrastructure/database/processing-command.repository.ts services/api/src/infrastructure/database/book.repository.ts services/data/src/bookwise_data/infrastructure/database/command_repository.py
+git add infrastructure/database/migrations/007_create_source_document_claim_projection.sql services/api/src/infrastructure/database/processing-command.repository.ts services/api/src/infrastructure/database/book.repository.ts services/data/src/bookwise_data/infrastructure/database/command_repository.py
 git commit -m "feat: queue summary generation after ingestion"
 ```
 
