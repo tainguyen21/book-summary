@@ -19,6 +19,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir apps/web lint
       - run: pnpm --dir apps/web build
+        env:
+          NEXT_PUBLIC_AUTH0_DOMAIN: your-tenant.us.auth0.com
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ci-placeholder-client-id
+          NEXT_PUBLIC_AUTH0_AUDIENCE: https://api.bookwise.local
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: http://localhost:3000
       - run: pnpm --dir services/api lint
       - run: pnpm --dir services/api build
       - run: pnpm --dir services/api format:check
