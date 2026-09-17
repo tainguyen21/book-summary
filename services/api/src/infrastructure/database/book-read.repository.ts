@@ -196,11 +196,7 @@ export class BookReadRepository implements BookReadRepositoryPort {
 }
 
 function locationRecord(value: unknown): Record<string, unknown> {
-  if (
-    value === null ||
-    Array.isArray(value) ||
-    typeof value !== "object"
-  ) {
+  if (value === null || Array.isArray(value) || typeof value !== "object") {
     throw new Error("Current summary citation location must be a JSON object.");
   }
 

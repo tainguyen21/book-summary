@@ -1,7 +1,4 @@
-import type {
-  BookReadRepository,
-  BookSummary,
-} from "../../domain/books/book";
+import type { BookReadRepository, BookSummary } from "../../domain/books/book";
 
 export class GetBookSummaryUseCase {
   constructor(private readonly books: BookReadRepository) {}
