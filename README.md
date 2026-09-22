@@ -48,3 +48,45 @@ publication uses migration `006_create_current_summary_projections` for
 owner-filtered accepted-summary reads and
 `007_create_source_document_claim_projection` for source-readiness-aware
 generation claims.
+
+## Vertex AI provider
+
+Bookwise can generate summaries with Gemini through Vertex AI and Google
+Application Default Credentials. Enable the API and authenticate locally:
+
+```powershell
+gcloud config set project YOUR_PROJECT_ID
+gcloud services enable aiplatform.googleapis.com
+gcloud auth application-default login
+```
+
+Configure the root `.env`:
+
+```dotenv
+BOOKWISE_MODEL_PROVIDER=vertex
+BOOKWISE_SUMMARY_MODEL=gemini-2.5-flash
+BOOKWISE_EMBEDDING_MODEL=gemini-embedding-001
+BOOKWISE_EMBEDDING_DIMENSIONS=768
+GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
+GOOGLE_CLOUD_LOCATION=global
+GOOGLE_GENAI_USE_VERTEXAI=true
+```
+
+The Python worker reads the process environment rather than loading `.env`
+itself. Import `.env` into the current PowerShell process before starting the
+worker:
+
+```powershell
+Get-Content .env |
+  Where-Object { $_ -match '^\s*[^#][^=]*=' } |
+  ForEach-Object {
+    $name, $value = $_ -split '=', 2
+    [Environment]::SetEnvironmentVariable(
+      $name.Trim(),
+      $value.Trim(),
+      'Process'
+    )
+  }
+
+uv run --project services/data python -m bookwise_data.workers.main
+```

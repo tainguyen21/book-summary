@@ -7,6 +7,7 @@ dependencies = [
   "boto3",
   "celery[redis]",
   "ebooklib",
+  "google-genai>=2.24.0",
   "httpx",
   "lxml",
   "openai",
@@ -16,7 +17,7 @@ dependencies = [
   "psycopg[binary]",
   "pymupdf",
   "python-docx",
-  "sqlalchemy"
+  "sqlalchemy",
 ]
 
 [dependency-groups]
