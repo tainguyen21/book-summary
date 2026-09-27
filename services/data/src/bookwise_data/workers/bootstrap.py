@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import signal
+from threading import Event
 
 from sqlalchemy import create_engine
 
@@ -27,6 +29,10 @@ from bookwise_data.infrastructure.providers.model_provider import (
     generation_chunk_chars_from_environment,
     provider_from_environment,
 )
+from bookwise_data.infrastructure.storage.gcs_object_storage import (
+    GcsObjectStorage,
+    GcsObjectStorageConfig,
+)
 from bookwise_data.infrastructure.storage.object_storage import (
     S3ObjectStorage,
     S3ObjectStorageConfig,
@@ -35,23 +41,15 @@ from bookwise_data.workers.command_worker import CommandWorker
 
 
 def run_worker() -> None:
-    """Compose and run one bounded batch of private processing commands."""
+    """Compose and run the long-lived private processing worker."""
 
     engine = create_engine(_required_environment("DATA_DATABASE_URL"))
+    stop_requested = Event()
+    signal.signal(signal.SIGTERM, lambda *_: stop_requested.set())
+    signal.signal(signal.SIGINT, lambda *_: stop_requested.set())
     try:
         commands = SqlAlchemyCommandRepository(engine)
-        ingest_book = IngestBook(
-            SqlAlchemySourceRepository(engine),
-            S3ObjectStorage(
-                S3ObjectStorageConfig(
-                    endpoint_url=os.environ.get("S3_ENDPOINT_URL") or None,
-                    region=_required_environment("S3_REGION"),
-                    access_key_id=_required_environment("S3_ACCESS_KEY_ID"),
-                    secret_access_key=_required_environment("S3_SECRET_ACCESS_KEY"),
-                    bucket=_required_environment("S3_BUCKET"),
-                )
-            ),
-        )
+        ingest_book = IngestBook(SqlAlchemySourceRepository(engine), _storage_from_environment())
         generate_summary = GenerateSummary(
             SqlAlchemyGeneratedSummaryRepository(engine),
             provider_from_environment,
@@ -67,7 +65,15 @@ def run_worker() -> None:
                 else ingest_book.handle(command, heartbeat)
             ),
         )
-        worker.run_once(_positive_integer_environment("PROCESSING_BATCH_LIMIT", 1))
+        batch_limit = _positive_integer_environment("PROCESSING_BATCH_LIMIT", 1)
+        poll_interval = _positive_float_environment(
+            "PROCESSING_POLL_INTERVAL_SECONDS",
+            2.0,
+        )
+        while not stop_requested.is_set():
+            processed = worker.run_once(batch_limit)
+            if processed == 0:
+                stop_requested.wait(poll_interval)
     finally:
         engine.dispose()
 
@@ -77,6 +83,29 @@ def _required_environment(name: str) -> str:
     if not value:
         raise RuntimeError(f"{name} must be configured.")
     return value
+
+
+def _storage_from_environment() -> S3ObjectStorage | GcsObjectStorage:
+    provider = os.environ.get("OBJECT_STORAGE_PROVIDER", "").strip().lower() or "minio"
+    if provider == "gcs":
+        return GcsObjectStorage(
+            GcsObjectStorageConfig(
+                bucket=_required_environment("GCS_BUCKET"),
+                project=os.environ.get("GOOGLE_CLOUD_PROJECT", "").strip() or None,
+            )
+        )
+    if provider != "minio":
+        raise RuntimeError("OBJECT_STORAGE_PROVIDER must be either minio or gcs.")
+
+    return S3ObjectStorage(
+        S3ObjectStorageConfig(
+            endpoint_url=os.environ.get("S3_ENDPOINT_URL") or None,
+            region=_required_environment("S3_REGION"),
+            access_key_id=_required_environment("S3_ACCESS_KEY_ID"),
+            secret_access_key=_required_environment("S3_SECRET_ACCESS_KEY"),
+            bucket=_required_environment("S3_BUCKET"),
+        )
+    )
 
 
 def _positive_integer_environment(name: str, default: int) -> int:
@@ -91,4 +120,19 @@ def _positive_integer_environment(name: str, default: int) -> int:
 
     if value <= 0:
         raise RuntimeError(f"{name} must be a positive integer.")
+    return value
+
+
+def _positive_float_environment(name: str, default: float) -> float:
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+
+    try:
+        value = float(raw_value)
+    except ValueError as error:
+        raise RuntimeError(f"{name} must be positive.") from error
+
+    if value <= 0:
+        raise RuntimeError(f"{name} must be positive.")
     return value

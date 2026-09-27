@@ -1,0 +1,15 @@
+FROM gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1 AS cloud-sql-proxy
+FROM mcr.microsoft.com/powershell:7.4-debian-12
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends postgresql-client \
+    && useradd --create-home --uid 10001 bookwise \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=cloud-sql-proxy /cloud-sql-proxy /usr/local/bin/cloud-sql-proxy
+COPY --chown=bookwise:bookwise infrastructure/database /app/infrastructure/database
+COPY --chown=bookwise:bookwise infrastructure/gcp/scripts/run-migrations.ps1 /app/infrastructure/gcp/scripts/run-migrations.ps1
+
+USER bookwise
+CMD ["pwsh", "-NoProfile", "-File", "/app/infrastructure/gcp/scripts/run-migrations.ps1"]

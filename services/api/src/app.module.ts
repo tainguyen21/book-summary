@@ -41,6 +41,7 @@ import { BookReadRepository } from "./infrastructure/database/book-read.reposito
 import { BookRepository } from "./infrastructure/database/book.repository";
 import { ProcessingCommandRepository } from "./infrastructure/database/processing-command.repository";
 import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier";
+import { GcsObjectStorage } from "./infrastructure/storage/gcs-object-storage";
 import { S3ObjectStorage } from "./infrastructure/storage/s3-object-storage";
 import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-principal";
 import { BooksController } from "./interfaces/http/books.controller";
@@ -68,6 +69,28 @@ function positiveIntegerEnvironment(name: string): number {
   }
 
   return value;
+}
+
+function objectStorageFromEnvironment(): ObjectStorage {
+  const provider =
+    process.env.OBJECT_STORAGE_PROVIDER?.trim().toLowerCase() || "minio";
+  if (provider === "gcs") {
+    return new GcsObjectStorage({
+      bucket: requiredEnvironment("GCS_BUCKET"),
+      projectId: process.env.GOOGLE_CLOUD_PROJECT?.trim() || undefined,
+    });
+  }
+  if (provider !== "minio") {
+    throw new Error("OBJECT_STORAGE_PROVIDER must be either minio or gcs.");
+  }
+
+  return new S3ObjectStorage({
+    endpoint: process.env.S3_ENDPOINT_URL?.trim() || undefined,
+    region: requiredEnvironment("S3_REGION"),
+    accessKeyId: requiredEnvironment("S3_ACCESS_KEY_ID"),
+    secretAccessKey: requiredEnvironment("S3_SECRET_ACCESS_KEY"),
+    bucket: requiredEnvironment("S3_BUCKET"),
+  });
 }
 
 @Module({
@@ -117,14 +140,7 @@ function positiveIntegerEnvironment(name: string): number {
     },
     {
       provide: OBJECT_STORAGE,
-      useFactory: (): ObjectStorage =>
-        new S3ObjectStorage({
-          endpoint: process.env.S3_ENDPOINT_URL?.trim() || undefined,
-          region: requiredEnvironment("S3_REGION"),
-          accessKeyId: requiredEnvironment("S3_ACCESS_KEY_ID"),
-          secretAccessKey: requiredEnvironment("S3_SECRET_ACCESS_KEY"),
-          bucket: requiredEnvironment("S3_BUCKET"),
-        }),
+      useFactory: objectStorageFromEnvironment,
     },
     {
       provide: SYNC_IDENTITY_USE_CASE,

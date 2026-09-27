@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookwise-runtime
+  namespace: bookwise
+data:
+  OBJECT_STORAGE_PROVIDER: gcs
+  GCS_BUCKET: bookwise-509408-storage
+  GOOGLE_CLOUD_PROJECT: bookwise-509408
+  GOOGLE_CLOUD_LOCATION: global
+  GOOGLE_GENAI_USE_VERTEXAI: "true"
+  BOOKWISE_MODEL_PROVIDER: vertex
+  BOOKWISE_SUMMARY_MODEL: gemini-2.5-flash
+  BOOKWISE_EMBEDDING_MODEL: gemini-embedding-001
+  BOOKWISE_EMBEDDING_DIMENSIONS: "768"
+  BOOKWISE_MODEL_TIMEOUT_SECONDS: "60"
+  BOOKWISE_MODEL_MAX_OUTPUT_TOKENS: "4000"
+  BOOKWISE_GENERATION_CHUNK_CHARS: "12000"
+  PROCESSING_BATCH_LIMIT: "1"
+  PROCESSING_POLL_INTERVAL_SECONDS: "2"
+  CLOUD_SQL_INSTANCE: bookwise-509408:asia-southeast1:bookwise-postgres
+  PORT: "3001"
+  WEB_ORIGIN: https://app.example.com

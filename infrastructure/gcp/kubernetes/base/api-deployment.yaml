@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookwise-api
+  namespace: bookwise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bookwise-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bookwise-api
+    spec:
+      serviceAccountName: bookwise-api
+      containers:
+        - name: api
+          image: bookwise-api:local
+          ports:
+            - name: http
+              containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: bookwise-runtime
+            - secretRef:
+                name: bookwise-runtime
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+          args:
+            - --structured-logs
+            - $(CLOUD_SQL_INSTANCE)
+          envFrom:
+            - configMapRef:
+                name: bookwise-runtime
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false

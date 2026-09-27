@@ -25,7 +25,6 @@ from bookwise_data.infrastructure.parsers.pdf import parse_pdf
 from bookwise_data.infrastructure.parsers.text import parse_text
 from bookwise_data.infrastructure.storage.object_storage import (
     ArtifactIntegrityError,
-    S3ObjectStorage,
     StoredObjectLimitError,
     StoredObjectMetadataError,
     StoredObjectNotFoundError,
@@ -56,13 +55,34 @@ class SourceRepository(Protocol):
         """Write immutable normalized rows in the data schema."""
 
 
+class ObjectStorage(Protocol):
+    """Storage operations required by source ingestion."""
+
+    def download(
+        self,
+        object_key: str,
+        expected_size: int,
+        maximum_size: int,
+    ) -> bytes:
+        """Download a bounded source object."""
+
+    def put_private_immutable(
+        self,
+        object_key: str,
+        body: bytes,
+        content_type: str,
+        expected_sha256: str,
+    ) -> None:
+        """Write an immutable normalized artifact."""
+
+
 class IngestBook:
     """Download, parse, persist, and archive a claimed uploaded book."""
 
     def __init__(
         self,
         repository: SourceRepository,
-        storage: S3ObjectStorage,
+        storage: ObjectStorage,
     ) -> None:
         self._repository = repository
         self._storage = storage

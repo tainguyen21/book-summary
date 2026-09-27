@@ -18,7 +18,7 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
   );
 
   app.enableCors({
-    origin: "http://localhost:3000",
+    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["authorization", "content-type"],
     credentials: false,

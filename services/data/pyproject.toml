@@ -18,6 +18,7 @@ dependencies = [
   "pymupdf",
   "python-docx",
   "sqlalchemy",
+  "google-cloud-storage>=3.14.1",
 ]
 
 [dependency-groups]

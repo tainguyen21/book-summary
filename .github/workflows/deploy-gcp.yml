@@ -1,0 +1,219 @@
+name: Deploy to GKE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+
+concurrency:
+  group: deploy-gcp-master
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  CLUSTER_NAME: ${{ vars.GKE_CLUSTER_NAME }}
+  NAMESPACE: ${{ vars.GKE_NAMESPACE }}
+  REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REGISTRY_REPOSITORY }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.21.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify web
+        run: |
+          pnpm --dir apps/web lint
+          pnpm --dir apps/web build
+        env:
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+
+      - name: Verify API and worker
+        run: |
+          pnpm --dir services/api lint
+          pnpm --dir services/api build
+          pnpm --dir services/api format:check
+          uv sync --project services/data --locked
+          uv run --project services/data ruff check services/data
+          uv run --project services/data python -m compileall -q services/data/src
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            PROJECT_ID
+            REGION
+            CLUSTER_NAME
+            NAMESPACE
+            GCP_WORKLOAD_IDENTITY_PROVIDER
+            GCP_DEPLOYER_SERVICE_ACCOUNT
+            NEXT_PUBLIC_API_URL
+            NEXT_PUBLIC_AUTH0_DOMAIN
+            NEXT_PUBLIC_AUTH0_CLIENT_ID
+            NEXT_PUBLIC_AUTH0_AUDIENCE
+            NEXT_PUBLIC_AUTH0_REDIRECT_URI
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing GitHub repository variable: ${name}"
+              exit 1
+            fi
+          done
+        env:
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
+
+      - name: Authenticate Docker
+        run: gcloud auth configure-docker "$(echo "${REGISTRY}" | cut -d/ -f1)" --quiet
+
+      - name: Build and push images
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --build-arg NEXT_PUBLIC_AUTH0_DOMAIN="${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}" \
+            --build-arg NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}" \
+            --build-arg NEXT_PUBLIC_AUTH0_AUDIENCE="${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}" \
+            --build-arg NEXT_PUBLIC_AUTH0_REDIRECT_URI="${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}" \
+            -f apps/web/Dockerfile \
+            -t "${{ env.REGISTRY }}/bookwise-web:${{ env.IMAGE_TAG }}" .
+          docker build \
+            -f services/api/Dockerfile \
+            -t "${{ env.REGISTRY }}/bookwise-api:${{ env.IMAGE_TAG }}" .
+          docker build \
+            -f services/data/Dockerfile \
+            -t "${{ env.REGISTRY }}/bookwise-worker:${{ env.IMAGE_TAG }}" .
+          docker build \
+            -f services/data/Dockerfile.migrations \
+            -t "${{ env.REGISTRY }}/bookwise-migrator:${{ env.IMAGE_TAG }}" .
+          docker push "${{ env.REGISTRY }}/bookwise-web:${{ env.IMAGE_TAG }}"
+          docker push "${{ env.REGISTRY }}/bookwise-api:${{ env.IMAGE_TAG }}"
+          docker push "${{ env.REGISTRY }}/bookwise-worker:${{ env.IMAGE_TAG }}"
+          docker push "${{ env.REGISTRY }}/bookwise-migrator:${{ env.IMAGE_TAG }}"
+
+      - name: Resolve pushed image digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for image in web api worker migrator; do
+            digest="$(
+              gcloud artifacts docker images describe \
+                "${REGISTRY}/bookwise-${image}:${IMAGE_TAG}" \
+                --project="${PROJECT_ID}" \
+                --format='value(image_summary.digest)'
+            )"
+            if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "::error::Could not resolve a digest for bookwise-${image}:${IMAGE_TAG}"
+              exit 1
+            fi
+            printf '%s_DIGEST=%s\n' "${image^^}" "${digest}" >> "${GITHUB_ENV}"
+          done
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Create namespace
+        run: kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Synchronize runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          get_secret() {
+            gcloud secrets versions access latest --secret="$1" --project="${PROJECT_ID}"
+          }
+          kubectl create secret generic bookwise-runtime \
+            --namespace="${NAMESPACE}" \
+            --from-literal=APP_DATABASE_URL="$(get_secret bookwise-app-database-url)" \
+            --from-literal=DATA_DATABASE_URL="$(get_secret bookwise-data-database-url)" \
+            --from-literal=MIGRATION_DATABASE_URL="$(get_secret bookwise-migration-database-url)" \
+            --from-literal=OIDC_ISSUER="$(get_secret bookwise-oidc-issuer)" \
+            --from-literal=OIDC_AUDIENCE="$(get_secret bookwise-oidc-audience)" \
+            --from-literal=S3_PRESIGNED_URL_EXPIRY_SECONDS="$(get_secret bookwise-s3-presigned-url-expiry)" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply public web configuration
+        run: |
+          kubectl create configmap bookwise-web \
+            --namespace="${NAMESPACE}" \
+            --from-literal=NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --from-literal=NEXT_PUBLIC_AUTH0_DOMAIN="${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}" \
+            --from-literal=NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}" \
+            --from-literal=NEXT_PUBLIC_AUTH0_AUDIENCE="${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}" \
+            --from-literal=NEXT_PUBLIC_AUTH0_REDIRECT_URI="${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Render and apply Kubernetes resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl kustomize infrastructure/gcp/kubernetes/overlays/production \
+            | sed \
+                -e "s#${REGISTRY}/bookwise-web:local#${REGISTRY}/bookwise-web@${WEB_DIGEST}#g" \
+                -e "s#${REGISTRY}/bookwise-api:local#${REGISTRY}/bookwise-api@${API_DIGEST}#g" \
+                -e "s#${REGISTRY}/bookwise-worker:local#${REGISTRY}/bookwise-worker@${WORKER_DIGEST}#g" \
+                -e "s#${REGISTRY}/bookwise-migrator:local#${REGISTRY}/bookwise-migrator@${MIGRATOR_DIGEST}#g" \
+            > rendered-bookwise.yaml
+          kubectl delete job bookwise-migrate --namespace="${NAMESPACE}" --ignore-not-found
+          kubectl apply -f rendered-bookwise.yaml
+
+      - name: Run migration
+        run: kubectl wait --for=condition=complete job/bookwise-migrate --namespace="${NAMESPACE}" --timeout=10m
+
+      - name: Wait for rollouts
+        run: |
+          kubectl rollout status deployment/bookwise-web --namespace="${NAMESPACE}" --timeout=10m
+          kubectl rollout status deployment/bookwise-api --namespace="${NAMESPACE}" --timeout=10m
+          kubectl rollout status deployment/bookwise-worker --namespace="${NAMESPACE}" --timeout=10m
+
+      - name: Print deployment status
+        if: always()
+        run: |
+          kubectl get pods,services,ingress,jobs --namespace="${NAMESPACE}" -o wide

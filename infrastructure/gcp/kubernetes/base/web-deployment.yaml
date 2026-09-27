@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookwise-web
+  namespace: bookwise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bookwise-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bookwise-web
+    spec:
+      serviceAccountName: bookwise-web
+      containers:
+        - name: web
+          image: bookwise-web:local
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: bookwise-web
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookwise-web
+  namespace: bookwise
+data:
+  NEXT_PUBLIC_API_URL: https://api.example.com
+  NEXT_PUBLIC_AUTH0_DOMAIN: dev-p8c5tpe1ghv8qtxf.us.auth0.com
+  NEXT_PUBLIC_AUTH0_CLIENT_ID: replace-me
+  NEXT_PUBLIC_AUTH0_AUDIENCE: https://api.bookwise.local
+  NEXT_PUBLIC_AUTH0_REDIRECT_URI: https://app.example.com

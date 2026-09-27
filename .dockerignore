@@ -1,0 +1,16 @@
+.env
+.git
+.github
+.next
+.pytest_cache
+.ruff_cache
+.superpowers
+.venv
+**/.env
+**/.next
+**/__pycache__
+**/dist
+**/node_modules
+node_modules
+infrastructure/gcp/rendered
+infrastructure/gcp/secrets

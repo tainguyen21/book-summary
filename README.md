@@ -90,3 +90,53 @@ Get-Content .env |
 
 uv run --project services/data python -m bookwise_data.workers.main
 ```
+
+## GKE deployment
+
+The production target uses one GKE Autopilot cluster with one Pod each for the
+web app, API, and Python worker. Durable state stays in Cloud SQL PostgreSQL
+and Cloud Storage; Vertex AI supplies summaries and embeddings.
+
+Deployment configuration lives under
+`infrastructure/gcp/README.md`. The first-time setup is:
+
+```powershell
+gcloud auth login
+gcloud config set project bookwise-509408
+pwsh infrastructure/gcp/scripts/bootstrap-gcp.ps1
+pwsh infrastructure/gcp/scripts/configure-services.ps1
+```
+
+Create the Cloud SQL database and Secret Manager values described in
+`infrastructure/gcp/secrets/README.md`, then configure these GitHub repository
+variables:
+
+```text
+GCP_PROJECT_ID
+GCP_REGION
+GKE_CLUSTER_NAME
+GKE_NAMESPACE
+ARTIFACT_REGISTRY_REPOSITORY
+GCP_WORKLOAD_IDENTITY_PROVIDER
+GCP_DEPLOYER_SERVICE_ACCOUNT
+NEXT_PUBLIC_API_URL
+NEXT_PUBLIC_AUTH0_DOMAIN
+NEXT_PUBLIC_AUTH0_CLIENT_ID
+NEXT_PUBLIC_AUTH0_AUDIENCE
+NEXT_PUBLIC_AUTH0_REDIRECT_URI
+```
+
+Pushing to `master` or manually dispatching
+`.github/workflows/deploy-gcp.yml` builds immutable images, runs verification,
+synchronizes runtime secrets, applies the migration Job, and waits for the
+web, API, and worker rollouts.
+
+Follow deployment logs with:
+
+```powershell
+kubectl get pods -n bookwise
+kubectl logs -n bookwise deployment/bookwise-api -f
+kubectl logs -n bookwise deployment/bookwise-web -f
+kubectl logs -n bookwise deployment/bookwise-worker -f
+kubectl get ingress -n bookwise
+```
