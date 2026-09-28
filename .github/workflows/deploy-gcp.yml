@@ -29,6 +29,48 @@ jobs:
       - name: Check out commit
         uses: actions/checkout@v4
 
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          GKE_CLUSTER_NAME: ${{ vars.GKE_CLUSTER_NAME }}
+          GKE_NAMESPACE: ${{ vars.GKE_NAMESPACE }}
+          ARTIFACT_REGISTRY_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY }}
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
+        run: |
+          set -euo pipefail
+          missing=()
+          required=(
+            GCP_PROJECT_ID
+            GCP_REGION
+            GKE_CLUSTER_NAME
+            GKE_NAMESPACE
+            ARTIFACT_REGISTRY_REPOSITORY
+            GCP_WORKLOAD_IDENTITY_PROVIDER
+            GCP_DEPLOYER_SERVICE_ACCOUNT
+            NEXT_PUBLIC_API_URL
+            NEXT_PUBLIC_AUTH0_DOMAIN
+            NEXT_PUBLIC_AUTH0_CLIENT_ID
+            NEXT_PUBLIC_AUTH0_AUDIENCE
+            NEXT_PUBLIC_AUTH0_REDIRECT_URI
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("${name}")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "::error::Missing GitHub Actions variables: ${missing[*]}"
+            exit 1
+          fi
+
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -74,38 +116,6 @@ jobs:
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v3
-
-      - name: Validate deployment configuration
-        shell: bash
-        run: |
-          set -euo pipefail
-          required=(
-            PROJECT_ID
-            REGION
-            CLUSTER_NAME
-            NAMESPACE
-            GCP_WORKLOAD_IDENTITY_PROVIDER
-            GCP_DEPLOYER_SERVICE_ACCOUNT
-            NEXT_PUBLIC_API_URL
-            NEXT_PUBLIC_AUTH0_DOMAIN
-            NEXT_PUBLIC_AUTH0_CLIENT_ID
-            NEXT_PUBLIC_AUTH0_AUDIENCE
-            NEXT_PUBLIC_AUTH0_REDIRECT_URI
-          )
-          for name in "${required[@]}"; do
-            if [[ -z "${!name:-}" ]]; then
-              echo "::error::Missing GitHub repository variable: ${name}"
-              exit 1
-            fi
-          done
-        env:
-          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
-          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
-          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
-          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
 
       - name: Authenticate Docker
         run: gcloud auth configure-docker "$(echo "${REGISTRY}" | cut -d/ -f1)" --quiet
@@ -153,6 +163,7 @@ jobs:
           done
 
       - name: Get GKE credentials
+        id: gke-credentials
         uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
@@ -214,6 +225,6 @@ jobs:
           kubectl rollout status deployment/bookwise-worker --namespace="${NAMESPACE}" --timeout=10m
 
       - name: Print deployment status
-        if: always()
+        if: ${{ always() && steps.gke-credentials.outcome == 'success' }}
         run: |
           kubectl get pods,services,ingress,jobs --namespace="${NAMESPACE}" -o wide
