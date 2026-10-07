@@ -13,6 +13,9 @@ Region:                asia-southeast1
 Namespace:             bookwise
 Artifact Registry:     asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise
 Cloud Storage bucket:  gs://bookwise-509408-storage
+Public URL:           https://tai-dev-web.cloud
+Static IP resource:  bookwise-ip
+Static IPv4 address: 35.201.95.210
 ```
 
 ## Prerequisites
@@ -92,11 +95,22 @@ docker push "asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise/bookwise-ap
 docker push "asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise/bookwise-worker:$tag"
 docker build -f services/data/Dockerfile.migrations -t "asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise/bookwise-migrator:$tag" .
 docker push "asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise/bookwise-migrator:$tag"
+$env:NEXT_PUBLIC_API_URL = "https://tai-dev-web.cloud"
+$env:NEXT_PUBLIC_AUTH0_DOMAIN = "dev-p8c5tpe1ghv8qtxf.us.auth0.com"
+$env:NEXT_PUBLIC_AUTH0_CLIENT_ID = "AUTH0_SPA_CLIENT_ID"
+$env:NEXT_PUBLIC_AUTH0_AUDIENCE = "https://tai-dev-web.cloud"
+$env:NEXT_PUBLIC_AUTH0_REDIRECT_URI = "https://tai-dev-web.cloud"
 pwsh infrastructure/gcp/scripts/deploy.ps1 -ImageTag $tag
 ```
 
 The GitHub Actions workflow performs this same process without a long-lived
 Google service-account key.
+
+The deployment expects a global external IPv4 address named `bookwise-ip`.
+Create it before the first deployment, then point the root `A` record for
+`tai-dev-web.cloud` to `35.201.95.210`. GKE attaches the address to the
+Ingress, provisions the `bookwise-certificate` managed certificate, and
+redirects HTTP traffic to HTTPS.
 
 ## Required Production Secrets
 
@@ -142,23 +156,23 @@ When prompted by `gcloud`, paste one value and finish with `Ctrl+Z` then
 their Cloud SQL Auth Proxy:
 
 ```text
-postgresql://APP_USER:PASSWORD@127.0.0.1:5432/bookwise_next
-postgresql+psycopg://DATA_USER:PASSWORD@127.0.0.1:5432/bookwise_next
-postgresql://MIGRATION_USER:PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql://app_rw:APP_PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql+psycopg://data_rw:DATA_PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql://migration_admin:MIGRATION_PASSWORD@127.0.0.1:5432/bookwise_next
 ```
 
 The public GitHub repository variables are:
 
 ```text
-NEXT_PUBLIC_API_URL=https://api.example.com
-NEXT_PUBLIC_AUTH0_DOMAIN=your-tenant.us.auth0.com
-NEXT_PUBLIC_AUTH0_CLIENT_ID=your-auth0-client-id
-NEXT_PUBLIC_AUTH0_AUDIENCE=https://api.example.com
-NEXT_PUBLIC_AUTH0_REDIRECT_URI=https://app.example.com
+NEXT_PUBLIC_API_URL=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_DOMAIN=dev-p8c5tpe1ghv8qtxf.us.auth0.com
+NEXT_PUBLIC_AUTH0_CLIENT_ID=AUTH0_SPA_CLIENT_ID
+NEXT_PUBLIC_AUTH0_AUDIENCE=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_REDIRECT_URI=https://tai-dev-web.cloud
 ```
 
-Replace the example hostnames with the actual GKE ingress address or domain
-before deploying the public web application.
+`NEXT_PUBLIC_AUTH0_CLIENT_ID` must be copied from the Auth0 Single Page
+Application. It is public browser configuration, not an Auth0 client secret.
 
 ## Operations
 

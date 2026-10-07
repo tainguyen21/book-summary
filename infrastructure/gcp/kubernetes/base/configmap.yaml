@@ -20,4 +20,4 @@ data:
   PROCESSING_POLL_INTERVAL_SECONDS: "2"
   CLOUD_SQL_INSTANCE: bookwise-509408:asia-southeast1:bookwise-postgres
   PORT: "3001"
-  WEB_ORIGIN: https://app.example.com
+  WEB_ORIGIN: https://tai-dev-web.cloud

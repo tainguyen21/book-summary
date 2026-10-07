@@ -17,6 +17,34 @@ if ($ImageTag -notmatch "^[0-9a-f]{7,64}$") {
     --region=$Region --project=$ProjectId | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Could not fetch GKE credentials." }
 
+$publicWebConfig = [ordered]@{
+    NEXT_PUBLIC_API_URL = $env:NEXT_PUBLIC_API_URL
+    NEXT_PUBLIC_AUTH0_DOMAIN = $env:NEXT_PUBLIC_AUTH0_DOMAIN
+    NEXT_PUBLIC_AUTH0_CLIENT_ID = $env:NEXT_PUBLIC_AUTH0_CLIENT_ID
+    NEXT_PUBLIC_AUTH0_AUDIENCE = $env:NEXT_PUBLIC_AUTH0_AUDIENCE
+    NEXT_PUBLIC_AUTH0_REDIRECT_URI = $env:NEXT_PUBLIC_AUTH0_REDIRECT_URI
+}
+foreach ($entry in $publicWebConfig.GetEnumerator()) {
+    if ([string]::IsNullOrWhiteSpace($entry.Value)) {
+        throw "$($entry.Key) must be configured before deployment."
+    }
+}
+
+$configMapArguments = @(
+    "create",
+    "configmap",
+    "bookwise-web",
+    "--namespace=$Namespace"
+)
+foreach ($entry in $publicWebConfig.GetEnumerator()) {
+    $configMapArguments += "--from-literal=$($entry.Key)=$($entry.Value)"
+}
+$configMapArguments += @("--dry-run=client", "-o", "yaml")
+$renderedWebConfig = & kubectl @configMapArguments
+if ($LASTEXITCODE -ne 0) { throw "Could not render the web ConfigMap." }
+$renderedWebConfig | & kubectl apply -f - | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "Could not apply the web ConfigMap." }
+
 $overlay = Join-Path $PSScriptRoot "..\kubernetes\overlays\production"
 $rendered = & kubectl kustomize $overlay
 if ($LASTEXITCODE -ne 0) { throw "Kustomize rendering failed." }

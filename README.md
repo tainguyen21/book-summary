@@ -95,7 +95,8 @@ uv run --project services/data python -m bookwise_data.workers.main
 
 The production target uses one GKE Autopilot cluster with one Pod each for the
 web app, API, and Python worker. Durable state stays in Cloud SQL PostgreSQL
-and Cloud Storage; Vertex AI supplies summaries and embeddings.
+and Cloud Storage; Vertex AI supplies summaries and embeddings. The public
+web and `/v1` API routes share `https://tai-dev-web.cloud`.
 
 Deployment configuration lives under
 `infrastructure/gcp/README.md`. The first-time setup is:
@@ -125,6 +126,11 @@ NEXT_PUBLIC_AUTH0_CLIENT_ID
 NEXT_PUBLIC_AUTH0_AUDIENCE
 NEXT_PUBLIC_AUTH0_REDIRECT_URI
 ```
+
+The deployment binds the GKE Ingress to the global static address resource
+`bookwise-ip`, provisions a Google-managed certificate for
+`tai-dev-web.cloud`, and redirects HTTP to HTTPS. Point the domain's root `A`
+record at `35.201.95.210` before the first rollout.
 
 Pushing to `master` or manually dispatching
 `.github/workflows/deploy-gcp.yml` builds immutable images, runs verification,

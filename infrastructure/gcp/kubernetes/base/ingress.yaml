@@ -5,9 +5,13 @@ metadata:
   namespace: bookwise
   annotations:
     kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: bookwise-ip
+    networking.gke.io/managed-certificates: bookwise-certificate
+    networking.gke.io/v1beta1.FrontendConfig: bookwise-frontend-config
 spec:
   rules:
-    - http:
+    - host: tai-dev-web.cloud
+      http:
         paths:
           - path: /v1
             pathType: Prefix

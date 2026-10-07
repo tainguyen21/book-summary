@@ -2,7 +2,7 @@
 
 This runbook covers the first deployment of Bookwise to GKE Autopilot in
 `bookwise-509408`. The initial target is one Pod each for the web, API, and
-worker workloads.
+worker workloads at `https://tai-dev-web.cloud`.
 
 ## First Deployment
 
@@ -33,6 +33,20 @@ Create the Secret Manager values described in
 `127.0.0.1:5432` because the workloads connect through the Cloud SQL Auth
 Proxy sidecar or migration proxy.
 
+Reserve a global external IPv4 address named `bookwise-ip`. At the DNS
+provider for `tai-dev-web.cloud`, create a root `A` record that points to the
+reserved address:
+
+```text
+Record type: A
+Host/name:   @
+Value:       35.201.95.210
+TTL:         300
+```
+
+Do this before the first deployment so the GKE managed certificate can
+validate the domain.
+
 Add these GitHub repository variables under **Settings > Secrets and
 variables > Actions > Variables**:
 
@@ -51,6 +65,33 @@ NEXT_PUBLIC_AUTH0_AUDIENCE
 NEXT_PUBLIC_AUTH0_REDIRECT_URI
 ```
 
+Use these public URL values:
+
+```text
+NEXT_PUBLIC_API_URL=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_DOMAIN=dev-p8c5tpe1ghv8qtxf.us.auth0.com
+NEXT_PUBLIC_AUTH0_CLIENT_ID=AUTH0_SPA_CLIENT_ID
+NEXT_PUBLIC_AUTH0_AUDIENCE=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_REDIRECT_URI=https://tai-dev-web.cloud
+```
+
+In Auth0, configure `https://tai-dev-web.cloud` as an allowed callback URL,
+logout URL, and web origin. Configure the Auth0 API identifier as
+`https://tai-dev-web.cloud`.
+
+Before starting the workflow, verify:
+
+```text
+DNS root A record       -> 35.201.95.210
+Auth0 callback URL      -> https://tai-dev-web.cloud
+Auth0 logout URL        -> https://tai-dev-web.cloud
+Auth0 web origin        -> https://tai-dev-web.cloud
+Auth0 API identifier    -> https://tai-dev-web.cloud
+GitHub API URL          -> https://tai-dev-web.cloud
+GitHub redirect URI     -> https://tai-dev-web.cloud
+Secret OIDC audience    -> https://tai-dev-web.cloud
+```
+
 Start **Deploy to GKE** manually from the GitHub Actions page for the first
 deployment. Later pushes to `master` start the same workflow automatically.
 
@@ -61,6 +102,7 @@ gcloud container clusters get-credentials bookwise-autopilot `
   --region=asia-southeast1 --project=bookwise-509408
 
 kubectl get pods,services,ingress,jobs -n bookwise -o wide
+kubectl describe managedcertificate bookwise-certificate -n bookwise
 kubectl rollout status deployment/bookwise-web -n bookwise
 kubectl rollout status deployment/bookwise-api -n bookwise
 kubectl rollout status deployment/bookwise-worker -n bookwise

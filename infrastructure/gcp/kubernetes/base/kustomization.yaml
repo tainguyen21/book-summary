@@ -10,6 +10,8 @@ resources:
   - worker-deployment.yaml
   - services.yaml
   - migration-job.yaml
+  - managed-certificate.yaml
+  - frontend-config.yaml
   - ingress.yaml
 labels:
   - includeSelectors: true

@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: bookwise-certificate
+  namespace: bookwise
+spec:
+  domains:
+    - tai-dev-web.cloud

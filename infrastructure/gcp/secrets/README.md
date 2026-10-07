@@ -19,9 +19,20 @@ The database URLs connect through the Cloud SQL Auth Proxy on
 `127.0.0.1:5432`:
 
 ```text
-postgresql://APP_USER:PASSWORD@127.0.0.1:5432/bookwise_next
-postgresql+psycopg://DATA_USER:PASSWORD@127.0.0.1:5432/bookwise_next
-postgresql://MIGRATION_USER:PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql://app_rw:APP_PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql+psycopg://data_rw:DATA_PASSWORD@127.0.0.1:5432/bookwise_next
+postgresql://migration_admin:MIGRATION_PASSWORD@127.0.0.1:5432/bookwise_next
+```
+
+Replace each password placeholder with the password assigned to that Cloud
+SQL user. If a password contains URL-reserved characters, percent-encode it.
+
+The Auth0 values are:
+
+```text
+bookwise-oidc-issuer=https://dev-p8c5tpe1ghv8qtxf.us.auth0.com/
+bookwise-oidc-audience=https://tai-dev-web.cloud
+bookwise-s3-presigned-url-expiry=600
 ```
 
 Create a secret without putting its value on the command line:
