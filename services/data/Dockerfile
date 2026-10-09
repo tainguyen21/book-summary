@@ -12,5 +12,5 @@ COPY --chown=bookwise:bookwise services/data/pyproject.toml services/data/uv.loc
 COPY --chown=bookwise:bookwise services/data/src services/data/src
 RUN uv sync --project services/data --locked --no-dev
 
-USER bookwise
+USER 10001
 CMD ["uv", "run", "--project", "services/data", "--no-sync", "python", "-m", "bookwise_data.workers.main"]

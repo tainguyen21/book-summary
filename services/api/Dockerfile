@@ -20,5 +20,5 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/services/api ./services/api
 
 EXPOSE 3001
-USER node
+USER 1000
 CMD ["node", "services/api/dist/main.js"]

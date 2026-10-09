@@ -11,5 +11,5 @@ COPY --from=cloud-sql-proxy /cloud-sql-proxy /usr/local/bin/cloud-sql-proxy
 COPY --chown=bookwise:bookwise infrastructure/database /app/infrastructure/database
 COPY --chown=bookwise:bookwise infrastructure/gcp/scripts/run-migrations.ps1 /app/infrastructure/gcp/scripts/run-migrations.ps1
 
-USER bookwise
+USER 10001
 CMD ["pwsh", "-NoProfile", "-File", "/app/infrastructure/gcp/scripts/run-migrations.ps1"]

@@ -33,5 +33,5 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/apps/web ./apps/web
 
 EXPOSE 3000
-USER node
+USER 1000
 CMD ["pnpm", "--dir", "apps/web", "start"]
