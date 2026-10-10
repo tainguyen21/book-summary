@@ -7,6 +7,7 @@ resources:
   - configmap.yaml
   - web-deployment.yaml
   - api-deployment.yaml
+  - api-backend-config.yaml
   - worker-deployment.yaml
   - services.yaml
   - migration-job.yaml

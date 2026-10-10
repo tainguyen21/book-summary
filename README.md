@@ -30,11 +30,27 @@ uv run --project services/data python -m bookwise_data.workers.main
 NestJS listens on port `3001`; the Next.js app reads its public API URL from
 `NEXT_PUBLIC_API_URL`.
 
+On Windows, after installing dependencies and creating `.env`, start all
+services with:
+
+```powershell
+pnpm run start:local
+```
+
+This starts Docker Compose, waits for PostgreSQL, applies migrations, and
+opens separate PowerShell terminals for the API, web app, and worker. The
+worker terminal imports the root `.env` into its process environment.
+
 ## Summary publication
 
 Finalizing an upload idempotently queues paired `ingest_book` and
 `regenerate_summary` commands. The Python worker claims ingestion immediately,
 while summary generation waits until the book has a normalized source document.
+
+Claims use nonblocking transaction-scoped advisory locks keyed by command ID,
+then create or reopen eligible `data.processing_runs`. App commands remain
+read-only to the worker; run leases and heartbeats retain ownership after
+the claim transaction ends.
 
 Accepted immutable summaries are exposed through the owner-scoped
 `GET /v1/books/:bookId/summary` endpoint. The web route at

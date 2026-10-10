@@ -45,6 +45,7 @@ import { GcsObjectStorage } from "./infrastructure/storage/gcs-object-storage";
 import { S3ObjectStorage } from "./infrastructure/storage/s3-object-storage";
 import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-principal";
 import { BooksController } from "./interfaces/http/books.controller";
+import { HealthController } from "./interfaces/http/health.controller";
 import { LibraryController } from "./interfaces/http/library.controller";
 import { SessionController } from "./interfaces/http/session.controller";
 import { SummaryController } from "./interfaces/http/summary.controller";
@@ -95,6 +96,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
 
 @Module({
   controllers: [
+    HealthController,
     SessionController,
     BooksController,
     LibraryController,

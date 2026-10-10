@@ -33,11 +33,13 @@ spec:
               cpu: 1
               memory: 1Gi
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /v1/health
               port: http
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /v1/health
               port: http
             initialDelaySeconds: 20
             periodSeconds: 20

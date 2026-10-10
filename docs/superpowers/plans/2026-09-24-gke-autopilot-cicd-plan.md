@@ -26,8 +26,11 @@ Artifact Registry, GitHub Actions, Workload Identity Federation.
 - Long-lived service-account JSON keys must not be stored in GitHub, images, or
   Kubernetes manifests.
 - Cloud SQL and Cloud Storage remain outside the Kubernetes cluster.
-- The worker preserves PostgreSQL leases, heartbeats, retries, and
-  `FOR UPDATE SKIP LOCKED`.
+- The worker preserves PostgreSQL leases, heartbeats, and retries in
+  `data.processing_runs`. Claims use nonblocking transaction-scoped advisory
+  locks keyed by `bookwise-command:<command UUID>`, not row locks on
+  read-only `app.processing_commands`. Ordered keyset scanning skips busy
+  candidates, and conditional run upserts enforce lease eligibility.
 - Do not add automated test suites or CI test infrastructure.
 - Preserve unrelated existing working-tree changes.
 - Use project `bookwise-509408`, region `asia-southeast1`, cluster
@@ -263,6 +266,7 @@ git commit -m "feat: add production service containers"
 - Create: `infrastructure/gcp/kubernetes/base/configmap.yaml`
 - Create: `infrastructure/gcp/kubernetes/base/web-deployment.yaml`
 - Create: `infrastructure/gcp/kubernetes/base/api-deployment.yaml`
+- Create: `infrastructure/gcp/kubernetes/base/api-backend-config.yaml`
 - Create: `infrastructure/gcp/kubernetes/base/worker-deployment.yaml`
 - Create: `infrastructure/gcp/kubernetes/base/services.yaml`
 - Create: `infrastructure/gcp/kubernetes/base/migration-job.yaml`
@@ -334,9 +338,10 @@ resources:
 ```
 
 Use separate resource values when the worker requires more memory for parsing.
-Add startup and readiness checks that match the actual application behavior.
-Do not invent an API health route; add a minimal health route only if the
-existing application has no suitable endpoint.
+Add health checks that match the actual application behavior. The API exposes
+an unauthenticated `GET /v1/health` returning `{"status":"ok"}`; use it for
+HTTP readiness and liveness probes. This endpoint checks HTTP process
+availability, not database or managed-service readiness.
 
 - [ ] **Step 5: Define Services**
 
@@ -348,6 +353,12 @@ bookwise-api: ClusterIP, port 3001
 ```
 
 Do not expose the worker through a public Service.
+
+Include `api-backend-config.yaml` in the base Kustomization. Its
+`bookwise-api-health` BackendConfig checks HTTP `/v1/health` on port `3001`.
+Annotate the API Service with
+`cloud.google.com/backend-config: '{"ports":{"http":"bookwise-api-health"}}'`
+so the GKE load balancer uses the same endpoint.
 
 - [ ] **Step 6: Define the migration Job**
 

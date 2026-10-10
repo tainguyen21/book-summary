@@ -176,6 +176,13 @@ Application. It is public browser configuration, not an Auth0 client secret.
 
 ## Operations
 
+The unauthenticated `GET /v1/health` endpoint returns `{"status":"ok"}`.
+API readiness and liveness probes and the GKE load-balancer health check use
+this endpoint. `bookwise-api-health` BackendConfig configures the load-balancer
+check on port `3001` and is attached through the API Service annotation.
+This verifies HTTP process availability, not database or managed-service
+readiness.
+
 ```powershell
 kubectl get pods -n bookwise
 kubectl logs -n bookwise deployment/bookwise-api -f

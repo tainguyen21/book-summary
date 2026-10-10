@@ -23,6 +23,7 @@ _CLAIM_CANDIDATES = text(
     """
     SELECT
         command.id,
+        command.created_at,
         command.owner_id,
         command.book_id,
         command.command_type::text AS command_type,
@@ -58,6 +59,13 @@ _CLAIM_CANDIDATES = text(
     ) AS ingest ON TRUE
     WHERE command.status = 'queued'
         AND (
+            CAST(:after_id AS uuid) IS NULL
+            OR (command.created_at, command.id) > (
+                CAST(:after_created_at AS timestamptz),
+                CAST(:after_id AS uuid)
+            )
+        )
+        AND (
             run.id IS NULL
             OR run.status = 'retryable_failed'
             OR (
@@ -83,8 +91,13 @@ _CLAIM_CANDIDATES = text(
             )
         )
     ORDER BY command.created_at, command.id
-    FOR UPDATE OF command SKIP LOCKED
     LIMIT :limit
+    """
+)
+
+_TRY_LOCK_COMMAND = text(
+    """
+    SELECT pg_try_advisory_xact_lock(hashtextextended(:command_identity, 0))
     """
 )
 
@@ -227,47 +240,69 @@ class SqlAlchemyCommandRepository:
         transaction: Connection,
         limit: int,
     ) -> list[ClaimedCommand]:
-        """Lock claimable requests, then create or reopen their data runs."""
+        """Lock command identities, then create or reopen their data runs."""
 
-        candidates = transaction.execute(
-            _CLAIM_CANDIDATES,
-            {
-                "limit": limit,
-                "lease_seconds": self._claim_lease_seconds,
-            },
-        )
         commands: list[ClaimedCommand] = []
+        after_id = None
+        after_created_at = None
 
-        for row in candidates.mappings():
-            run = (
+        while len(commands) < limit:
+            candidates = (
                 transaction.execute(
-                    _CREATE_OR_REOPEN_RUN,
+                    _CLAIM_CANDIDATES,
                     {
-                        "owner_id": row["owner_id"],
-                        "book_id": row["book_id"],
-                        "command_id": row["id"],
-                        "processing_version": row["processing_version"],
+                        "limit": limit - len(commands),
                         "lease_seconds": self._claim_lease_seconds,
+                        "after_id": after_id,
+                        "after_created_at": after_created_at,
                     },
                 )
                 .mappings()
-                .one_or_none()
+                .all()
             )
-            if run is None:
-                continue
+            if not candidates:
+                break
 
-            commands.append(
-                ClaimedCommand(
-                    id=row["id"],
-                    owner_id=row["owner_id"],
-                    book_id=row["book_id"],
-                    command_type=row["command_type"],
-                    payload=_payload_mapping(row["payload"]),
-                    processing_version=row["processing_version"],
-                    run_id=run["id"],
-                    lease_started_at=run["started_at"],
+            for row in candidates:
+                after_id = row["id"]
+                after_created_at = row["created_at"]
+                # App commands are read-only; claim locks belong to the transaction.
+                locked = transaction.execute(
+                    _TRY_LOCK_COMMAND,
+                    {"command_identity": f"bookwise-command:{row['id']}"},
+                ).scalar_one()
+                if not locked:
+                    continue
+
+                run = (
+                    transaction.execute(
+                        _CREATE_OR_REOPEN_RUN,
+                        {
+                            "owner_id": row["owner_id"],
+                            "book_id": row["book_id"],
+                            "command_id": row["id"],
+                            "processing_version": row["processing_version"],
+                            "lease_seconds": self._claim_lease_seconds,
+                        },
+                    )
+                    .mappings()
+                    .one_or_none()
                 )
-            )
+                if run is None:
+                    continue
+
+                commands.append(
+                    ClaimedCommand(
+                        id=row["id"],
+                        owner_id=row["owner_id"],
+                        book_id=row["book_id"],
+                        command_type=row["command_type"],
+                        payload=_payload_mapping(row["payload"]),
+                        processing_version=row["processing_version"],
+                        run_id=run["id"],
+                        lease_started_at=run["started_at"],
+                    )
+                )
 
         return commands
 

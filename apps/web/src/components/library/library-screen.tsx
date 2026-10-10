@@ -76,6 +76,14 @@ export function LibraryScreen() {
   const { getAccessTokenSilently } = useAuth0();
   const [state, setState] = useState<LibraryState>({ kind: "loading" });
   const [uploadOpen, setUploadOpen] = useState(false);
+  const pollingBookIdsKey =
+    state.kind === "ready"
+      ? state.books
+          .filter(isPollingBook)
+          .map((book) => book.id)
+          .sort()
+          .join(",")
+      : "";
 
   const requestLibrary = useCallback(async (): Promise<LibraryState> => {
     try {
@@ -112,15 +120,11 @@ export function LibraryScreen() {
   }, [requestLibrary]);
 
   useEffect(() => {
-    if (state.kind !== "ready") {
+    if (!pollingBookIdsKey) {
       return;
     }
 
-    const bookIds = state.books.filter(isPollingBook).map((book) => book.id);
-
-    if (bookIds.length === 0) {
-      return;
-    }
+    const bookIds = pollingBookIdsKey.split(",");
 
     let active = true;
 
@@ -191,7 +195,7 @@ export function LibraryScreen() {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [getAccessTokenSilently, state]);
+  }, [getAccessTokenSilently, pollingBookIdsKey]);
 
   async function refreshAfterUpload(): Promise<void> {
     setState(await requestLibrary());

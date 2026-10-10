@@ -16,6 +16,8 @@ kind: Service
 metadata:
   name: bookwise-api
   namespace: bookwise
+  annotations:
+    cloud.google.com/backend-config: '{"ports":{"http":"bookwise-api-health"}}'
 spec:
   selector:
     app.kubernetes.io/name: bookwise-api

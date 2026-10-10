@@ -186,6 +186,12 @@ S3_PRESIGNED_URL_EXPIRY_SECONDS
 The API remains responsible for app-schema writes and command creation. It
 does not directly run book ingestion or summary generation.
 
+The unauthenticated `GET /v1/health` endpoint returns `{"status":"ok"}`.
+API readiness and liveness probes use this HTTP endpoint, as does the GKE
+load-balancer health check configured by `bookwise-api-health` BackendConfig
+and the API Service annotation. This checks HTTP process availability, not
+database or managed-service readiness.
+
 ### Worker Deployment
 
 The worker becomes a long-running process instead of executing one batch and
@@ -206,9 +212,21 @@ PROCESSING_BATCH_LIMIT: configurable
 PROCESSING_POLL_INTERVAL_SECONDS: configurable
 ```
 
-The existing lease, heartbeat, retryable failure, permanent failure, and
-`FOR UPDATE SKIP LOCKED` behavior remain authoritative. This allows additional
-worker replicas later without changing command ownership semantics.
+Leases, heartbeats, retryable failure, and permanent failure remain
+authoritative in `data.processing_runs`. Claiming reads immutable
+`app.processing_commands` without row locks and attempts a nonblocking,
+transaction-scoped advisory lock using
+`pg_try_advisory_xact_lock(hashtextextended(:command_identity, 0))`, with
+`command_identity` set to `bookwise-command:<command UUID>`.
+
+Candidates are scanned in `(created_at, id)` order with keyset pagination so
+busy locks or ineligible runs do not prevent filling the requested batch.
+Under the advisory lock, a conditional upsert creates or reopens the matching
+`(command_id, processing_version)` data run only when absent, retryable-failed,
+or running with an expired lease. The lock is released when the claim
+transaction ends; the persisted run lease governs ownership during external
+processing. This supports concurrent workers without requiring write
+permissions on app-schema commands.
 
 The worker receives:
 

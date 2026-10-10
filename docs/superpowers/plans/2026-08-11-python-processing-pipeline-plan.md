@@ -7,8 +7,9 @@
 **Goal:** Build the Python-owned command worker that transforms uploaded books
 into immutable, source-linked data records and durable progress events.
 
-**Architecture:** Python application use cases atomically claim
-`app.processing_commands`, write only `data` tables, then append
+**Architecture:** Python application use cases atomically claim immutable
+`app.processing_commands` through advisory locks and `data.processing_runs`
+leases, write only `data` tables, then append
 `data.processing_events`. Parsers and model providers are infrastructure
 adapters behind domain ports.
 
@@ -40,13 +41,27 @@ PyMuPDF, EbookLib, python-docx, Pydantic, provider SDKs.
 
 - [ ] **Step 1: Define command state transitions**
 
-Allow `queued -> running -> completed`, `queued -> retryable_failed`, and
-`running -> retryable_failed`. Require `FOR UPDATE SKIP LOCKED` when claiming.
+Keep app commands read-only and queued; record worker state transitions in
+`data.processing_runs`. Create running runs, reopen retryable failures or
+expired running leases, and finish owned runs as completed, retryable-failed,
+or permanent-failed. Heartbeats and terminal updates must match the run's
+`started_at` lease generation.
+
+Claim with nonblocking transaction-scoped advisory locks using
+`pg_try_advisory_xact_lock(hashtextextended(:command_identity, 0))`, keyed by
+`bookwise-command:<command UUID>`. Do not row-lock app commands.
 
 - [ ] **Step 2: Implement idempotent claim repository**
 
 Claim only commands whose processing version has no completed matching data run.
-Persist a data processing-run row before external work begins.
+Scan candidates in `(created_at, id)` order with keyset pagination, continuing
+past busy locks or runs that can no longer be claimed until the batch is full
+or candidates are exhausted. Under each acquired advisory lock, conditionally
+upsert the matching `(command_id, processing_version)` data run only if absent,
+retryable-failed, or running with an expired lease.
+
+Persist the run before external work begins. Advisory locks end with the claim
+transaction; durable run leases and heartbeats retain processing ownership.
 
 - [ ] **Step 3: Emit durable events**
 

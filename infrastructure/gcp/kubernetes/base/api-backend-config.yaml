@@ -1,0 +1,14 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: bookwise-api-health
+  namespace: bookwise
+spec:
+  healthCheck:
+    type: HTTP
+    requestPath: /v1/health
+    port: 3001
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
