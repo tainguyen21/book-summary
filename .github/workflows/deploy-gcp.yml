@@ -22,12 +22,26 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+    with:
+      api_url: ${{ vars.NEXT_PUBLIC_API_URL }}
+      auth0_domain: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
+      auth0_client_id: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+      auth0_audience: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+      auth0_redirect_uri: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
     environment: production
     steps:
       - name: Check out commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
 
       - name: Validate deployment configuration
         shell: bash
@@ -71,43 +85,6 @@ jobs:
             exit 1
           fi
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.21.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Install JavaScript dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Verify web
-        run: |
-          pnpm --dir apps/web lint
-          pnpm --dir apps/web build
-        env:
-          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
-          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
-          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
-          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-
-      - name: Verify API and worker
-        run: |
-          pnpm --dir services/api lint
-          pnpm --dir services/api build
-          pnpm --dir services/api format:check
-          uv sync --project services/data --locked
-          uv run --project services/data ruff check services/data
-          uv run --project services/data python -m compileall -q services/data/src
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -120,46 +97,75 @@ jobs:
       - name: Authenticate Docker
         run: gcloud auth configure-docker "$(echo "${REGISTRY}" | cut -d/ -f1)" --quiet
 
-      - name: Build and push images
-        run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
-            --build-arg NEXT_PUBLIC_AUTH0_DOMAIN="${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}" \
-            --build-arg NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}" \
-            --build-arg NEXT_PUBLIC_AUTH0_AUDIENCE="${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}" \
-            --build-arg NEXT_PUBLIC_AUTH0_REDIRECT_URI="${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}" \
-            -f apps/web/Dockerfile \
-            -t "${{ env.REGISTRY }}/bookwise-web:${{ env.IMAGE_TAG }}" .
-          docker build \
-            -f services/api/Dockerfile \
-            -t "${{ env.REGISTRY }}/bookwise-api:${{ env.IMAGE_TAG }}" .
-          docker build \
-            -f services/data/Dockerfile \
-            -t "${{ env.REGISTRY }}/bookwise-worker:${{ env.IMAGE_TAG }}" .
-          docker build \
-            -f services/data/Dockerfile.migrations \
-            -t "${{ env.REGISTRY }}/bookwise-migrator:${{ env.IMAGE_TAG }}" .
-          docker push "${{ env.REGISTRY }}/bookwise-web:${{ env.IMAGE_TAG }}"
-          docker push "${{ env.REGISTRY }}/bookwise-api:${{ env.IMAGE_TAG }}"
-          docker push "${{ env.REGISTRY }}/bookwise-worker:${{ env.IMAGE_TAG }}"
-          docker push "${{ env.REGISTRY }}/bookwise-migrator:${{ env.IMAGE_TAG }}"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Resolve pushed image digests
+      - name: Build and push web image
+        id: web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/bookwise-web:${{ env.IMAGE_TAG }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_AUTH0_DOMAIN=${{ vars.NEXT_PUBLIC_AUTH0_DOMAIN }}
+            NEXT_PUBLIC_AUTH0_CLIENT_ID=${{ vars.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+            NEXT_PUBLIC_AUTH0_AUDIENCE=${{ vars.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+            NEXT_PUBLIC_AUTH0_REDIRECT_URI=${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}
+          cache-from: type=gha,scope=bookwise-web
+          cache-to: type=gha,mode=max,scope=bookwise-web,ignore-error=true
+
+      - name: Build and push API image
+        id: api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/api/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/bookwise-api:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=bookwise-api
+          cache-to: type=gha,mode=max,scope=bookwise-api,ignore-error=true
+
+      - name: Build and push worker image
+        id: worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/data/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/bookwise-worker:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=bookwise-worker
+          cache-to: type=gha,mode=max,scope=bookwise-worker,ignore-error=true
+
+      - name: Build and push migrator image
+        id: migrator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/data/Dockerfile.migrations
+          push: true
+          tags: ${{ env.REGISTRY }}/bookwise-migrator:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=bookwise-migrator
+          cache-to: type=gha,mode=max,scope=bookwise-migrator,ignore-error=true
+
+      - name: Validate pushed image digests
         shell: bash
+        env:
+          WEB_DIGEST: ${{ steps.web.outputs.digest }}
+          API_DIGEST: ${{ steps.api.outputs.digest }}
+          WORKER_DIGEST: ${{ steps.worker.outputs.digest }}
+          MIGRATOR_DIGEST: ${{ steps.migrator.outputs.digest }}
         run: |
           set -euo pipefail
-          for image in web api worker migrator; do
-            digest="$(
-              gcloud artifacts docker images describe \
-                "${REGISTRY}/bookwise-${image}:${IMAGE_TAG}" \
-                --project="${PROJECT_ID}" \
-                --format='value(image_summary.digest)'
-            )"
+          for name in WEB_DIGEST API_DIGEST WORKER_DIGEST MIGRATOR_DIGEST; do
+            digest="${!name}"
             if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-              echo "::error::Could not resolve a digest for bookwise-${image}:${IMAGE_TAG}"
+              echo "::error::Invalid pushed image digest: ${name}"
               exit 1
             fi
-            printf '%s_DIGEST=%s\n' "${image^^}" "${digest}" >> "${GITHUB_ENV}"
+            printf '%s=%s\n' "${name}" "${digest}" >> "${GITHUB_ENV}"
           done
 
       - name: Get GKE credentials
@@ -201,7 +207,7 @@ jobs:
             --from-literal=NEXT_PUBLIC_AUTH0_REDIRECT_URI="${{ vars.NEXT_PUBLIC_AUTH0_REDIRECT_URI }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Render and apply Kubernetes resources
+      - name: Render Kubernetes resources
         shell: bash
         run: |
           set -euo pipefail
@@ -212,11 +218,13 @@ jobs:
                 -e "s#${REGISTRY}/bookwise-worker:local#${REGISTRY}/bookwise-worker@${WORKER_DIGEST}#g" \
                 -e "s#${REGISTRY}/bookwise-migrator:local#${REGISTRY}/bookwise-migrator@${MIGRATOR_DIGEST}#g" \
             > rendered-bookwise.yaml
-          kubectl delete job bookwise-migrate --namespace="${NAMESPACE}" --ignore-not-found
-          kubectl apply -f rendered-bookwise.yaml
 
-      - name: Run migration
-        run: kubectl wait --for=condition=complete job/bookwise-migrate --namespace="${NAMESPACE}" --timeout=10m
+      - name: Migrate before applying application resources
+        shell: pwsh
+        run: |
+          ./infrastructure/gcp/scripts/apply-resources.ps1 `
+            -Manifest (Get-Content -LiteralPath rendered-bookwise.yaml) `
+            -Namespace $env:NAMESPACE
 
       - name: Wait for rollouts
         run: |

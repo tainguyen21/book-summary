@@ -2,14 +2,34 @@ name: Verify
 
 on:
   pull_request:
-  push:
-    branches: [master]
+  workflow_call:
+    inputs:
+      api_url:
+        type: string
+        required: false
+      auth0_domain:
+        type: string
+        required: false
+      auth0_client_id:
+        type: string
+        required: false
+      auth0_audience:
+        type: string
+        required: false
+      auth0_redirect_uri:
+        type: string
+        required: false
+
+permissions:
+  contents: read
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -20,10 +40,11 @@ jobs:
       - run: pnpm --dir apps/web lint
       - run: pnpm --dir apps/web build
         env:
-          NEXT_PUBLIC_AUTH0_DOMAIN: your-tenant.us.auth0.com
-          NEXT_PUBLIC_AUTH0_CLIENT_ID: ci-placeholder-client-id
-          NEXT_PUBLIC_AUTH0_AUDIENCE: https://api.bookwise.local
-          NEXT_PUBLIC_AUTH0_REDIRECT_URI: http://localhost:3000
+          NEXT_PUBLIC_API_URL: ${{ inputs.api_url || 'http://localhost:3001' }}
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ inputs.auth0_domain || 'your-tenant.us.auth0.com' }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ inputs.auth0_client_id || 'ci-placeholder-client-id' }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ inputs.auth0_audience || 'https://api.bookwise.local' }}
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: ${{ inputs.auth0_redirect_uri || 'http://localhost:3000' }}
       - run: pnpm --dir services/api lint
       - run: pnpm --dir services/api build
       - run: pnpm --dir services/api format:check
