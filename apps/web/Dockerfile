@@ -34,4 +34,5 @@ COPY --from=builder --chown=node:node /app/apps/web ./apps/web
 
 EXPOSE 3000
 USER 1000
-CMD ["pnpm", "--dir", "apps/web", "start"]
+WORKDIR /app/apps/web
+CMD ["node", "scripts/run-next-with-root-env.mjs", "start"]
