@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://tai-dev-web.cloud"],
+    "method": ["PUT"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 600
+  }
+]
