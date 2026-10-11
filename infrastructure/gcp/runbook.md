@@ -33,6 +33,19 @@ Create the Secret Manager values described in
 `127.0.0.1:5432` because the workloads connect through the Cloud SQL Auth
 Proxy sidecar or migration proxy.
 
+After creating the private `bookwise-509408-storage` bucket, apply its browser
+upload CORS policy from the repository root:
+
+```powershell
+gcloud storage buckets update gs://bookwise-509408-storage `
+  --cors-file=infrastructure/gcp/storage-cors.json `
+  --project=bookwise-509408
+```
+
+This is a separate setup step, not part of the deployment workflow. Reapply
+it after changing the allowed web origin in `storage-cors.json`; do not use
+a wildcard origin or make the bucket public to troubleshoot uploads.
+
 Reserve a global external IPv4 address named `bookwise-ip`. At the DNS
 provider for `tai-dev-web.cloud`, create a root `A` record that points to the
 reserved address:
@@ -71,13 +84,16 @@ Use these public URL values:
 NEXT_PUBLIC_API_URL=https://tai-dev-web.cloud
 NEXT_PUBLIC_AUTH0_DOMAIN=dev-p8c5tpe1ghv8qtxf.us.auth0.com
 NEXT_PUBLIC_AUTH0_CLIENT_ID=AUTH0_SPA_CLIENT_ID
-NEXT_PUBLIC_AUTH0_AUDIENCE=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_AUDIENCE=https://api.bookwise.local
 NEXT_PUBLIC_AUTH0_REDIRECT_URI=https://tai-dev-web.cloud
 ```
 
 In Auth0, configure `https://tai-dev-web.cloud` as an allowed callback URL,
 logout URL, and web origin. Configure the Auth0 API identifier as
-`https://tai-dev-web.cloud`.
+`https://api.bookwise.local`. This identifier does not need to resolve in DNS.
+It must exactly match the GitHub `NEXT_PUBLIC_AUTH0_AUDIENCE` variable and
+Secret Manager `bookwise-oidc-audience`; the public API and callback URLs
+remain `https://tai-dev-web.cloud`.
 
 Before starting the workflow, verify:
 
@@ -86,10 +102,11 @@ DNS root A record       -> 35.201.95.210
 Auth0 callback URL      -> https://tai-dev-web.cloud
 Auth0 logout URL        -> https://tai-dev-web.cloud
 Auth0 web origin        -> https://tai-dev-web.cloud
-Auth0 API identifier    -> https://tai-dev-web.cloud
+Auth0 API identifier    -> https://api.bookwise.local
 GitHub API URL          -> https://tai-dev-web.cloud
 GitHub redirect URI     -> https://tai-dev-web.cloud
-Secret OIDC audience    -> https://tai-dev-web.cloud
+GitHub Auth0 audience   -> https://api.bookwise.local
+Secret OIDC audience    -> https://api.bookwise.local
 ```
 
 Start **Deploy to GKE** manually from the GitHub Actions page for the first
@@ -123,6 +140,70 @@ If a Pod is restarting or stuck:
 kubectl describe pod -n bookwise -l app.kubernetes.io/name=bookwise-api
 kubectl get events -n bookwise --sort-by=.lastTimestamp
 ```
+
+## Verify Browser Uploads
+
+Inspect the current bucket policy:
+
+```powershell
+gcloud storage buckets describe gs://bookwise-509408-storage `
+  --project=bookwise-509408 --format="json(cors_config)"
+```
+
+Verify the browser preflight without creating or uploading an object:
+
+```powershell
+$response = Invoke-WebRequest `
+  "https://storage.googleapis.com/bookwise-509408-storage/cors-check" `
+  -Method Options `
+  -Headers @{
+    Origin = "https://tai-dev-web.cloud"
+    "Access-Control-Request-Method" = "PUT"
+    "Access-Control-Request-Headers" = "content-type"
+  }
+$response.StatusCode
+$response.Headers["Access-Control-Allow-Origin"]
+$response.Headers["Access-Control-Allow-Methods"]
+$response.Headers["Access-Control-Allow-Headers"]
+```
+
+Expect status 200, allow-origin `https://tai-dev-web.cloud`, allow-methods
+containing `PUT`, and allow-headers containing `Content-Type`. Status 200
+alone does not prove CORS is configured: missing allow headers still block
+the browser upload.
+
+In the app, start a fresh upload and inspect the browser Network panel:
+`POST /v1/books/uploads` creates a ticket, the signed Cloud Storage `PUT`
+uploads the bytes, and `POST /v1/books/:bookId/uploads/finalize` queues
+processing. A successful storage PUT alone does not confirm processing.
+
+If the app reports "The file could not upload. Retry before the link expires.":
+
+- Missing CORS allow headers: apply the policy above and retry.
+- Storage PUT returns 403: inspect its response for an expired URL, a signed
+  content-type mismatch, or a permission error. Send the ticket's exact
+  content type; check the API service account's storage and signing roles.
+- Expired upload ticket: close the dialog and start a new upload for a fresh
+  signed URL. The production expiry is 600 seconds.
+- Session or ticket API returns 401: check the Auth0 audience alignment above;
+  bucket CORS cannot fix API authentication.
+
+If the book detail page shows "Upload incomplete. Processing has not started",
+its API status is `pending_upload`, not an active worker job. Return to the
+library and start a fresh upload; the page stops automatic polling for that
+entry. A missing original object and no processing command indicate that the
+upload was never finalized, so waiting or restarting the worker cannot
+complete it.
+
+For upload diagnostics, inspect the browser Console for `Bookwise upload failed`.
+The warning includes the stage (`creating`, `uploading`, or `finalizing`),
+book ID when available, storage HTTP status when available, a fixed reason
+code, `storageUploaded`, and `canReuseTicket`. Status 0 means a network or
+CORS failure that the browser could not distinguish. These diagnostics do
+not appear in Kubernetes API or worker logs and deliberately omit tokens,
+signed URLs, filenames, file contents, and raw errors.
+
+Do not include bearer tokens or full signed URLs in shared logs or screenshots.
 
 ## Rollback
 

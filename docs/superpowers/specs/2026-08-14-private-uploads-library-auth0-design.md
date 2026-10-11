@@ -258,17 +258,19 @@ The protected home route is the library. It contains:
 The list uses clear status labels:
 
 ```text
-Uploading
-Ready to finalize
+Upload incomplete
 Queued
 Processing
+Processing will retry
 Completed
 Needs review
 Failed
 ```
 
 The frontend maps these labels from API values rather than inferring them from
-the absence of records.
+the absence of records. The library uses the latest `runStatus` received by
+polling when available, then falls back to `commandStatus` and `bookStatus`.
+`pending_upload` is shown as "Upload incomplete", not as a processing job.
 
 ### 6.3 Upload dialog
 
@@ -290,14 +292,33 @@ Select file
 The dialog remains open on recoverable errors and states what can be retried.
 A storage PUT failure can retry while its URL remains valid; after expiration,
 the user starts a new upload attempt. A failed finalization never claims that
-the book is queued.
+the book is queued. Error messages distinguish ticket creation failure,
+incomplete storage upload, expired links, and an uploaded file whose
+finalization has not been confirmed.
+
+Upload failures emit a browser console warning named `Bookwise upload failed`.
+It records the stage, book ID when available, storage HTTP status when
+available, a fixed reason code, whether storage upload finished, and whether
+the ticket can be reused. Storage status 0 is reported as
+`storage_network_or_cors`; it does not prove that CORS is the cause.
+Warnings do not include tokens, signed URLs, filenames, file contents, or
+raw exception objects. These warnings are browser diagnostics, not API or
+worker logs.
 
 ### 6.4 Status polling
 
-The library polls the processing endpoint every five seconds for queued or
-processing books. Polling stops for completed, failed, and needs-review
-statuses, and when the page is hidden. Users can manually refresh the library
-at any time.
+The library polls the processing endpoint every five seconds for queued,
+processing, running, or retryable-failed books. Polling stops for incomplete
+uploads, completed, permanently failed, and needs-review statuses, and pauses
+when the page is hidden. Users can manually refresh the library at any time.
+
+The book detail page distinguishes queued, running, retryable-failed,
+permanently failed, and needs-review states. A `pending_upload` response shows
+"Upload incomplete. Processing has not started" with a link to the library
+and instructions to upload the file again. No automatic interval or
+visibility-change polling continues for that incomplete upload. The detail
+page avoids overlapping status requests and only starts an interval while
+processing remains active.
 
 ## 7. Errors and Security
 

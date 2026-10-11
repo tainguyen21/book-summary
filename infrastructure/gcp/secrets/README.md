@@ -31,9 +31,12 @@ The Auth0 values are:
 
 ```text
 bookwise-oidc-issuer=https://dev-p8c5tpe1ghv8qtxf.us.auth0.com/
-bookwise-oidc-audience=https://tai-dev-web.cloud
+bookwise-oidc-audience=https://api.bookwise.local
 bookwise-s3-presigned-url-expiry=600
 ```
+
+The audience must exactly match the Auth0 API identifier and the GitHub
+`NEXT_PUBLIC_AUTH0_AUDIENCE` variable. It is not the public API URL.
 
 Create a secret without putting its value on the command line:
 

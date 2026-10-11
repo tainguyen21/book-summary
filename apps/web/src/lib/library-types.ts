@@ -8,6 +8,7 @@ export interface LibraryBook {
   uploadState: string;
   createdAt: string;
   commandStatus?: string;
+  runStatus?: string;
 }
 
 export interface UploadTicket {
@@ -63,6 +64,7 @@ export const libraryBookSchema: z.ZodType<LibraryBook> = z.object({
   uploadState: z.string(),
   createdAt: z.string().datetime(),
   commandStatus: z.string().optional(),
+  runStatus: z.string().optional(),
 });
 
 export const uploadTicketSchema: z.ZodType<UploadTicket> = z.object({

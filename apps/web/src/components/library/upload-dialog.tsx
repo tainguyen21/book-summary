@@ -29,6 +29,13 @@ const accept = [
 
 type UploadStage = "idle" | "creating" | "uploading" | "finalizing";
 
+class StorageUploadError extends Error {
+  constructor(readonly status: number) {
+    super("Storage upload failed.");
+    this.name = "StorageUploadError";
+  }
+}
+
 export function UploadDialog({
   onClose,
   onComplete,
@@ -111,9 +118,9 @@ export function UploadDialog({
           return;
         }
 
-        reject(new Error("Storage upload failed."));
+        reject(new StorageUploadError(xhr.status));
       };
-      xhr.onerror = () => reject(new Error("Storage upload failed."));
+      xhr.onerror = () => reject(new StorageUploadError(xhr.status));
       xhr.send(currentFile);
     });
   }
@@ -184,21 +191,37 @@ export function UploadDialog({
       await onComplete();
       completed = true;
       onClose();
-    } catch {
+    } catch (failure) {
       const canReuseTicket = Boolean(
         currentTicket && ticketIsValid(currentTicket),
       );
 
       setTicket(canReuseTicket ? currentTicket : undefined);
       setStorageUploaded(canReuseTicket ? uploaded : false);
+      console.warn("Bookwise upload failed", {
+        stage: phase,
+        bookId: currentTicket?.bookId,
+        storageHttpStatus:
+          failure instanceof StorageUploadError ? failure.status : undefined,
+        reason:
+          failure instanceof StorageUploadError
+            ? failure.status === 0
+              ? "storage_network_or_cors"
+              : "storage_http_error"
+            : currentTicket && !canReuseTicket
+              ? "upload_link_expired"
+              : `${phase}_failed`,
+        storageUploaded: uploaded,
+        canReuseTicket,
+      });
       setError(
-        !canReuseTicket
-          ? "The upload link expired. Start a new upload."
-          : phase === "creating"
-            ? "Bookwise could not create an upload. Try again."
+        phase === "creating" && !currentTicket
+          ? "Bookwise could not create an upload. Try again."
+          : !canReuseTicket
+            ? "The upload link expired. Start a new upload."
             : phase === "uploading"
-              ? "The file could not upload. Retry before the link expires."
-              : "Bookwise could not finalize the upload. Retry to confirm it is queued.",
+              ? "Upload incomplete. Processing has not started. Retry before the link expires."
+              : "The file uploaded, but processing has not been confirmed. Retry to confirm it is queued.",
       );
     } finally {
       if (!completed) {

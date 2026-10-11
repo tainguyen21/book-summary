@@ -81,6 +81,26 @@ under **Settings > Secrets and variables > Actions > Variables** in
 `tainguyen21/book-summary`. The workflow also expects the public Auth0
 variables listed below.
 
+## Browser Upload CORS
+
+The browser uploads files directly to the private Cloud Storage bucket using
+an API-issued signed URL. Apply the checked-in CORS policy after creating the
+bucket, before using uploads. Run from the repository root:
+
+```powershell
+gcloud storage buckets update gs://bookwise-509408-storage `
+  --cors-file=infrastructure/gcp/storage-cors.json `
+  --project=bookwise-509408
+```
+
+The policy allows `PUT` with `Content-Type` from
+`https://tai-dev-web.cloud` and caches preflight results for 600 seconds.
+It does not make the bucket public or replace signed-URL authorization.
+The deployment workflow does not apply this policy automatically. When
+changing the web domain, update the exact origin in `storage-cors.json`
+and reapply it. Verification and upload troubleshooting are in
+[`runbook.md`](runbook.md#verify-browser-uploads).
+
 ## Build And Deploy
 
 Build and push immutable images using a commit SHA:
@@ -98,7 +118,7 @@ docker push "asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise/bookwise-mi
 $env:NEXT_PUBLIC_API_URL = "https://tai-dev-web.cloud"
 $env:NEXT_PUBLIC_AUTH0_DOMAIN = "dev-p8c5tpe1ghv8qtxf.us.auth0.com"
 $env:NEXT_PUBLIC_AUTH0_CLIENT_ID = "AUTH0_SPA_CLIENT_ID"
-$env:NEXT_PUBLIC_AUTH0_AUDIENCE = "https://tai-dev-web.cloud"
+$env:NEXT_PUBLIC_AUTH0_AUDIENCE = "https://api.bookwise.local"
 $env:NEXT_PUBLIC_AUTH0_REDIRECT_URI = "https://tai-dev-web.cloud"
 pwsh infrastructure/gcp/scripts/deploy.ps1 -ImageTag $tag
 ```
@@ -167,12 +187,19 @@ The public GitHub repository variables are:
 NEXT_PUBLIC_API_URL=https://tai-dev-web.cloud
 NEXT_PUBLIC_AUTH0_DOMAIN=dev-p8c5tpe1ghv8qtxf.us.auth0.com
 NEXT_PUBLIC_AUTH0_CLIENT_ID=AUTH0_SPA_CLIENT_ID
-NEXT_PUBLIC_AUTH0_AUDIENCE=https://tai-dev-web.cloud
+NEXT_PUBLIC_AUTH0_AUDIENCE=https://api.bookwise.local
 NEXT_PUBLIC_AUTH0_REDIRECT_URI=https://tai-dev-web.cloud
 ```
 
 `NEXT_PUBLIC_AUTH0_CLIENT_ID` must be copied from the Auth0 Single Page
 Application. It is public browser configuration, not an Auth0 client secret.
+
+The Auth0 API identifier, `NEXT_PUBLIC_AUTH0_AUDIENCE`, and the Secret Manager
+value `bookwise-oidc-audience` must all be `https://api.bookwise.local`.
+This is a token audience identifier, not the public API address. Keep
+`NEXT_PUBLIC_API_URL` and the callback URL on `https://tai-dev-web.cloud`.
+An audience mismatch causes authenticated session and library requests to
+return 401.
 
 ## Operations
 

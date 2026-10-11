@@ -368,6 +368,7 @@ h2 {
 
 .book-meta {
   flex: 0 0 auto;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 14px;
 }
@@ -383,13 +384,14 @@ h2 {
   border-radius: 4px;
 }
 
-.status-queued {
+.status-queued,
+.status-pending_upload,
+.status-retryable_failed {
   color: #72520a;
   background: #f3e6b6;
 }
 
 .status-failed,
-.status-retryable_failed,
 .status-permanent_failed {
   color: #8d2a22;
   background: #f6d9d5;
@@ -440,6 +442,10 @@ h2 {
 
 .book-detail-state p {
   margin-bottom: 0;
+}
+
+.book-detail-state > svg {
+  flex-shrink: 0;
 }
 
 .book-detail-error {

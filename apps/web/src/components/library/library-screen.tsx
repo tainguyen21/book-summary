@@ -18,13 +18,13 @@ import { UploadDialog } from "./upload-dialog";
 const libraryBooksSchema = z.array(libraryBookSchema);
 
 const statusLabels: Record<string, string> = {
-  pending_upload: "Ready to upload",
+  pending_upload: "Upload incomplete",
   queued: "Queued",
   processing: "Processing",
   completed: "Completed",
   failed: "Failed",
   running: "Processing",
-  retryable_failed: "Failed",
+  retryable_failed: "Processing will retry",
   permanent_failed: "Failed",
   needs_review: "Needs review",
 };
@@ -35,13 +35,13 @@ type LibraryState =
   | { kind: "ready"; books: LibraryBook[] };
 
 function isPollingBook(book: LibraryBook): boolean {
-  return ["queued", "processing", "running"].includes(
-    book.commandStatus ?? book.bookStatus,
+  return ["queued", "processing", "running", "retryable_failed"].includes(
+    book.runStatus ?? book.commandStatus ?? book.bookStatus,
   );
 }
 
 function statusLabel(book: LibraryBook): string {
-  const status = book.commandStatus ?? book.bookStatus;
+  const status = book.runStatus ?? book.commandStatus ?? book.bookStatus;
 
   return statusLabels[status] ?? status;
 }
@@ -66,9 +66,8 @@ function mergeProcessingStatus(
   return {
     ...book,
     bookStatus: status.bookStatus,
-    ...(status.commandStatus !== undefined
-      ? { commandStatus: status.commandStatus }
-      : {}),
+    commandStatus: status.commandStatus,
+    runStatus: status.runStatus,
   };
 }
 
@@ -269,7 +268,7 @@ export function LibraryScreen() {
                 </div>
                 <div className="book-meta">
                   <span>{createdAt(book.createdAt)}</span>
-                  <span className={`status status-${book.commandStatus ?? book.bookStatus}`}>
+                  <span className={`status status-${book.runStatus ?? book.commandStatus ?? book.bookStatus}`}>
                     {statusLabel(book)}
                   </span>
                 </div>

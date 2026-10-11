@@ -16,7 +16,9 @@ import {
 
 type DetailState =
   | { kind: "loading" }
+  | { kind: "upload-incomplete" }
   | { kind: "processing"; status: BookProcessingStatus }
+  | { kind: "needs-review" }
   | { kind: "ready"; summary: BookSummary }
   | { kind: "failed"; status: BookProcessingStatus }
   | { kind: "unavailable" }
@@ -39,7 +41,7 @@ function statusLabel(status: BookProcessingStatus): string {
     return "Processing failed";
   }
 
-  return "Waiting to process";
+  return "Queued for processing";
 }
 
 function locationLabel(location: Record<string, unknown>): string {
@@ -78,7 +80,19 @@ export function BookDetailScreen({ bookId }: BookDetailScreenProps) {
       return { kind: "error" };
     }
 
-    if (status.runStatus === "permanent_failed") {
+    if (status.bookStatus === "pending_upload") {
+      return { kind: "upload-incomplete" };
+    }
+
+    if (status.runStatus === "needs_review") {
+      return { kind: "needs-review" };
+    }
+
+    if (
+      status.runStatus === "permanent_failed" ||
+      status.commandStatus === "failed" ||
+      status.bookStatus === "failed"
+    ) {
       return { kind: "failed", status };
     }
 
@@ -106,19 +120,24 @@ export function BookDetailScreen({ bookId }: BookDetailScreenProps) {
     }
 
     let active = true;
+    let uploadIncomplete = false;
+    let inFlight = false;
     let interval: number | undefined;
 
     const poll = () => {
-      if (document.hidden) {
+      if (document.hidden || uploadIncomplete || inFlight) {
         return;
       }
 
+      inFlight = true;
       void requestDetail().then((nextState) => {
+        inFlight = false;
         if (!active) {
           return;
         }
 
         setState(nextState);
+        uploadIncomplete = nextState.kind === "upload-incomplete";
         if (nextState.kind === "processing" && interval === undefined) {
           interval = window.setInterval(poll, 5000);
         }
@@ -205,6 +224,24 @@ export function BookDetailScreen({ bookId }: BookDetailScreenProps) {
             <LoaderCircle className="spin" aria-hidden="true" size={18} />
             {statusLabel(state.status)}
           </p>
+        )}
+
+        {state.kind === "upload-incomplete" && (
+          <div className="book-detail-state book-detail-error" role="alert">
+            <CircleAlert aria-hidden="true" size={18} />
+            <p>
+              Upload incomplete. Processing has not started.{" "}
+              <Link href="/">Return to your library</Link> and upload the file
+              again.
+            </p>
+          </div>
+        )}
+
+        {state.kind === "needs-review" && (
+          <div className="book-detail-state book-detail-error" role="alert">
+            <CircleAlert aria-hidden="true" size={18} />
+            <p>This book needs review before a summary can be published.</p>
+          </div>
         )}
 
         {state.kind === "failed" && (
