@@ -3,6 +3,15 @@
 Evidence-first, private book summarization with a NestJS application backend
 and a private Python processing service.
 
+## New Device And Agent Handoff
+
+Follow [new-device setup](docs/new-device-setup.md) for prerequisites,
+configuration, access, and verification. AI agents should begin with
+[`AGENTS.md`](AGENTS.md) and the [agent handoff](docs/agent-handoff.md).
+These guides distinguish local setup from connecting to the existing
+production infrastructure; secrets and local databases do not migrate
+through Git.
+
 ## Project timeline
 
 See the [project timeline](docs/project-timeline.md) for completed work, the

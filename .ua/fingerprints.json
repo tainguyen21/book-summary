@@ -1,0 +1,5927 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "e8bbcba98b1720c16e3230c63c91bec3a7ec535d",
+  "generatedAt": "2026-10-13T15:08:01.612Z",
+  "files": {
+    ".dockerignore": {
+      "filePath": ".dockerignore",
+      "contentHash": "82ec01a01c850324b488e2340d9f6ac166be5ceacbe5dab5b36c6947e66bcc3b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "3e92bd4c337d5a9042ec2eab2d4266c8b2361b35afb9fd0d8762f09412bdf6eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    ".github/workflows/ci.yml": {
+      "filePath": ".github/workflows/ci.yml",
+      "contentHash": "11c42b268324bcd9feed8573efe97f216e47e4b54a0fc7c45ae7ffdb8e3f754e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": false
+    },
+    ".github/workflows/deploy-gcp.yml": {
+      "filePath": ".github/workflows/deploy-gcp.yml",
+      "contentHash": "bfd0d4c06e0a577f6f26bd6f9b88dfb5ddd390b0d0cb129b426056c7ad9f34c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 239,
+      "hasStructuralAnalysis": false
+    },
+    ".ua/config.json": {
+      "filePath": ".ua/config.json",
+      "contentHash": "4b66f98f8a815dfeb2d3a29eeb73418e07c40ed020a1498c07e908b2254f0c8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "1cd98fe7c86643b28961ba3cc51f0bc6de3db51e9c22b82f26ec34fb975a6847",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "599024b2a8c52c8c2ed1ae9ad094f49d0e4aa65c52d4e406619fe09ca28edeb3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 165,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/AGENTS.md": {
+      "filePath": "apps/web/AGENTS.md",
+      "contentHash": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/CLAUDE.md": {
+      "filePath": "apps/web/CLAUDE.md",
+      "contentHash": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/Dockerfile": {
+      "filePath": "apps/web/Dockerfile",
+      "contentHash": "4069dc0e5ce8b68c52a647baca2ed8a2eb64436ed43c4915db51d37b4e585567",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/eslint.config.mjs": {
+      "filePath": "apps/web/eslint.config.mjs",
+      "contentHash": "25e3a3d12ce11e534de4bcfadabff4458dcf63ebc982a261ae080f67936afbb5",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "eslint/config",
+          "specifiers": [
+            "defineConfig",
+            "globalIgnores"
+          ]
+        },
+        {
+          "source": "eslint-config-next/core-web-vitals",
+          "specifiers": [
+            "nextVitals"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/next-env.d.ts": {
+      "filePath": "apps/web/next-env.d.ts",
+      "contentHash": "1b59d4c6b83807db275d43f3cf2cc8e9323f465fab764eea091cc5becd5bad37",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./.next/types/routes.d.ts",
+          "specifiers": []
+        },
+        {
+          "source": "./.next/types/root-params.d.ts",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/next.config.ts": {
+      "filePath": "apps/web/next.config.ts",
+      "contentHash": "ab4c61f6ee100ae43610a18512f1ebcec842bb2405431e1009266173f21cf772",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "NextConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/package.json": {
+      "filePath": "apps/web/package.json",
+      "contentHash": "3afcc0f555442250ec9cc3dff7578a63e79e2316987a348d2bf01e97e3565bc4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/scripts/run-next-with-root-env.mjs": {
+      "filePath": "apps/web/scripts/run-next-with-root-env.mjs",
+      "contentHash": "abeb6e40a58bbf1818d542f5b4b131796278fa8ad6f5dda804e2541d70b55140",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:child_process",
+          "specifiers": [
+            "spawn"
+          ]
+        },
+        {
+          "source": "@next/env",
+          "specifiers": [
+            "nextEnv"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "resolve"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/app/books/[bookId]/page.tsx": {
+      "filePath": "apps/web/src/app/books/[bookId]/page.tsx",
+      "contentHash": "ece86524162875c42b7523e454ca85cb36609aabf4c3aa3c2c1544399efeb262",
+      "functions": [
+        {
+          "name": "BookPage",
+          "params": [
+            "{\r\n  params,\r\n}"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../components/book/book-detail-screen",
+          "specifiers": [
+            "BookDetailScreen"
+          ]
+        }
+      ],
+      "exports": [
+        "BookPage"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/app/globals.css": {
+      "filePath": "apps/web/src/app/globals.css",
+      "contentHash": "b569f8ef1ef5d7dfc2ae31f369843c487a907f13a834bf729d802d7905e6fae2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 647,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/src/app/layout.tsx": {
+      "filePath": "apps/web/src/app/layout.tsx",
+      "contentHash": "95942173fd8d0766f13aa5ed87af8367e43bf2848b6d47f991172173ef43a852",
+      "functions": [
+        {
+          "name": "RootLayout",
+          "params": [
+            "{\n  children,\n}"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "../components/auth/auth0-provider",
+          "specifiers": [
+            "BookwiseAuth0Provider"
+          ]
+        },
+        {
+          "source": "./globals.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [
+        "metadata",
+        "RootLayout"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/app/page.test.tsx": {
+      "filePath": "apps/web/src/app/page.test.tsx",
+      "contentHash": "f128ebbb30cd6eae85b9885db4239e314def5980094a74cfd805e13f9fdbe3f4",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "render",
+            "screen"
+          ]
+        },
+        {
+          "source": "./page",
+          "specifiers": [
+            "HomePage"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/app/page.tsx": {
+      "filePath": "apps/web/src/app/page.tsx",
+      "contentHash": "3dcbce596b2d8747cc64868dae2a346fad2dd1775debeb0dfc81d6047dcafb7d",
+      "functions": [
+        {
+          "name": "HomePage",
+          "params": [],
+          "exported": true,
+          "lineCount": 94
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowRight",
+            "BookOpen",
+            "CircleAlert",
+            "LoaderCircle",
+            "LogIn",
+            "UserPlus"
+          ]
+        },
+        {
+          "source": "../components/auth/account-menu",
+          "specifiers": [
+            "AccountMenu"
+          ]
+        },
+        {
+          "source": "../components/auth/session-sync-status",
+          "specifiers": [
+            "SessionSyncStatus"
+          ]
+        },
+        {
+          "source": "../components/library/library-screen",
+          "specifiers": [
+            "LibraryScreen"
+          ]
+        }
+      ],
+      "exports": [
+        "HomePage"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/auth/account-menu.tsx": {
+      "filePath": "apps/web/src/components/auth/account-menu.tsx",
+      "contentHash": "c2a8fb61f9835c08ce997e4c1e7b65c07493fa598416d72937a7d4992e85b16e",
+      "functions": [
+        {
+          "name": "AccountMenu",
+          "params": [
+            "{ email }"
+          ],
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "LogOut"
+          ]
+        }
+      ],
+      "exports": [
+        "AccountMenu"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/auth/auth0-provider.tsx": {
+      "filePath": "apps/web/src/components/auth/auth0-provider.tsx",
+      "contentHash": "f4aecd82d2c5b72fdfc497f5c60f4f3d5fdc2713efc4088dc364e2ff1a5c16f9",
+      "functions": [
+        {
+          "name": "BookwiseAuth0Provider",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "Auth0Provider"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "../../lib/auth0-config",
+          "specifiers": [
+            "publicAuth0Config"
+          ]
+        }
+      ],
+      "exports": [
+        "BookwiseAuth0Provider"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/auth/session-sync-status.tsx": {
+      "filePath": "apps/web/src/components/auth/session-sync-status.tsx",
+      "contentHash": "3ac21a65d08c6e71fd88be0f4d45cb0c289e4af8b3720d61c60677908491ccdb",
+      "functions": [
+        {
+          "name": "SessionSyncStatus",
+          "params": [
+            "{ identityKey }"
+          ],
+          "exported": true,
+          "lineCount": 66
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "CircleAlert",
+            "LoaderCircle",
+            "RefreshCw"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../../lib/bookwise-api",
+          "specifiers": [
+            "syncBookwiseIdentity",
+            "BookwisePrincipal"
+          ]
+        }
+      ],
+      "exports": [
+        "SessionSyncStatus"
+      ],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/book/book-detail-screen.tsx": {
+      "filePath": "apps/web/src/components/book/book-detail-screen.tsx",
+      "contentHash": "acf775d3a31581dbb0f059cc73e5fafa838afdcda8eb7004d791744a85a286ff",
+      "functions": [
+        {
+          "name": "statusLabel",
+          "params": [
+            "status"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "locationLabel",
+          "params": [
+            "location"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "summaryParagraphs",
+          "params": [
+            "body"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "BookDetailScreen",
+          "params": [
+            "{ bookId }"
+          ],
+          "exported": true,
+          "lineCount": 234
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "BookOpen",
+            "CircleAlert",
+            "LoaderCircle"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../auth/account-menu",
+          "specifiers": [
+            "AccountMenu"
+          ]
+        },
+        {
+          "source": "../../lib/bookwise-api",
+          "specifiers": [
+            "bookwiseApi"
+          ]
+        },
+        {
+          "source": "../../lib/library-types",
+          "specifiers": [
+            "bookProcessingStatusSchema",
+            "bookSummarySchema",
+            "BookProcessingStatus",
+            "BookSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "BookDetailScreen"
+      ],
+      "totalLines": 298,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/library/library-screen.tsx": {
+      "filePath": "apps/web/src/components/library/library-screen.tsx",
+      "contentHash": "9ec6b58243251344c16b87fe441c22398477daab9a5558dc6a72873385f6e2ff",
+      "functions": [
+        {
+          "name": "isPollingBook",
+          "params": [
+            "book"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "statusLabel",
+          "params": [
+            "book"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createdAt",
+          "params": [
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "mergeProcessingStatus",
+          "params": [
+            "book",
+            "status"
+          ],
+          "returnType": "LibraryBook",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "LibraryScreen",
+          "params": [],
+          "exported": true,
+          "lineCount": 216
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "RefreshCw",
+            "Upload"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "../../lib/bookwise-api",
+          "specifiers": [
+            "bookwiseApi"
+          ]
+        },
+        {
+          "source": "../../lib/library-types",
+          "specifiers": [
+            "bookProcessingStatusSchema",
+            "libraryBookSchema",
+            "BookProcessingStatus",
+            "LibraryBook"
+          ]
+        },
+        {
+          "source": "./upload-dialog",
+          "specifiers": [
+            "UploadDialog"
+          ]
+        }
+      ],
+      "exports": [
+        "LibraryScreen"
+      ],
+      "totalLines": 290,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/components/library/upload-dialog.tsx": {
+      "filePath": "apps/web/src/components/library/upload-dialog.tsx",
+      "contentHash": "8b3df18d84112ccfb1bba90c396774d7e66a3fd430f9dbc70712c467dd6bc3d1",
+      "functions": [
+        {
+          "name": "UploadDialog",
+          "params": [
+            "{\n  onClose,\n  onComplete,\n}"
+          ],
+          "exported": true,
+          "lineCount": 297
+        }
+      ],
+      "classes": [
+        {
+          "name": "StorageUploadError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "useAuth0"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "LoaderCircle",
+            "Upload",
+            "X"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "FormEvent",
+            "useMemo",
+            "useState"
+          ]
+        },
+        {
+          "source": "../../lib/bookwise-api",
+          "specifiers": [
+            "bookwiseApi"
+          ]
+        },
+        {
+          "source": "../../lib/library-types",
+          "specifiers": [
+            "finalizedUploadSchema",
+            "UploadTicket",
+            "uploadTicketSchema"
+          ]
+        }
+      ],
+      "exports": [
+        "UploadDialog"
+      ],
+      "totalLines": 336,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/lib/auth0-config.ts": {
+      "filePath": "apps/web/src/lib/auth0-config.ts",
+      "contentHash": "0fc2156b429d2f3b555bfa33e64da73717259fdeb73be0fb255a90eae306eacb",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "publicAuth0Config"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/lib/bookwise-api.ts": {
+      "filePath": "apps/web/src/lib/bookwise-api.ts",
+      "contentHash": "37201aa7b13a14d3c42bdd982649c81a042be0ea26ae9cb8a5e4073425cd070e",
+      "functions": [
+        {
+          "name": "bookwiseApi",
+          "params": [
+            "getAccessTokenSilently",
+            "path",
+            "init",
+            "schema"
+          ],
+          "returnType": "Promise<T>",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "syncBookwiseIdentity",
+          "params": [
+            "getAccessTokenSilently"
+          ],
+          "returnType": "Promise<BookwisePrincipal>",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "BookwiseConnectionError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "@auth0/auth0-react",
+          "specifiers": [
+            "Auth0ContextInterface",
+            "User"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "BookwiseConnectionError",
+        "bookwiseApi",
+        "syncBookwiseIdentity"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/lib/config.test.ts": {
+      "filePath": "apps/web/src/lib/config.test.ts",
+      "contentHash": "6ca2cf7474545800bc2495996473d4678c39c62ba0c84f5229b418ec22897abf",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest",
+          "specifiers": [
+            "afterEach",
+            "describe",
+            "expect",
+            "it",
+            "vi"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/lib/config.ts": {
+      "filePath": "apps/web/src/lib/config.ts",
+      "contentHash": "f47b72e6073cd8ca5003fbc4c68d5629ac0d362739899de95c13e4055e70e21c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "publicConfig"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/src/lib/library-types.ts": {
+      "filePath": "apps/web/src/lib/library-types.ts",
+      "contentHash": "93d31d98c085c2dbaee525dc38973bd0518a641e5c0f3362a8f16dab7f88d07c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "libraryBookSchema",
+        "uploadTicketSchema",
+        "finalizedUploadSchema",
+        "bookProcessingStatusSchema",
+        "bookSummarySchema"
+      ],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/tsconfig.json": {
+      "filePath": "apps/web/tsconfig.json",
+      "contentHash": "bb35e5bb2ca224b767be8417e45e02095a02b561becf1c11f522dbcd03acabda",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": false
+    },
+    "apps/web/vitest.config.ts": {
+      "filePath": "apps/web/vitest.config.ts",
+      "contentHash": "562ea46272a44d706f90610b4b03d46307f076fa6407ad81f3cabace9586550f",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vitest/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "apps/web/vitest.setup.ts": {
+      "filePath": "apps/web/vitest.setup.ts",
+      "contentHash": "9b328c4843431fa76d8de00008fc159e95f99a840211085ff3b8f25e53d14409",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/jest-dom/vitest",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "ff67bafb404b13fb0f476516e2668e9f24290fadf3101c5cd6b82ce188bf3009",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 69,
+      "hasStructuralAnalysis": false
+    },
+    "docs/project-timeline.md": {
+      "filePath": "docs/project-timeline.md",
+      "contentHash": "4d5bdf47ed11ddecfc6fb914d1e69f7cf62d41325da802a0b27ec8b33d71f4dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-book-summarization-roadmap.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-book-summarization-roadmap.md",
+      "contentHash": "ffe80407e29a496bf633ef09faa92c36b0b12fdb53bd7fc129647294a6e221dd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 189,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-evidence-summarization-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-evidence-summarization-plan.md",
+      "contentHash": "7521554fa3643d3ffd80c20224c65d638df9b2f6b9274a7868cf760e207ff47a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1031,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-ingestion-structure-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-ingestion-structure-plan.md",
+      "contentHash": "1690dd0b8501d4693bbb6d4af23d392c19ba9e607e7745b887baad21211403a3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 822,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-platform-upload-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-platform-upload-plan.md",
+      "contentHash": "4ba47df3910bbd6a5e406e9e6d2a36e4605819c1f1b3b3674b0c1faaec66d691",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 886,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-production-hardening-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-production-hardening-plan.md",
+      "contentHash": "2e74d14016127198bc9eb58c38b4c10acacf1f4b01874303db20119693aea924",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 792,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-05-search-qa-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-05-search-qa-plan.md",
+      "contentHash": "0b451f9a6556ca4f15bad12198ac7bc1b1ba8cb6126904990bb2b562eee9701c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 721,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-editable-publication-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-editable-publication-plan.md",
+      "contentHash": "a49bc865675ebb1b195793d8232a282c22b8f594690e91fc8616401bf176aa09",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 147,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-nestjs-identity-library-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-nestjs-identity-library-plan.md",
+      "contentHash": "62f500101ecb36562bda1a9d7b4769422514b6da4a0c21a274fde6a537edd4f8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 164,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-nestjs-python-roadmap.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-nestjs-python-roadmap.md",
+      "contentHash": "b40c91f295bb332efdee0e5e0ad5e7e7f51f625f75bc47ced05d5cedf50d581b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 89,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-python-processing-pipeline-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-python-processing-pipeline-plan.md",
+      "contentHash": "f32ecd383cae68e72b86af6c6bf900065a68e24be1871d148770e3bb8251d0d5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-replatform-foundation-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-replatform-foundation-plan.md",
+      "contentHash": "726502a593e647a81ffd0fd6fdf82797a95d2cb2bba5041da0a49025835a318f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 229,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-11-search-operations-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-11-search-operations-plan.md",
+      "contentHash": "ffc6297486f6458c7015b5c171645508444b53d56215be361cb294033120c39e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 153,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-08-14-private-uploads-library-auth0-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-08-14-private-uploads-library-auth0-plan.md",
+      "contentHash": "bc0272141d37e19030b7bb64d090ffce38f7452db780e19f2bbe130a8f5b7602",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1077,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-03-auth0-react-spa-migration-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-03-auth0-react-spa-migration-plan.md",
+      "contentHash": "fa49b63bff775fb06ea9006411f74013d8b3f41551725e1e06249f26c55fe6ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 334,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-05-auth0-spa-api-token-boundary-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-05-auth0-spa-api-token-boundary-plan.md",
+      "contentHash": "17f2f209e09d5d6ee232953c790456c8b6611a6c890f2fef42f9ee872d8c7e44",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 399,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-05-spa-private-library-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-05-spa-private-library-plan.md",
+      "contentHash": "91dd8d942f1c2f3d7e6a9d65f9d13da15e4674cba9ff47237130e6cfb52c6e2e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 727,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-07-bookwise-obsidian-vault-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-07-bookwise-obsidian-vault-plan.md",
+      "contentHash": "212dfbbe683f01878e042202806e50940d5497948f46c3bce904e1f984b79d3f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 503,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-15-summary-publication-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-15-summary-publication-plan.md",
+      "contentHash": "38cd8e193bbabe2296a80dc9bf798222beb5679b0bdc8f3703443346fd7fbb35",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 752,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/plans/2026-09-24-gke-autopilot-cicd-plan.md": {
+      "filePath": "docs/superpowers/plans/2026-09-24-gke-autopilot-cicd-plan.md",
+      "contentHash": "a395b34e973fbc1712baa791098a7c963a712e0510a9d7fec546cff48489a9c0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 770,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-08-05-book-summarization-system-design.md": {
+      "filePath": "docs/superpowers/specs/2026-08-05-book-summarization-system-design.md",
+      "contentHash": "e169c513d048357210c3a4f5f00c6f6c1f956b618090e4091de8543081dd12b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 599,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-08-11-nestjs-python-service-architecture.md": {
+      "filePath": "docs/superpowers/specs/2026-08-11-nestjs-python-service-architecture.md",
+      "contentHash": "94c9e71810a7d878a3568faac57f8a77294f5437151f8ea15ec2879f511d240d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 287,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-08-14-private-uploads-library-auth0-design.md": {
+      "filePath": "docs/superpowers/specs/2026-08-14-private-uploads-library-auth0-design.md",
+      "contentHash": "aa0f52ad1ae1e7121863c99705e6692985d90e3dc8988b24f4ef5454e7f50401",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 367,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-03-auth0-react-spa-migration-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-03-auth0-react-spa-migration-design.md",
+      "contentHash": "9d215da7852f7aba9a68af21a44cf817032aab13df376bc452e5e665b21a5051",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-05-auth0-spa-api-token-boundary-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-05-auth0-spa-api-token-boundary-design.md",
+      "contentHash": "e34d4eb8c69523e3d4f6d7f045f48db4afdbc5df2af1d895c29a9d508a79ee34",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 95,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-05-spa-private-library-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-05-spa-private-library-design.md",
+      "contentHash": "08fc42922eae379b25a5f1698479172f9e5b32f64a8b5b40e3706064f4847ef0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 188,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-07-bookwise-obsidian-vault-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-07-bookwise-obsidian-vault-design.md",
+      "contentHash": "a9a9c14118956268588e24ec95910db63e5e07f190afe4bdc0676443d892e6b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 140,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-14-summary-publication-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-14-summary-publication-design.md",
+      "contentHash": "9337ea7b8975891d6fd937f0385a6f300c49097f2d46a7164eb418dae59d3d49",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 278,
+      "hasStructuralAnalysis": false
+    },
+    "docs/superpowers/specs/2026-09-24-gke-autopilot-deployment-design.md": {
+      "filePath": "docs/superpowers/specs/2026-09-24-gke-autopilot-deployment-design.md",
+      "contentHash": "0099221ff3b59e217addb4575d160e766abacce89c6a78425c41c7d2946ce834",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 370,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrate.ps1": {
+      "filePath": "infrastructure/database/migrate.ps1",
+      "contentHash": "da8643e8470d6075d562739dbad71c018c76efba78ed1f8eaaa3dbed3fb578a0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 96,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/001_create_initial_schema.sql": {
+      "filePath": "infrastructure/database/migrations/001_create_initial_schema.sql",
+      "contentHash": "f08d8bd494921709a1c007f31e554ece8d204941b2d0c5c2c93f5fea5d02a0b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 192,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/002_create_app_data_projections.sql": {
+      "filePath": "infrastructure/database/migrations/002_create_app_data_projections.sql",
+      "contentHash": "bcbfac9bfaf9fee779ed05cfceac8b725b14dc5768c7270e383963aed4e5afb3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/003_create_data_ingestion.sql": {
+      "filePath": "infrastructure/database/migrations/003_create_data_ingestion.sql",
+      "contentHash": "61bab8e1be0a206b9aefad894e0e11c3dfcc4716ed76cc25487f9c989bf44ccc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 239,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/004_create_data_generation.sql": {
+      "filePath": "infrastructure/database/migrations/004_create_data_generation.sql",
+      "contentHash": "4196bdd5975a65768b65cddf8f8f984bb41ae2466fca6f3b76b780b93d73cfe6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 691,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/005_harden_data_generation.sql": {
+      "filePath": "infrastructure/database/migrations/005_harden_data_generation.sql",
+      "contentHash": "4c34ac3471c0e7a6e8ea0e7a26b82ae034c57ce2def42d112455fc28d06bcc3c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 125,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/006_create_current_summary_projections.sql": {
+      "filePath": "infrastructure/database/migrations/006_create_current_summary_projections.sql",
+      "contentHash": "591366186af30610b4b2b15afb510c2199b1749eac4bcb291e15e00e1e000015",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/migrations/007_create_source_document_claim_projection.sql": {
+      "filePath": "infrastructure/database/migrations/007_create_source_document_claim_projection.sql",
+      "contentHash": "d850346db49e102858e5f5754131de70e758dbab800f0e1751f4075197744e32",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/roles/app_rw.sql": {
+      "filePath": "infrastructure/database/roles/app_rw.sql",
+      "contentHash": "bd5b9b8c935c9e3bd21e22c91340305801edc39b030f945a49e1da380ee07661",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/roles/data_rw.sql": {
+      "filePath": "infrastructure/database/roles/data_rw.sql",
+      "contentHash": "47c87aa10d0e489677b50188c0f7aff21f79d33145c42ef6a4e35560a493eb7a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/database/roles/migration_admin.sql": {
+      "filePath": "infrastructure/database/roles/migration_admin.sql",
+      "contentHash": "56ef0f7b4388d0874498e6f0241d4540c7682945400e8a15344f54bb61afa207",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/README.md": {
+      "filePath": "infrastructure/gcp/README.md",
+      "contentHash": "a428dbb01c5772294020b9dea7a35f09f56b1efccb58b8f4f142bdb97f9a3d2a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 227,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/config.env.example": {
+      "filePath": "infrastructure/gcp/config.env.example",
+      "contentHash": "49413e127c3acdf5e54534d51934b553488dc040786133b79e0abc3040f7bcd7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/api-backend-config.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/api-backend-config.yaml",
+      "contentHash": "d7bfd9d160b66662db2409e13ad49924d5177e18a9241f2069d095b5a1b1fc5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/api-deployment.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/api-deployment.yaml",
+      "contentHash": "f384a71d46cf927bb6474457913a07a8db0570a3999ae84799f2d69eb35a0c7f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/configmap.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/configmap.yaml",
+      "contentHash": "1c5713355e0f42c1eda6d5535fe59bf5a4ceed63a0b2794f3e7e0f1cb1862b7a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/frontend-config.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/frontend-config.yaml",
+      "contentHash": "529e52a31bf40f23010dbb1a97a2c2c9bd2769bcbbd6e19423d2d58acbdef4f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/ingress.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/ingress.yaml",
+      "contentHash": "aa148dd14db96b9570ffc22d123fd903409649d06d72e1f4f5de619e60e25857",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/kustomization.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/kustomization.yaml",
+      "contentHash": "52f80ddbe45c715ae60958b4030707cea8ff047ef57a0a6d06286d5325550d63",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/managed-certificate.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/managed-certificate.yaml",
+      "contentHash": "c6e75262525d5074511469b01ebd3161d6471a12705bcc3a861ad6889d1049d8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/migration-job.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/migration-job.yaml",
+      "contentHash": "304ed5393b4c71ab0f6fdf7f6ae54013a5d2ccd48056ec63c288da5cc9ccac94",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/namespace.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/namespace.yaml",
+      "contentHash": "52c6c390b44d579715cae63cad5aab7aa4447381dd16340cbc30537dbe1e3714",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/service-accounts.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/service-accounts.yaml",
+      "contentHash": "e0f731ee8ab9a4084cd12acca83cc1571a24fe6c84b9bc01ad4b75fd4f7edee0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/services.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/services.yaml",
+      "contentHash": "eccfaaa8cdc19565a68d2d769093aec4b63bf8ce675ca68e193c763701d58b74",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/web-deployment.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/web-deployment.yaml",
+      "contentHash": "fa416d40a6e727854fb0fd7860161e6731e74eb792de5b9bb4a4c579e60eb39c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/base/worker-deployment.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/base/worker-deployment.yaml",
+      "contentHash": "bdcc24d03ba029617720655efecf2510a7d6ab67446d62ef992c2f5f532fcacf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/kubernetes/overlays/production/kustomization.yaml": {
+      "filePath": "infrastructure/gcp/kubernetes/overlays/production/kustomization.yaml",
+      "contentHash": "8d7adb8af14ccb824fa0b9c1452d347fe24491eab3afb46d7d4dacec76441021",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/runbook.md": {
+      "filePath": "infrastructure/gcp/runbook.md",
+      "contentHash": "3771ebe7981d72a7717a33eb2099be9767ce4c566f1a5a1768741b040d7ac2f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 241,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/scripts/apply-resources.ps1": {
+      "filePath": "infrastructure/gcp/scripts/apply-resources.ps1",
+      "contentHash": "24dda3139f8794fa40558a668e1d2e3c75dc6f8cf43219834d1806ea3dffc952",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/scripts/bootstrap-gcp.ps1": {
+      "filePath": "infrastructure/gcp/scripts/bootstrap-gcp.ps1",
+      "contentHash": "708ca6ed44c005efea48e43932392e29a2379d6ce829d61f35b514725ff6e175",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/scripts/configure-services.ps1": {
+      "filePath": "infrastructure/gcp/scripts/configure-services.ps1",
+      "contentHash": "16ddc93c32c9e0fd3f15bd626313d40992124b821002ed2ff4fe2fab5db57c69",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 123,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/scripts/deploy.ps1": {
+      "filePath": "infrastructure/gcp/scripts/deploy.ps1",
+      "contentHash": "19f5613dddb63cd5e3f9c2ce5811711197905a2c907e61ba4cb69edfe6fdbd61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/scripts/run-migrations.ps1": {
+      "filePath": "infrastructure/gcp/scripts/run-migrations.ps1",
+      "contentHash": "4132a67bf7eff19ab9bf1cf6108ffe4cd9607512cce50c263c430388796707d1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/secrets/README.md": {
+      "filePath": "infrastructure/gcp/secrets/README.md",
+      "contentHash": "f6c45c1201baefffa003f771f78f795d43908f050c15dcb68147d94b604c1198",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": false
+    },
+    "infrastructure/gcp/storage-cors.json": {
+      "filePath": "infrastructure/gcp/storage-cors.json",
+      "contentHash": "c16e3290a55c0d45c74929d47074eb662748d827190c049a0a946202887812a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": false
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "1d142484e49d29458815deaceaecd3e6ded61e30c98054b589eb669cd565e05e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "pnpm-workspace.yaml": {
+      "filePath": "pnpm-workspace.yaml",
+      "contentHash": "fe892de2a501f63032c565d8cae37315dfee52bdec9d423b54d2147c0f01d90c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/start-local.ps1": {
+      "filePath": "scripts/start-local.ps1",
+      "contentHash": "d27166c76c85c4bb009f977a61c9e158151588c2fe19e18c6654a91e97deb602",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 112,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/Dockerfile": {
+      "filePath": "services/api/Dockerfile",
+      "contentHash": "6fbb25e02848c569254de400ddd954f8f4ed903ab426ba51153a48b41d72bc97",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/eslint.config.mjs": {
+      "filePath": "services/api/eslint.config.mjs",
+      "contentHash": "d5ec487a6f0c31c3a90a45194448f3a36795f44d6744859a4870d41d2ce6f988",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@eslint/js",
+          "specifiers": [
+            "js"
+          ]
+        },
+        {
+          "source": "typescript-eslint",
+          "specifiers": [
+            "tseslint"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/package.json": {
+      "filePath": "services/api/package.json",
+      "contentHash": "c5b16a01d809719424d19fa39a40d36afc928b8e6186d0fc80c99acddd5af11f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/src/app.module.ts": {
+      "filePath": "services/api/src/app.module.ts",
+      "contentHash": "6dd0c1463b8e6b192b30a039e2274672dd96121b057aeefc994b76e3c2d1998a",
+      "functions": [
+        {
+          "name": "requiredEnvironment",
+          "params": [
+            "name"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "positiveIntegerEnvironment",
+          "params": [
+            "name"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "objectStorageFromEnvironment",
+          "params": [],
+          "returnType": "ObjectStorage",
+          "exported": false,
+          "lineCount": 21
+        }
+      ],
+      "classes": [
+        {
+          "name": "AppModule",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Module"
+          ]
+        },
+        {
+          "source": "pg",
+          "specifiers": [
+            "Pool"
+          ]
+        },
+        {
+          "source": "./domain/identity/auth-principal",
+          "specifiers": [
+            "TOKEN_VERIFIER",
+            "USER_REPOSITORY"
+          ]
+        },
+        {
+          "source": "./domain/books/book",
+          "specifiers": [
+            "BOOK_REPOSITORY",
+            "BOOK_READ_REPOSITORY",
+            "OBJECT_STORAGE",
+            "PROCESSING_COMMAND_REPOSITORY",
+            "ObjectStorage"
+          ]
+        },
+        {
+          "source": "./application/books/create-upload.use-case",
+          "specifiers": [
+            "CreateUploadUseCase",
+            "CREATE_UPLOAD_USE_CASE"
+          ]
+        },
+        {
+          "source": "./application/books/finalize-upload.use-case",
+          "specifiers": [
+            "FinalizeUploadUseCase",
+            "FINALIZE_UPLOAD_USE_CASE"
+          ]
+        },
+        {
+          "source": "./application/books/get-book-status.use-case",
+          "specifiers": [
+            "GetBookStatusUseCase",
+            "GET_BOOK_STATUS_USE_CASE"
+          ]
+        },
+        {
+          "source": "./application/books/get-book-summary.use-case",
+          "specifiers": [
+            "GetBookSummaryUseCase",
+            "GET_BOOK_SUMMARY_USE_CASE"
+          ]
+        },
+        {
+          "source": "./application/books/list-library.use-case",
+          "specifiers": [
+            "ListLibraryUseCase",
+            "LIST_LIBRARY_USE_CASE"
+          ]
+        },
+        {
+          "source": "./application/identity/sync-identity.use-case",
+          "specifiers": [
+            "SyncIdentityUseCase",
+            "SYNC_IDENTITY_USE_CASE"
+          ]
+        },
+        {
+          "source": "./infrastructure/database/app-user.repository",
+          "specifiers": [
+            "AppUserRepository"
+          ]
+        },
+        {
+          "source": "./infrastructure/database/book-read.repository",
+          "specifiers": [
+            "BookReadRepository"
+          ]
+        },
+        {
+          "source": "./infrastructure/database/book.repository",
+          "specifiers": [
+            "BookRepository"
+          ]
+        },
+        {
+          "source": "./infrastructure/database/processing-command.repository",
+          "specifiers": [
+            "ProcessingCommandRepository"
+          ]
+        },
+        {
+          "source": "./infrastructure/identity/oidc-token-verifier",
+          "specifiers": [
+            "OidcTokenVerifier"
+          ]
+        },
+        {
+          "source": "./infrastructure/storage/gcs-object-storage",
+          "specifiers": [
+            "GcsObjectStorage"
+          ]
+        },
+        {
+          "source": "./infrastructure/storage/s3-object-storage",
+          "specifiers": [
+            "S3ObjectStorage"
+          ]
+        },
+        {
+          "source": "./interfaces/http/authenticated-principal",
+          "specifiers": [
+            "AuthenticatedPrincipalGuard"
+          ]
+        },
+        {
+          "source": "./interfaces/http/books.controller",
+          "specifiers": [
+            "BooksController"
+          ]
+        },
+        {
+          "source": "./interfaces/http/health.controller",
+          "specifiers": [
+            "HealthController"
+          ]
+        },
+        {
+          "source": "./interfaces/http/library.controller",
+          "specifiers": [
+            "LibraryController"
+          ]
+        },
+        {
+          "source": "./interfaces/http/session.controller",
+          "specifiers": [
+            "SessionController"
+          ]
+        },
+        {
+          "source": "./interfaces/http/summary.controller",
+          "specifiers": [
+            "SummaryController"
+          ]
+        }
+      ],
+      "exports": [
+        "AppModule"
+      ],
+      "totalLines": 192,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/README.md": {
+      "filePath": "services/api/src/application/README.md",
+      "contentHash": "1ee3c46f8c32424d44482c3f8d2d8ae2b5e4b801640afaca27a5f25c15a6110c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/src/application/books/create-upload.use-case.ts": {
+      "filePath": "services/api/src/application/books/create-upload.use-case.ts",
+      "contentHash": "515c384c749be535dcfdb19d1535438fdb61e2bf7fa3290d42cc3bed98224d0c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CreateUploadUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookUploadRepository",
+            "CreateUploadInput",
+            "ObjectStorage",
+            "UploadTicket",
+            "validateUploadInput"
+          ]
+        }
+      ],
+      "exports": [
+        "CreateUploadUseCase",
+        "CREATE_UPLOAD_USE_CASE"
+      ],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/books/finalize-upload.use-case.ts": {
+      "filePath": "services/api/src/application/books/finalize-upload.use-case.ts",
+      "contentHash": "8e495e2f3bd73c8073dea4ec5af7cbd3e811ed85ce98ca102c17df4568843182",
+      "functions": [],
+      "classes": [
+        {
+          "name": "FinalizeUploadUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 56
+        },
+        {
+          "name": "UploadNotFoundError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookUploadRepository",
+            "MAX_UPLOAD_BYTES",
+            "ObjectStorage",
+            "UploadConflictError"
+          ]
+        }
+      ],
+      "exports": [
+        "FinalizeUploadUseCase",
+        "UploadNotFoundError",
+        "FINALIZE_UPLOAD_USE_CASE"
+      ],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/books/get-book-status.use-case.ts": {
+      "filePath": "services/api/src/application/books/get-book-status.use-case.ts",
+      "contentHash": "c4c8866359044d07b274cd687cc381925011387792b6a9168fcd396cd40c5f96",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GetBookStatusUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookProcessingStatus",
+            "BookReadRepository"
+          ]
+        }
+      ],
+      "exports": [
+        "GetBookStatusUseCase",
+        "GET_BOOK_STATUS_USE_CASE"
+      ],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/books/get-book-summary.use-case.ts": {
+      "filePath": "services/api/src/application/books/get-book-summary.use-case.ts",
+      "contentHash": "1d7f33418ffc6c4d28d90fa2cf14fe3e43e2f5812268f9e64069cf0a666d83a4",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GetBookSummaryUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookReadRepository",
+            "BookSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "GetBookSummaryUseCase",
+        "GET_BOOK_SUMMARY_USE_CASE"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/books/list-library.use-case.ts": {
+      "filePath": "services/api/src/application/books/list-library.use-case.ts",
+      "contentHash": "5e03cb859817466be2940c81f278561d372194bb8e03e748beec68ce37f47dce",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ListLibraryUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookReadRepository",
+            "LibraryBook"
+          ]
+        }
+      ],
+      "exports": [
+        "ListLibraryUseCase",
+        "LIST_LIBRARY_USE_CASE"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/application/identity/sync-identity.use-case.ts": {
+      "filePath": "services/api/src/application/identity/sync-identity.use-case.ts",
+      "contentHash": "684a52762c3ea54ad575e063fb19ae7793b8bf5c844310de284b5f38956f138e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SyncIdentityUseCase",
+          "methods": [
+            "constructor",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "AuthPrincipal",
+            "TokenVerifier",
+            "UserRepository"
+          ]
+        }
+      ],
+      "exports": [
+        "SyncIdentityUseCase",
+        "SYNC_IDENTITY_USE_CASE"
+      ],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/domain/README.md": {
+      "filePath": "services/api/src/domain/README.md",
+      "contentHash": "d05ca046e633b8de7ced47b31fbf5cc21ad6d8b389e63ac52afc6e5633b8c3a6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/src/domain/books/book.ts": {
+      "filePath": "services/api/src/domain/books/book.ts",
+      "contentHash": "faeea689ee38216d3bad31d776451e345223b936828b936196bd6020e0e3df96",
+      "functions": [
+        {
+          "name": "validateUploadInput",
+          "params": [
+            "input"
+          ],
+          "returnType": "UploadFormat",
+          "exported": true,
+          "lineCount": 54
+        }
+      ],
+      "classes": [
+        {
+          "name": "InvalidUploadInputError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "publicMessage",
+            "statusCode"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "UploadConflictError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "publicMessage",
+            "statusCode"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "MAX_UPLOAD_BYTES",
+        "uploadFormats",
+        "OBJECT_STORAGE",
+        "BOOK_REPOSITORY",
+        "BOOK_READ_REPOSITORY",
+        "PROCESSING_COMMAND_REPOSITORY",
+        "InvalidUploadInputError",
+        "UploadConflictError",
+        "validateUploadInput"
+      ],
+      "totalLines": 210,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/domain/identity/auth-principal.ts": {
+      "filePath": "services/api/src/domain/identity/auth-principal.ts",
+      "contentHash": "77e604af91e1946200ec84df20bbc3701825997bf28abc24844c656668be9d92",
+      "functions": [],
+      "classes": [
+        {
+          "name": "InvalidTokenError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "IdentityRejectedError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TOKEN_VERIFIER",
+        "USER_REPOSITORY",
+        "InvalidTokenError",
+        "IdentityRejectedError"
+      ],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/README.md": {
+      "filePath": "services/api/src/infrastructure/README.md",
+      "contentHash": "b93682665dcde803b071b922b476d8f0d7c7ffeffb68adc06a620866713c4cc5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/src/infrastructure/database/app-user.repository.ts": {
+      "filePath": "services/api/src/infrastructure/database/app-user.repository.ts",
+      "contentHash": "583320abbcf83c14628c318f8b125c482d686f52ab4f925f9229d44d7d690355",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AppUserRepository",
+          "methods": [
+            "constructor",
+            "syncIdentity",
+            "lockIdentityKeys",
+            "syncUser",
+            "insertUser"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 97
+        }
+      ],
+      "imports": [
+        {
+          "source": "pg",
+          "specifiers": [
+            "Pool",
+            "PoolClient"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "IdentityRejectedError",
+            "AuthPrincipal",
+            "OidcIdentity",
+            "UserRepository"
+          ]
+        }
+      ],
+      "exports": [
+        "AppUserRepository"
+      ],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/database/book-read.repository.ts": {
+      "filePath": "services/api/src/infrastructure/database/book-read.repository.ts",
+      "contentHash": "f02298b546052a6d3ceac8c3d6a53021b5d6129be44e503694007dc4c6781b67",
+      "functions": [
+        {
+          "name": "locationRecord",
+          "params": [
+            "value"
+          ],
+          "returnType": "Record<string, unknown>",
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "BookReadRepository",
+          "methods": [
+            "constructor",
+            "listLibrary",
+            "getProcessingStatus",
+            "getPublishedSummary"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 152
+        }
+      ],
+      "imports": [
+        {
+          "source": "pg",
+          "specifiers": [
+            "Pool"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookProcessingStatus",
+            "BookReadRepositoryPort",
+            "BookSummary",
+            "LibraryBook"
+          ]
+        }
+      ],
+      "exports": [
+        "BookReadRepository"
+      ],
+      "totalLines": 205,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/database/book.repository.ts": {
+      "filePath": "services/api/src/infrastructure/database/book.repository.ts",
+      "contentHash": "8f99d3641ee9faef0244a5cae05ea6d860e583b98528ff46e7a91ec7538a31e4",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BookRepository",
+          "methods": [
+            "constructor",
+            "createPendingUpload",
+            "findOwnedUploadForFinalization",
+            "finalizeOwnedUpload",
+            "lockOwnedUpload",
+            "existingQueuedCommand",
+            "assertHeadMatches",
+            "pendingUpload",
+            "titleFromFilename"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 268
+        }
+      ],
+      "imports": [
+        {
+          "source": "pg",
+          "specifiers": [
+            "Pool",
+            "PoolClient"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "BookUploadRepository",
+            "CreateUploadInput",
+            "FinalizableBookUpload",
+            "PendingBookUpload",
+            "QueuedProcessingCommand",
+            "StoredObjectHead",
+            "UploadConflictError"
+          ]
+        },
+        {
+          "source": "./processing-command.repository",
+          "specifiers": [
+            "ProcessingCommandRepository"
+          ]
+        }
+      ],
+      "exports": [
+        "BookRepository"
+      ],
+      "totalLines": 307,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/database/processing-command.repository.ts": {
+      "filePath": "services/api/src/infrastructure/database/processing-command.repository.ts",
+      "contentHash": "f0d1fd3058f1a07fb2c25c043087ac45469f05cc239ea5f19e982ed8d70cc57d",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ProcessingCommandRepository",
+          "methods": [
+            "enqueueIngest",
+            "enqueueRegenerateSummary",
+            "enqueue"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "imports": [
+        {
+          "source": "pg",
+          "specifiers": [
+            "PoolClient"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "QueuedProcessingCommand"
+          ]
+        }
+      ],
+      "exports": [
+        "ProcessingCommandRepository"
+      ],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/identity/oidc-token-verifier.ts": {
+      "filePath": "services/api/src/infrastructure/identity/oidc-token-verifier.ts",
+      "contentHash": "e620b1035cde3749a1cf2c7a306b606cfaaba345568298e1b80d7802014fbf49",
+      "functions": [],
+      "classes": [
+        {
+          "name": "OidcTokenVerifier",
+          "methods": [
+            "constructor",
+            "verify",
+            "getJwks",
+            "requiredClaim",
+            "normalizeEmail"
+          ],
+          "properties": [
+            "jwks"
+          ],
+          "exported": true,
+          "lineCount": 85
+        }
+      ],
+      "imports": [
+        {
+          "source": "jose",
+          "specifiers": [
+            "createRemoteJWKSet",
+            "jwtVerify",
+            "JWTVerifyGetKey"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "InvalidTokenError",
+            "OidcIdentity",
+            "TokenVerifier"
+          ]
+        }
+      ],
+      "exports": [
+        "OidcTokenVerifier"
+      ],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/storage/gcs-object-storage.ts": {
+      "filePath": "services/api/src/infrastructure/storage/gcs-object-storage.ts",
+      "contentHash": "edd64972e72ecae64bf46fb1163d0977543d4578a932bb429e270bc3fdce5448",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GcsObjectStorage",
+          "methods": [
+            "constructor",
+            "createPutUrl",
+            "head"
+          ],
+          "properties": [
+            "bucket"
+          ],
+          "exported": true,
+          "lineCount": 60
+        }
+      ],
+      "imports": [
+        {
+          "source": "@google-cloud/storage",
+          "specifiers": [
+            "Storage"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "ObjectStorage",
+            "StoredObjectHead"
+          ]
+        }
+      ],
+      "exports": [
+        "GcsObjectStorage"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/infrastructure/storage/s3-object-storage.ts": {
+      "filePath": "services/api/src/infrastructure/storage/s3-object-storage.ts",
+      "contentHash": "736c97a335ca2728102e8b04180b1fbdd97adb67728ab53ef9db95568f84f837",
+      "functions": [],
+      "classes": [
+        {
+          "name": "S3ObjectStorage",
+          "methods": [
+            "constructor",
+            "createPutUrl",
+            "head"
+          ],
+          "properties": [
+            "client"
+          ],
+          "exported": true,
+          "lineCount": 71
+        }
+      ],
+      "imports": [
+        {
+          "source": "@aws-sdk/client-s3",
+          "specifiers": [
+            "HeadObjectCommand",
+            "PutObjectCommand",
+            "S3Client",
+            "S3ServiceException"
+          ]
+        },
+        {
+          "source": "@aws-sdk/s3-request-presigner",
+          "specifiers": [
+            "getSignedUrl"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "ObjectStorage",
+            "StoredObjectHead"
+          ]
+        }
+      ],
+      "exports": [
+        "S3ObjectStorage"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/README.md": {
+      "filePath": "services/api/src/interfaces/README.md",
+      "contentHash": "f785a6d4b8c10f69804cb3ca0829a417be854a0e6ab90d4a0acd26b7ba25a40e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/src/interfaces/http/authenticated-principal.ts": {
+      "filePath": "services/api/src/interfaces/http/authenticated-principal.ts",
+      "contentHash": "8428e424120b74e4ac5904f25e09b8de9613e14467e0d599ae9ba07ba59f153e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AuthenticatedPrincipalGuard",
+          "methods": [
+            "constructor",
+            "canActivate",
+            "bearerToken"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "CanActivate",
+            "ExecutionContext",
+            "ForbiddenException",
+            "Inject",
+            "Injectable",
+            "UnauthorizedException",
+            "createParamDecorator"
+          ]
+        },
+        {
+          "source": "fastify",
+          "specifiers": [
+            "FastifyRequest"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "IdentityRejectedError",
+            "InvalidTokenError",
+            "AuthPrincipal"
+          ]
+        },
+        {
+          "source": "../../application/identity/sync-identity.use-case",
+          "specifiers": [
+            "SYNC_IDENTITY_USE_CASE",
+            "SyncIdentityUseCase"
+          ]
+        }
+      ],
+      "exports": [
+        "CurrentPrincipal",
+        "AuthenticatedPrincipalGuard"
+      ],
+      "totalLines": 85,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/http/books.controller.ts": {
+      "filePath": "services/api/src/interfaces/http/books.controller.ts",
+      "contentHash": "3513b156d375c4e54c7d2f48240d83ff6576e58dff4033218b693b9370e6d783",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CreateBookUploadDto",
+          "methods": [],
+          "properties": [
+            "filename",
+            "contentType",
+            "sizeBytes",
+            "title"
+          ],
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "BookIdParams",
+          "methods": [],
+          "properties": [
+            "bookId"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "BooksController",
+          "methods": [
+            "constructor",
+            "create",
+            "finalize",
+            "translateError"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 57
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Body",
+            "ConflictException",
+            "Controller",
+            "Inject",
+            "NotFoundException",
+            "Param",
+            "Post",
+            "UnprocessableEntityException",
+            "UseGuards"
+          ]
+        },
+        {
+          "source": "class-validator",
+          "specifiers": [
+            "IsInt",
+            "IsOptional",
+            "IsString",
+            "IsUUID",
+            "MaxLength",
+            "Min",
+            "MinLength"
+          ]
+        },
+        {
+          "source": "../../application/books/create-upload.use-case",
+          "specifiers": [
+            "CreateUploadUseCase",
+            "CREATE_UPLOAD_USE_CASE"
+          ]
+        },
+        {
+          "source": "../../application/books/finalize-upload.use-case",
+          "specifiers": [
+            "FinalizeUploadUseCase",
+            "FINALIZE_UPLOAD_USE_CASE",
+            "UploadNotFoundError"
+          ]
+        },
+        {
+          "source": "../../domain/books/book",
+          "specifiers": [
+            "InvalidUploadInputError",
+            "UploadConflictError"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "AuthPrincipal"
+          ]
+        },
+        {
+          "source": "./authenticated-principal",
+          "specifiers": [
+            "AuthenticatedPrincipalGuard",
+            "CurrentPrincipal"
+          ]
+        }
+      ],
+      "exports": [
+        "BooksController"
+      ],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/http/health.controller.ts": {
+      "filePath": "services/api/src/interfaces/http/health.controller.ts",
+      "contentHash": "5affa65c8793d70ffb868ca605e6d38b11304d7fabcce2708e4df03a029144bb",
+      "functions": [],
+      "classes": [
+        {
+          "name": "HealthController",
+          "methods": [
+            "health"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Controller",
+            "Get"
+          ]
+        }
+      ],
+      "exports": [
+        "HealthController"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/http/library.controller.ts": {
+      "filePath": "services/api/src/interfaces/http/library.controller.ts",
+      "contentHash": "f5845e7912b9e4160b58eaa653f965cc2a149264a1b87db3e08fb7a218a7d2c1",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BookIdParams",
+          "methods": [],
+          "properties": [
+            "bookId"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "LibraryController",
+          "methods": [
+            "constructor",
+            "list",
+            "processing"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Controller",
+            "Get",
+            "Inject",
+            "NotFoundException",
+            "Param",
+            "UseGuards"
+          ]
+        },
+        {
+          "source": "class-validator",
+          "specifiers": [
+            "IsUUID"
+          ]
+        },
+        {
+          "source": "../../application/books/get-book-status.use-case",
+          "specifiers": [
+            "GetBookStatusUseCase",
+            "GET_BOOK_STATUS_USE_CASE"
+          ]
+        },
+        {
+          "source": "../../application/books/list-library.use-case",
+          "specifiers": [
+            "ListLibraryUseCase",
+            "LIST_LIBRARY_USE_CASE"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "AuthPrincipal"
+          ]
+        },
+        {
+          "source": "./authenticated-principal",
+          "specifiers": [
+            "AuthenticatedPrincipalGuard",
+            "CurrentPrincipal"
+          ]
+        }
+      ],
+      "exports": [
+        "LibraryController"
+      ],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/http/session.controller.ts": {
+      "filePath": "services/api/src/interfaces/http/session.controller.ts",
+      "contentHash": "fa287dd4689d14b919319b064af75a86811050237200e2cafcadc8caf1a722bd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SessionController",
+          "methods": [
+            "constructor",
+            "sync",
+            "bearerToken"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 35
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Controller",
+            "ForbiddenException",
+            "Headers",
+            "Inject",
+            "Post",
+            "UnauthorizedException"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "IdentityRejectedError",
+            "InvalidTokenError",
+            "AuthPrincipal"
+          ]
+        },
+        {
+          "source": "../../application/identity/sync-identity.use-case",
+          "specifiers": [
+            "SYNC_IDENTITY_USE_CASE",
+            "SyncIdentityUseCase"
+          ]
+        }
+      ],
+      "exports": [
+        "SessionController"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/interfaces/http/summary.controller.ts": {
+      "filePath": "services/api/src/interfaces/http/summary.controller.ts",
+      "contentHash": "afd534818ff017716b545691f431da95990d8f2d409714011f58bca35fc39f11",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BookIdParams",
+          "methods": [],
+          "properties": [
+            "bookId"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "SummaryController",
+          "methods": [
+            "constructor",
+            "get"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "Controller",
+            "Get",
+            "Inject",
+            "NotFoundException",
+            "Param",
+            "UseGuards"
+          ]
+        },
+        {
+          "source": "class-validator",
+          "specifiers": [
+            "IsUUID"
+          ]
+        },
+        {
+          "source": "../../application/books/get-book-summary.use-case",
+          "specifiers": [
+            "GetBookSummaryUseCase",
+            "GET_BOOK_SUMMARY_USE_CASE"
+          ]
+        },
+        {
+          "source": "../../domain/identity/auth-principal",
+          "specifiers": [
+            "AuthPrincipal"
+          ]
+        },
+        {
+          "source": "./authenticated-principal",
+          "specifiers": [
+            "AuthenticatedPrincipalGuard",
+            "CurrentPrincipal"
+          ]
+        }
+      ],
+      "exports": [
+        "SummaryController"
+      ],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/src/main.ts": {
+      "filePath": "services/api/src/main.ts",
+      "contentHash": "48c98f120474eefe2b874ed9325e3cac9de906ba155ecf79ec1111e18f52e23d",
+      "functions": [
+        {
+          "name": "bootstrap",
+          "params": [],
+          "returnType": "Promise<NestFastifyApplication>",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "start",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@nestjs/common",
+          "specifiers": [
+            "ValidationPipe"
+          ]
+        },
+        {
+          "source": "@nestjs/core",
+          "specifiers": [
+            "NestFactory"
+          ]
+        },
+        {
+          "source": "@nestjs/platform-fastify",
+          "specifiers": [
+            "FastifyAdapter",
+            "NestFastifyApplication"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "loadEnvironment"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "resolve"
+          ]
+        },
+        {
+          "source": "./app.module",
+          "specifiers": [
+            "AppModule"
+          ]
+        }
+      ],
+      "exports": [
+        "bootstrap"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "services/api/tsconfig.build.json": {
+      "filePath": "services/api/tsconfig.build.json",
+      "contentHash": "5be779cd451abd44f0be095621bbf421fca629ba9480f54b768dacdc2b9aaf0b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "services/api/tsconfig.json": {
+      "filePath": "services/api/tsconfig.json",
+      "contentHash": "72b832defc384f074771128f239a128464d84fa2b7fc227ecd0d4cb2eb83bb2b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "services/data/Dockerfile": {
+      "filePath": "services/data/Dockerfile",
+      "contentHash": "924b87fa98b576a6706e5664e3c0797e8f12dd0954cd61fc9ab826eaae40914b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "services/data/Dockerfile.migrations": {
+      "filePath": "services/data/Dockerfile.migrations",
+      "contentHash": "bfdcf9d522eef869ad9b863f4ad01894685d187846b0ede0500947ff453f8b12",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "services/data/pyproject.toml": {
+      "filePath": "services/data/pyproject.toml",
+      "contentHash": "6fd5deccc46460451c200c66f9cb383112f7e573ab00d31523bc504e22c32166",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": false
+    },
+    "services/data/src/bookwise_data/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/__init__.py",
+      "contentHash": "565d837114ba91c94be3a5390147ebf267dbefee4ee79eb245df0bd2ab35f1ca",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/application/__init__.py",
+      "contentHash": "78ee4c6b32ee5bc9ab44b4387b061a2e03b0bd3fa5a4a363f7aa9688f8adce33",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/build_embeddings.py": {
+      "filePath": "services/data/src/bookwise_data/application/build_embeddings.py",
+      "contentHash": "9d30976dfc5a42ab2f7b68e9f8a843f38e92fd56025f867697a5df356e7bd3c7",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BuildEmbeddings",
+          "methods": [
+            "__init__",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Mapping"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.generation",
+          "specifiers": [
+            "EmbeddingRecord",
+            "EmbeddingTargetType",
+            "ProviderEmbedding",
+            "embedding_records"
+          ]
+        }
+      ],
+      "exports": [
+        "BuildEmbeddings"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/claim_command.py": {
+      "filePath": "services/data/src/bookwise_data/application/claim_command.py",
+      "contentHash": "a5e4ed8bdc5ed50a69784cc720fca4785b7b7106eec22c8e709c149e717b777d",
+      "functions": [
+        {
+          "name": "_error_code",
+          "params": [
+            "error"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_error_message",
+          "params": [
+            "error",
+            "default"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "ProcessingCommandRepository",
+          "methods": [
+            "transaction",
+            "claim_available",
+            "complete",
+            "fail_retryably",
+            "fail_permanently",
+            "heartbeat",
+            "read_status"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "ClaimCommand",
+          "methods": [
+            "__init__",
+            "execute",
+            "complete",
+            "fail_retryably",
+            "fail_permanently",
+            "heartbeat",
+            "_require_projected_status",
+            "_event_for"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 175
+        }
+      ],
+      "imports": [
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "AbstractContextManager"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Protocol"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.emit_event",
+          "specifiers": [
+            "EmitEvent"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand",
+            "ProcessingEvent",
+            "ProcessingEventType",
+            "ProcessingRunStatus",
+            "ProcessingStatus"
+          ]
+        }
+      ],
+      "exports": [
+        "ProcessingCommandRepository",
+        "ClaimCommand",
+        "_error_code",
+        "_error_message"
+      ],
+      "totalLines": 264,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/emit_event.py": {
+      "filePath": "services/data/src/bookwise_data/application/emit_event.py",
+      "contentHash": "96c370e4bf8680663b2f07db120af9248b43c64fcd9fde65cb0dd01eb400260c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ProcessingEventRepository",
+          "methods": [
+            "append"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "EmitEvent",
+          "methods": [
+            "__init__",
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Protocol"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ProcessingEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "ProcessingEventRepository",
+        "EmitEvent"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/generate_summary.py": {
+      "filePath": "services/data/src/bookwise_data/application/generate_summary.py",
+      "contentHash": "389168bf3efdf74988325eae1fc8ac830a81832b850d0d373080bddfd7312967",
+      "functions": [
+        {
+          "name": "_error_code",
+          "params": [
+            "error"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_output_hash",
+          "params": [
+            "error"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_provider_name_or_none",
+          "params": [
+            "provider"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_provider_model_or_none",
+          "params": [
+            "provider"
+          ],
+          "returnType": "str | None",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "GeneratedSummaryRepository",
+          "methods": [
+            "transaction",
+            "set_owner_context",
+            "load_source",
+            "append_validation_outcome",
+            "persist"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "GenerationProvider",
+          "methods": [
+            "generate_evidence",
+            "generate_summary",
+            "embed"
+          ],
+          "properties": [
+            "provider_name",
+            "generation_model",
+            "embedding_model",
+            "embedding_dimensions"
+          ],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "GenerationStageFailure",
+          "methods": [],
+          "properties": [
+            "cause",
+            "stage",
+            "source_document_id",
+            "source_node_id",
+            "source_chunk_sequence_number",
+            "input_hash",
+            "output_hash",
+            "provider",
+            "model",
+            "validation_status"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "GenerateSummary",
+          "methods": [
+            "__init__",
+            "handle",
+            "_build_generation",
+            "_record_failure",
+            "_failure",
+            "_require_lease"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 391
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Callable"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Protocol"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.build_embeddings",
+          "specifiers": [
+            "BuildEmbeddings"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.generation",
+          "specifiers": [
+            "AcceptedGeneration",
+            "EmbeddingTargetType",
+            "EvidenceExtractionOutput",
+            "GenerationSourceBook",
+            "GenerationValidationOutcome",
+            "InvalidGenerationOutput",
+            "ProviderRequestError",
+            "SourceSpanChunkLimitError",
+            "SummaryDraft",
+            "ValidationStatus",
+            "accepted_evidence_from_output",
+            "accepted_summary_from_output",
+            "build_chunks",
+            "canonical_hash",
+            "source_chunk_payload",
+            "summary_input_hash",
+            "validation_outcome"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "PermanentProcessingError"
+          ]
+        }
+      ],
+      "exports": [
+        "GeneratedSummaryRepository",
+        "GenerationProvider",
+        "GenerationStageFailure",
+        "GenerateSummary",
+        "_error_code",
+        "_output_hash",
+        "_provider_name_or_none",
+        "_provider_model_or_none"
+      ],
+      "totalLines": 523,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/application/ingest_book.py": {
+      "filePath": "services/data/src/bookwise_data/application/ingest_book.py",
+      "contentHash": "9b922f2d597cfcb4ee460086638b5d34c49c95312d97dfad3e057efeea42f22f",
+      "functions": [
+        {
+          "name": "_parse",
+          "params": [
+            "source_format",
+            "source_content"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "SourceRepository",
+          "methods": [
+            "transaction",
+            "read_original",
+            "set_owner_context",
+            "persist"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "ObjectStorage",
+          "methods": [
+            "download",
+            "put_private_immutable"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "IngestBook",
+          "methods": [
+            "__init__",
+            "handle",
+            "_require_lease"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 93
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Callable"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Protocol"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "MAX_SOURCE_BYTES",
+            "InvalidSourceError",
+            "NormalizedSource",
+            "OriginalBookObject",
+            "PermanentProcessingError",
+            "PersistedSource",
+            "SourceLimitError",
+            "normalize_source",
+            "source_format_for"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.docx",
+          "specifiers": [
+            "parse_docx"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.epub",
+          "specifiers": [
+            "parse_epub"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.pdf",
+          "specifiers": [
+            "parse_pdf"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.text",
+          "specifiers": [
+            "parse_text"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.storage.object_storage",
+          "specifiers": [
+            "ArtifactIntegrityError",
+            "StoredObjectLimitError",
+            "StoredObjectMetadataError",
+            "StoredObjectNotFoundError"
+          ]
+        }
+      ],
+      "exports": [
+        "SourceRepository",
+        "ObjectStorage",
+        "IngestBook",
+        "_parse"
+      ],
+      "totalLines": 188,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/domain/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/domain/__init__.py",
+      "contentHash": "7362a7bd88abea86ef0520ac4ae25da059ef54c1b4065eb52b07f9885353b170",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/domain/commands.py": {
+      "filePath": "services/data/src/bookwise_data/domain/commands.py",
+      "contentHash": "c707e6ebbee1263e0740d6bfc05b53a1cefb7ec6446726eb9d3d105f57b639e9",
+      "functions": [
+        {
+          "name": "can_transition",
+          "params": [
+            "current",
+            "target"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "ProcessingCommandStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ProcessingRunStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "ProcessingEventType",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "ClaimedCommand",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "command_type",
+            "payload",
+            "processing_version",
+            "run_id",
+            "lease_started_at"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "ProcessingStatus",
+          "methods": [],
+          "properties": [
+            "book_id",
+            "owner_id",
+            "command_id",
+            "command_status",
+            "run_status",
+            "latest_event_type",
+            "latest_event_at"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ProcessingEvent",
+          "methods": [],
+          "properties": [
+            "owner_id",
+            "book_id",
+            "command_id",
+            "processing_version",
+            "event_type",
+            "payload"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Mapping"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "StrEnum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        }
+      ],
+      "exports": [
+        "ProcessingCommandStatus",
+        "ProcessingRunStatus",
+        "ProcessingEventType",
+        "can_transition",
+        "ClaimedCommand",
+        "ProcessingStatus",
+        "ProcessingEvent"
+      ],
+      "totalLines": 105,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/domain/generation.py": {
+      "filePath": "services/data/src/bookwise_data/domain/generation.py",
+      "contentHash": "977d3c2b8b0a36b477a6b775029dcee368b8fda59c774f074e33b50afd6e7201",
+      "functions": [
+        {
+          "name": "build_chunks",
+          "params": [
+            "source",
+            "maximum_chars"
+          ],
+          "returnType": "tuple[EvidenceChunk, ...]",
+          "exported": true,
+          "lineCount": 55
+        },
+        {
+          "name": "source_chunk_payload",
+          "params": [
+            "chunk"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "accepted_evidence_from_output",
+          "params": [
+            "command",
+            "source_document_id",
+            "chunk",
+            "output",
+            "provider",
+            "model"
+          ],
+          "returnType": "tuple[GeneratedEvidence, ...]",
+          "exported": true,
+          "lineCount": 63
+        },
+        {
+          "name": "accepted_summary_from_output",
+          "params": [
+            "command",
+            "source",
+            "source_node_id",
+            "evidence",
+            "output",
+            "provider",
+            "model",
+            "supersedes_id"
+          ],
+          "returnType": "GeneratedSummary",
+          "exported": true,
+          "lineCount": 55
+        },
+        {
+          "name": "embedding_records",
+          "params": [
+            "command",
+            "source_document_id",
+            "target_texts",
+            "vectors",
+            "provider",
+            "model",
+            "dimensions"
+          ],
+          "returnType": "tuple[EmbeddingRecord, ...]",
+          "exported": true,
+          "lineCount": 70
+        },
+        {
+          "name": "validation_outcome",
+          "params": [
+            "command",
+            "stage",
+            "status",
+            "reason_code",
+            "details",
+            "source_document_id",
+            "source_node_id",
+            "source_chunk_sequence_number",
+            "input_hash",
+            "output_hash",
+            "provider",
+            "model"
+          ],
+          "returnType": "GenerationValidationOutcome",
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "summary_input_hash",
+          "params": [
+            "source_document_id",
+            "source_node_id",
+            "evidence"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "canonical_hash",
+          "params": [
+            "value"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_chunk",
+          "params": [
+            "source_node_id",
+            "sequence_number",
+            "spans"
+          ],
+          "returnType": "EvidenceChunk",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "_leaf_section_nodes",
+          "params": [
+            "nodes"
+          ],
+          "returnType": "tuple[GenerationStructureNode, ...]",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "_json_safe",
+          "params": [
+            "value"
+          ],
+          "returnType": "Any",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "EvidenceType",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "ValidationStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "EmbeddingTargetType",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "InvalidGenerationOutput",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "ModelProviderConfigurationError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "EmbeddingDimensionError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "ProviderOutputError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "ProviderRequestError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "SourceSelectionError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "SourceSpanChunkLimitError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "SummaryIdentityConflictError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "EvidenceDraft",
+          "methods": [],
+          "properties": [
+            "evidence_type",
+            "statement",
+            "source_span_ids",
+            "source_excerpt",
+            "confidence"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "EvidenceExtractionOutput",
+          "methods": [],
+          "properties": [
+            "items"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "SummaryDraft",
+          "methods": [],
+          "properties": [
+            "body",
+            "source_span_ids"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "GenerationSourceSpan",
+          "methods": [],
+          "properties": [
+            "id",
+            "source_document_id",
+            "sequence_number",
+            "content",
+            "content_hash",
+            "location"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "GenerationStructureNode",
+          "methods": [],
+          "properties": [
+            "id",
+            "source_document_id",
+            "sequence_number",
+            "node_type",
+            "title",
+            "source_span_start_sequence",
+            "source_span_end_sequence"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "GenerationSourceDocument",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "parser_version",
+            "source_content_hash"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "GenerationSourceBook",
+          "methods": [],
+          "properties": [
+            "document",
+            "spans",
+            "nodes"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "EvidenceChunk",
+          "methods": [],
+          "properties": [
+            "source_node_id",
+            "sequence_number",
+            "spans",
+            "input_hash"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "GeneratedEvidence",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "source_document_id",
+            "source_node_id",
+            "generation_version",
+            "evidence_type",
+            "statement",
+            "citation_data",
+            "validation_status",
+            "input_hash",
+            "output_hash",
+            "provider",
+            "model",
+            "confidence"
+          ],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "GeneratedSummary",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "source_document_id",
+            "source_node_id",
+            "generation_version",
+            "body",
+            "citation_data",
+            "validation_status",
+            "input_hash",
+            "output_hash",
+            "provider",
+            "model",
+            "supersedes_id"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "EmbeddingRecord",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "source_document_id",
+            "target_type",
+            "target_id",
+            "embedding_version",
+            "input_hash",
+            "provider",
+            "model",
+            "dimensions",
+            "vector"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "ProviderEmbedding",
+          "methods": [],
+          "properties": [
+            "index",
+            "values"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "GenerationValidationOutcome",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "source_document_id",
+            "source_node_id",
+            "source_chunk_sequence_number",
+            "generation_version",
+            "stage",
+            "validation_status",
+            "reason_code",
+            "input_hash",
+            "output_hash",
+            "provider",
+            "model",
+            "details"
+          ],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "AcceptedGeneration",
+          "methods": [],
+          "properties": [
+            "summary",
+            "evidence",
+            "embeddings"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterable",
+            "Mapping",
+            "Sequence"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "StrEnum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID",
+            "uuid5"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "Field"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "PermanentProcessingError"
+          ]
+        }
+      ],
+      "exports": [
+        "EvidenceType",
+        "ValidationStatus",
+        "EmbeddingTargetType",
+        "InvalidGenerationOutput",
+        "ModelProviderConfigurationError",
+        "EmbeddingDimensionError",
+        "ProviderOutputError",
+        "ProviderRequestError",
+        "SourceSelectionError",
+        "SourceSpanChunkLimitError",
+        "SummaryIdentityConflictError",
+        "EvidenceDraft",
+        "EvidenceExtractionOutput",
+        "SummaryDraft",
+        "GenerationSourceSpan",
+        "GenerationStructureNode",
+        "GenerationSourceDocument",
+        "GenerationSourceBook",
+        "EvidenceChunk",
+        "GeneratedEvidence",
+        "GeneratedSummary",
+        "EmbeddingRecord",
+        "ProviderEmbedding",
+        "GenerationValidationOutcome",
+        "AcceptedGeneration",
+        "build_chunks",
+        "source_chunk_payload",
+        "accepted_evidence_from_output",
+        "accepted_summary_from_output",
+        "embedding_records",
+        "validation_outcome",
+        "summary_input_hash",
+        "canonical_hash",
+        "_chunk",
+        "_leaf_section_nodes",
+        "_json_safe"
+      ],
+      "totalLines": 700,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/domain/source.py": {
+      "filePath": "services/data/src/bookwise_data/domain/source.py",
+      "contentHash": "6f7c7ce7c2fc8c22e23a323a1fb68701d382c65301179f1a5483b7da30b5c7d0",
+      "functions": [
+        {
+          "name": "source_format_for",
+          "params": [
+            "original"
+          ],
+          "returnType": "SourceFormat",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "normalize_source",
+          "params": [
+            "command",
+            "original",
+            "source_content",
+            "parsed"
+          ],
+          "returnType": "NormalizedSource",
+          "exported": true,
+          "lineCount": 96
+        },
+        {
+          "name": "sha256_hex",
+          "params": [
+            "content"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_artifact_payload",
+          "params": [
+            "command",
+            "original",
+            "source_id",
+            "source_content_hash",
+            "source_format",
+            "artifact_key",
+            "spans",
+            "nodes"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [
+        {
+          "name": "SourceFormat",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "PermanentProcessingError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "UnsupportedSourceError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "EmptySourceError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "InvalidSourceError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "SourceLimitError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "OriginalBookObject",
+          "methods": [],
+          "properties": [
+            "id",
+            "filename",
+            "object_key",
+            "content_type",
+            "size_bytes"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "ParsedSection",
+          "methods": [],
+          "properties": [
+            "node_type",
+            "text",
+            "location",
+            "title"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "ParsedSource",
+          "methods": [],
+          "properties": [
+            "source_format",
+            "sections"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "SourceSpan",
+          "methods": [],
+          "properties": [
+            "id",
+            "sequence_number",
+            "content",
+            "content_hash",
+            "location"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "StructureNode",
+          "methods": [],
+          "properties": [
+            "id",
+            "sequence_number",
+            "node_type",
+            "title",
+            "location",
+            "parent_sequence_number",
+            "source_span_start_sequence",
+            "source_span_end_sequence"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "NormalizedSource",
+          "methods": [],
+          "properties": [
+            "id",
+            "owner_id",
+            "book_id",
+            "source_object_id",
+            "source_location",
+            "source_content_hash",
+            "source_format",
+            "parser_version",
+            "artifact_key",
+            "artifact_content_hash",
+            "spans",
+            "nodes",
+            "artifact_bytes"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "PersistedSource",
+          "methods": [],
+          "properties": [
+            "id",
+            "artifact_key",
+            "artifact_content_hash"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Mapping"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "enum",
+          "specifiers": [
+            "StrEnum"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID",
+            "uuid5"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        }
+      ],
+      "exports": [
+        "SourceFormat",
+        "PermanentProcessingError",
+        "UnsupportedSourceError",
+        "EmptySourceError",
+        "InvalidSourceError",
+        "SourceLimitError",
+        "OriginalBookObject",
+        "ParsedSection",
+        "ParsedSource",
+        "SourceSpan",
+        "StructureNode",
+        "NormalizedSource",
+        "PersistedSource",
+        "source_format_for",
+        "normalize_source",
+        "sha256_hex",
+        "_artifact_payload"
+      ],
+      "totalLines": 309,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/__init__.py",
+      "contentHash": "8b1f05bc267637c0cedb93aa4d97effc13e3ee2b4b3c1f51145770ab11fd6cc2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/database/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/database/__init__.py",
+      "contentHash": "99eb434b79c3cdb4cf4d9b6fcc302e8986975dba095303c224f54cdb257cb5bc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/database/command_repository.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/database/command_repository.py",
+      "contentHash": "3c30c32e3581ade3f8e37d19c93ae8e3efbe9af49492147a962ef90f0c40460e",
+      "functions": [
+        {
+          "name": "_payload_mapping",
+          "params": [
+            "payload"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [
+        {
+          "name": "SqlAlchemyCommandRepository",
+          "methods": [
+            "__init__",
+            "transaction",
+            "claim_available",
+            "complete",
+            "fail_retryably",
+            "fail_permanently",
+            "heartbeat",
+            "read_status"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 200
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterator"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextmanager"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection",
+            "Engine"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand",
+            "ProcessingRunStatus",
+            "ProcessingStatus"
+          ]
+        }
+      ],
+      "exports": [
+        "SqlAlchemyCommandRepository",
+        "_payload_mapping"
+      ],
+      "totalLines": 431,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/database/event_repository.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/database/event_repository.py",
+      "contentHash": "b81d9169450912c3dcff04a38e2c0058386888b7f6b43225b6e537f04e413a22",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SqlAlchemyEventRepository",
+          "methods": [
+            "append"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ProcessingEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "SqlAlchemyEventRepository"
+      ],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/database/generated_summary_repository.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/database/generated_summary_repository.py",
+      "contentHash": "037374251733d1ac0cd0b6302b2cdbfc9320e447bc1aa9991e5b4e75df28edfe",
+      "functions": [
+        {
+          "name": "_json_mapping",
+          "params": [
+            "value"
+          ],
+          "returnType": "dict[str, object]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_vector_literal",
+          "params": [
+            "values"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "SqlAlchemyGeneratedSummaryRepository",
+          "methods": [
+            "__init__",
+            "transaction",
+            "set_owner_context",
+            "load_source",
+            "append_validation_outcome",
+            "persist"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 258
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterator"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextmanager"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection",
+            "Engine"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.generation",
+          "specifiers": [
+            "AcceptedGeneration",
+            "GenerationSourceBook",
+            "GenerationSourceDocument",
+            "GenerationSourceSpan",
+            "GenerationStructureNode",
+            "GenerationValidationOutcome",
+            "SourceSelectionError",
+            "SummaryIdentityConflictError"
+          ]
+        }
+      ],
+      "exports": [
+        "SqlAlchemyGeneratedSummaryRepository",
+        "_json_mapping",
+        "_vector_literal"
+      ],
+      "totalLines": 551,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/database/source_repository.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/database/source_repository.py",
+      "contentHash": "1a6809e4e959faa4daa57a417c1734beaf66f6a044ba164e1aae064162de6e1b",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SqlAlchemySourceRepository",
+          "methods": [
+            "__init__",
+            "transaction",
+            "read_original",
+            "set_owner_context",
+            "persist"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 129
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterator"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextmanager"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection",
+            "Engine"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "NormalizedSource",
+            "OriginalBookObject",
+            "PersistedSource"
+          ]
+        }
+      ],
+      "exports": [
+        "SqlAlchemySourceRepository"
+      ],
+      "totalLines": 259,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/__init__.py",
+      "contentHash": "167229414c34194b68393fe8283a677972b2666f8211f88c251723c0dcabd29b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/docx.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/docx.py",
+      "contentHash": "0b90588edc68656a6042aecd7877b43ccbe455b43b5ce390c456ebe1f107a594",
+      "functions": [
+        {
+          "name": "parse_docx",
+          "params": [
+            "source_content"
+          ],
+          "returnType": "ParsedSource",
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "_node_type",
+          "params": [
+            "style_name"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "io",
+          "specifiers": [
+            "BytesIO"
+          ]
+        },
+        {
+          "source": "docx",
+          "specifiers": [
+            "Document"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "EmptySourceError",
+            "InvalidSourceError",
+            "ParsedSection",
+            "ParsedSource",
+            "PermanentProcessingError",
+            "SourceFormat",
+            "SourceLimitError"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.limits",
+          "specifiers": [
+            "MAX_DOCX_PARAGRAPHS",
+            "validate_archive_limits"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_docx",
+        "_node_type"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/epub.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/epub.py",
+      "contentHash": "737e548b2d177730b86f978f9cfa8f800c4822c450bc0b9b3d6a8b44254613c1",
+      "functions": [
+        {
+          "name": "parse_epub",
+          "params": [
+            "source_content"
+          ],
+          "returnType": "ParsedSource",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "_spine_documents",
+          "params": [
+            "book"
+          ],
+          "returnType": "tuple[epub.EpubItem, ...]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_text_for",
+          "params": [
+            "item"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_title_for",
+          "params": [
+            "item",
+            "index"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "io",
+          "specifiers": [
+            "BytesIO"
+          ]
+        },
+        {
+          "source": "bs4",
+          "specifiers": [
+            "BeautifulSoup"
+          ]
+        },
+        {
+          "source": "ebooklib",
+          "specifiers": [
+            "ITEM_DOCUMENT",
+            "epub"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "EmptySourceError",
+            "InvalidSourceError",
+            "ParsedSection",
+            "ParsedSource",
+            "PermanentProcessingError",
+            "SourceFormat",
+            "SourceLimitError"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.limits",
+          "specifiers": [
+            "MAX_EPUB_SPINE_DOCUMENTS",
+            "validate_archive_limits"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_epub",
+        "_spine_documents",
+        "_text_for",
+        "_title_for"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/limits.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/limits.py",
+      "contentHash": "00f257cf9a48e704516e313ad727bb767146c04937768a2416052b8ae35dcf39",
+      "functions": [
+        {
+          "name": "validate_archive_limits",
+          "params": [
+            "source_content",
+            "format_name"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "validate_source_size",
+          "params": [
+            "source_content",
+            "format_name"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "io",
+          "specifiers": [
+            "BytesIO"
+          ]
+        },
+        {
+          "source": "zipfile",
+          "specifiers": [
+            "BadZipFile",
+            "ZipFile"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "MAX_SOURCE_BYTES",
+            "InvalidSourceError",
+            "SourceLimitError"
+          ]
+        }
+      ],
+      "exports": [
+        "validate_archive_limits",
+        "validate_source_size"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/pdf.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/pdf.py",
+      "contentHash": "845f29930b0ab07bfe5d0d6d13cef86fcc2967454e6c534d1eb31e6a051a06ab",
+      "functions": [
+        {
+          "name": "parse_pdf",
+          "params": [
+            "source_content"
+          ],
+          "returnType": "ParsedSource",
+          "exported": true,
+          "lineCount": 53
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pymupdf",
+          "specifiers": [
+            "pymupdf"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "EmptySourceError",
+            "InvalidSourceError",
+            "ParsedSection",
+            "ParsedSource",
+            "PermanentProcessingError",
+            "SourceFormat",
+            "SourceLimitError"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.limits",
+          "specifiers": [
+            "MAX_PDF_PAGES",
+            "validate_source_size"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_pdf"
+      ],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/parsers/text.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/parsers/text.py",
+      "contentHash": "39f37f9d69e9a970b1c3a19310ded6e2923de971d1ee841bf97f7735e70c8699",
+      "functions": [
+        {
+          "name": "parse_text",
+          "params": [
+            "source_content"
+          ],
+          "returnType": "ParsedSource",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "EmptySourceError",
+            "InvalidSourceError",
+            "ParsedSection",
+            "ParsedSource",
+            "SourceFormat"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.parsers.limits",
+          "specifiers": [
+            "validate_source_size"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_text"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/providers/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/providers/__init__.py",
+      "contentHash": "07296cd4b2b283971d15552da15bc9d94f314adb1634afe5f2fe9f2696758bc5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/providers/model_provider.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/providers/model_provider.py",
+      "contentHash": "3c89007ec759f6e44ed4cf37c4da0f473bfb54a5e53aaea7ee31b59bc0cc8b8b",
+      "functions": [
+        {
+          "name": "provider_from_environment",
+          "params": [],
+          "returnType": "ModelProvider",
+          "exported": true,
+          "lineCount": 97
+        },
+        {
+          "name": "generation_chunk_chars_from_environment",
+          "params": [
+            "default"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_missing",
+          "params": [
+            "values"
+          ],
+          "returnType": "tuple[str, ...]",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_positive_integer_environment",
+          "params": [
+            "name",
+            "default"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "_positive_float_environment",
+          "params": [
+            "name",
+            "default"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "_schema_name",
+          "params": [
+            "schema"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_raise_vertex_error",
+          "params": [
+            "error"
+          ],
+          "returnType": "NoReturn",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "_raise_vertex_auth_error",
+          "params": [
+            "error"
+          ],
+          "returnType": "NoReturn",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_raise_vertex_timeout",
+          "params": [
+            "error"
+          ],
+          "returnType": "NoReturn",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_raise_vertex_transport_error",
+          "params": [
+            "error"
+          ],
+          "returnType": "NoReturn",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "ModelProvider",
+          "methods": [
+            "generate_evidence",
+            "generate_summary",
+            "embed"
+          ],
+          "properties": [
+            "provider_name",
+            "generation_model",
+            "embedding_model",
+            "embedding_dimensions"
+          ],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "ModelProviderConfig",
+          "methods": [],
+          "properties": [
+            "provider_name",
+            "base_url",
+            "api_key",
+            "generation_model",
+            "embedding_model",
+            "embedding_dimensions",
+            "timeout_seconds",
+            "max_output_tokens"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "VertexAIProviderConfig",
+          "methods": [],
+          "properties": [
+            "project",
+            "location",
+            "generation_model",
+            "embedding_model",
+            "embedding_dimensions",
+            "timeout_seconds",
+            "max_output_tokens"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "UnconfiguredModelProvider",
+          "methods": [
+            "__init__",
+            "generate_evidence",
+            "generate_summary",
+            "embed",
+            "_error"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "OpenAICompatibleProvider",
+          "methods": [
+            "__init__",
+            "generate_evidence",
+            "generate_summary",
+            "embed",
+            "_generate_json",
+            "_request"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 191
+        },
+        {
+          "name": "VertexAIProvider",
+          "methods": [
+            "__init__",
+            "generate_evidence",
+            "generate_summary",
+            "embed",
+            "_generate_json"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 137
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "NoReturn",
+            "Protocol",
+            "TypeVar"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "httpx"
+          ]
+        },
+        {
+          "source": "google",
+          "specifiers": [
+            "genai"
+          ]
+        },
+        {
+          "source": "google.auth",
+          "specifiers": [
+            "google_auth_errors"
+          ]
+        },
+        {
+          "source": "google.genai",
+          "specifiers": [
+            "genai_errors"
+          ]
+        },
+        {
+          "source": "google.genai",
+          "specifiers": [
+            "genai_types"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ValidationError"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.generation",
+          "specifiers": [
+            "ModelProviderConfigurationError",
+            "ProviderEmbedding",
+            "ProviderOutputError",
+            "ProviderRequestError",
+            "canonical_hash"
+          ]
+        }
+      ],
+      "exports": [
+        "ModelProvider",
+        "ModelProviderConfig",
+        "VertexAIProviderConfig",
+        "UnconfiguredModelProvider",
+        "OpenAICompatibleProvider",
+        "VertexAIProvider",
+        "provider_from_environment",
+        "generation_chunk_chars_from_environment",
+        "_missing",
+        "_positive_integer_environment",
+        "_positive_float_environment",
+        "_schema_name",
+        "_raise_vertex_error",
+        "_raise_vertex_auth_error",
+        "_raise_vertex_timeout",
+        "_raise_vertex_transport_error"
+      ],
+      "totalLines": 645,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/storage/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/storage/__init__.py",
+      "contentHash": "8afe280634d71c0232e1ea6fab7b46873d827aaac2e915a3d4f26334b0beee84",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/storage/gcs_object_storage.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/storage/gcs_object_storage.py",
+      "contentHash": "b80e502b7b28838e77e2ff84d3dd9f9c470fb4b85093e9f4ed1993765618ed97",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GcsObjectStorageConfig",
+          "methods": [],
+          "properties": [
+            "bucket",
+            "project"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "GcsObjectStorage",
+          "methods": [
+            "__init__",
+            "download",
+            "put_private_immutable",
+            "_verify_existing_artifact"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 87
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "sha256"
+          ]
+        },
+        {
+          "source": "google.api_core.exceptions",
+          "specifiers": [
+            "NotFound",
+            "PreconditionFailed"
+          ]
+        },
+        {
+          "source": "google.cloud",
+          "specifiers": [
+            "storage"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.storage.object_storage",
+          "specifiers": [
+            "ArtifactIntegrityError",
+            "StoredObjectLimitError",
+            "StoredObjectMetadataError",
+            "StoredObjectNotFoundError"
+          ]
+        }
+      ],
+      "exports": [
+        "GcsObjectStorageConfig",
+        "GcsObjectStorage"
+      ],
+      "totalLines": 114,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/infrastructure/storage/object_storage.py": {
+      "filePath": "services/data/src/bookwise_data/infrastructure/storage/object_storage.py",
+      "contentHash": "71a5a983edf701f0f2f9511f2905b4c06160c729df819c72c8191e34c826780b",
+      "functions": [
+        {
+          "name": "_is_not_found",
+          "params": [
+            "error"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_is_precondition_failed",
+          "params": [
+            "error"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "StoredObjectNotFoundError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "StoredObjectLimitError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "StoredObjectMetadataError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "ArtifactIntegrityError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "S3ObjectStorageConfig",
+          "methods": [],
+          "properties": [
+            "region",
+            "access_key_id",
+            "secret_access_key",
+            "bucket",
+            "endpoint_url"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "S3ObjectStorage",
+          "methods": [
+            "__init__",
+            "download",
+            "put_private_immutable",
+            "_verify_existing_artifact"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 119
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "sha256"
+          ]
+        },
+        {
+          "source": "boto3",
+          "specifiers": [
+            "boto3"
+          ]
+        },
+        {
+          "source": "botocore.config",
+          "specifiers": [
+            "Config"
+          ]
+        },
+        {
+          "source": "botocore.exceptions",
+          "specifiers": [
+            "ClientError"
+          ]
+        }
+      ],
+      "exports": [
+        "StoredObjectNotFoundError",
+        "StoredObjectLimitError",
+        "StoredObjectMetadataError",
+        "ArtifactIntegrityError",
+        "S3ObjectStorageConfig",
+        "S3ObjectStorage",
+        "_is_not_found",
+        "_is_precondition_failed"
+      ],
+      "totalLines": 180,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/workers/__init__.py": {
+      "filePath": "services/data/src/bookwise_data/workers/__init__.py",
+      "contentHash": "41d83c087ff682761f3022dae97956c3cf506293a88cd027fbc886953f6bdcce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/workers/bootstrap.py": {
+      "filePath": "services/data/src/bookwise_data/workers/bootstrap.py",
+      "contentHash": "705c234913c11fa3a6a275289e4846926aaeea7aa2fbb6bc3677813a76b171c7",
+      "functions": [
+        {
+          "name": "run_worker",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "_required_environment",
+          "params": [
+            "name"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_storage_from_environment",
+          "params": [],
+          "returnType": "S3ObjectStorage | GcsObjectStorage",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "_positive_integer_environment",
+          "params": [
+            "name",
+            "default"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_positive_float_environment",
+          "params": [
+            "name",
+            "default"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "signal",
+          "specifiers": [
+            "signal"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "Event"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "create_engine"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.claim_command",
+          "specifiers": [
+            "ClaimCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.emit_event",
+          "specifiers": [
+            "EmitEvent"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.generate_summary",
+          "specifiers": [
+            "GenerateSummary"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.ingest_book",
+          "specifiers": [
+            "IngestBook"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.generation",
+          "specifiers": [
+            "DEFAULT_GENERATION_CHUNK_CHARS"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.database.command_repository",
+          "specifiers": [
+            "SqlAlchemyCommandRepository"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.database.event_repository",
+          "specifiers": [
+            "SqlAlchemyEventRepository"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.database.generated_summary_repository",
+          "specifiers": [
+            "SqlAlchemyGeneratedSummaryRepository"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.database.source_repository",
+          "specifiers": [
+            "SqlAlchemySourceRepository"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.providers.model_provider",
+          "specifiers": [
+            "generation_chunk_chars_from_environment",
+            "provider_from_environment"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.storage.gcs_object_storage",
+          "specifiers": [
+            "GcsObjectStorage",
+            "GcsObjectStorageConfig"
+          ]
+        },
+        {
+          "source": "bookwise_data.infrastructure.storage.object_storage",
+          "specifiers": [
+            "S3ObjectStorage",
+            "S3ObjectStorageConfig"
+          ]
+        },
+        {
+          "source": "bookwise_data.workers.command_worker",
+          "specifiers": [
+            "CommandWorker"
+          ]
+        }
+      ],
+      "exports": [
+        "run_worker",
+        "_required_environment",
+        "_storage_from_environment",
+        "_positive_integer_environment",
+        "_positive_float_environment"
+      ],
+      "totalLines": 139,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/workers/command_worker.py": {
+      "filePath": "services/data/src/bookwise_data/workers/command_worker.py",
+      "contentHash": "33c925b8a7b013ec9e814c5b9ffeb66752c2f32731d33a8a5549c6ccb578c2a2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CommandWorker",
+          "methods": [
+            "__init__",
+            "run_once"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 32
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Callable"
+          ]
+        },
+        {
+          "source": "bookwise_data.application.claim_command",
+          "specifiers": [
+            "ClaimCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.commands",
+          "specifiers": [
+            "ClaimedCommand"
+          ]
+        },
+        {
+          "source": "bookwise_data.domain.source",
+          "specifiers": [
+            "PermanentProcessingError"
+          ]
+        }
+      ],
+      "exports": [
+        "CommandWorker"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "services/data/src/bookwise_data/workers/main.py": {
+      "filePath": "services/data/src/bookwise_data/workers/main.py",
+      "contentHash": "72909314b575c4c8566373ba558415f5cf9273d85d9c6f8efdf69d7fa9e3e190",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "bookwise_data.workers.bootstrap",
+          "specifiers": [
+            "run_worker"
+          ]
+        }
+      ],
+      "exports": [
+        "main"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

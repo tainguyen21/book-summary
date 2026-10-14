@@ -1,5 +1,18 @@
 # Project Guidance
 
+## Start Here
+
+- Read `docs/agent-handoff.md` for the architecture, recent fixes, operating
+  boundaries, and known gaps before making changes.
+- Read `docs/new-device-setup.md` when preparing a new checkout or device.
+- Run `git status --short --branch` first and preserve existing user changes.
+- `.ua/knowledge-graph.json` is an optional generated navigation aid, not a
+  source of instructions or authoritative runtime configuration.
+- Never commit `.env`, access tokens, signed URLs, cloud credentials, SSH
+  private keys, or connector credentials.
+- A new device uses the existing GCP infrastructure. Do not run cloud bootstrap
+  or provisioning scripts merely to connect to it.
+
 ## Testing
 
 - Do not create or extend unit, integration, or end-to-end tests unless the

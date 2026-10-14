@@ -12,3 +12,9 @@ infrastructure/gcp/.env
 infrastructure/gcp/rendered/
 infrastructure/gcp/secrets/*
 !infrastructure/gcp/secrets/README.md
+.ua/*
+!.ua/.understandignore
+!.ua/config.json
+!.ua/knowledge-graph.json
+!.ua/meta.json
+!.ua/fingerprints.json
