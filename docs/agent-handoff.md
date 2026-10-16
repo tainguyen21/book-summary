@@ -85,7 +85,7 @@ filename, or raw-exception logging.
 | SQL access | API and worker sidecar proxies at `127.0.0.1:5432` |
 | Artifact Registry | `asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise` |
 | GCS | Private `bookwise-509408-storage`; reviewed CORS in `infrastructure/gcp/storage-cors.json` |
-| Vertex AI | `global`; `gemini-2.5-flash`, `gemini-embedding-001`, 768 embedding dimensions in runtime ConfigMap |
+| Vertex AI | `global`; `gemini-3.8-flash`, `gemini-embedding-001`, 768 embedding dimensions in runtime ConfigMap |
 | Public origin | `https://tai-dev-web.cloud` for web and `/v1` API |
 | Ingress / TLS | `bookwise-ip` = `35.201.95.210`; Google-managed `bookwise-certificate` |
 | Secret Manager | See `infrastructure/gcp/secrets/README.md`; source of runtime server settings |
