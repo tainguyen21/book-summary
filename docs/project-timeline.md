@@ -27,6 +27,7 @@ Last updated: October 17, 2026
 | October 17, 2026 | Structured-format chunking | EPUB chapters, PDF pages, and DOCX sections are split into paragraph spans and packed into shared chunks. Long EPUB chapters no longer fail, and short PDFs/DOCX use one or two model calls instead of one per page or paragraph. A 10-chapter EPUB scored 11.5/12 end to end. Deployed in `7381c63`. |
 | October 17, 2026 | Book management | Owners can rename, delete (rows through cascades plus stored files; usage history kept), retry a permanently failed summary, and clear incomplete uploads. Retry is an app-side request (migration `011`) that the worker honours by reopening the same run, ingestion first. Verified locally against Postgres, MinIO, and live Vertex; deployed in `7b747fa`. |
 | October 17, 2026 | Citation passage viewer | Citation chips on a summary open the cited passage, highlighted, with up to two neighbouring passages on each side (`GET /v1/books/:bookId/passages/:spanId`, migration `012`). Owners see source text only from their own books. Deployed and checked in production in `6401a45`. |
+| October 17, 2026 | Hierarchical summaries | Books with more than `BOOKWISE_SUMMARY_GROUP_RECORDS` (120) evidence records are summarized in groups, then the group summaries are summarized, so each call stays bounded. Group summaries are checkpointed for resume. A two-level run of the evaluation book scored 10.5/12. Verified locally; not yet deployed. |
 
 ## In Progress
 
@@ -49,8 +50,7 @@ See [agent handoff](agent-handoff.md) for verification limits and
    confirm summaries, citations, ledger rows, and worker logs.
 2. Use book management to remove the local 76 MB test book and the production
    incomplete upload.
-3. Hierarchical summaries for long books (per section, then the whole book),
-   because one summary call over all evidence will not scale to full-length books.
+3. Deploy hierarchical summaries and watch the first long book in production.
 4. Private hybrid search, then cited question answering ("Ask a book") with an
    answer cache under the daily budget.
 5. Operational hardening: real readiness checks, uptime and stuck-run alerts,
