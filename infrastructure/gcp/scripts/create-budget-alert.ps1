@@ -1,6 +1,8 @@
 param(
     [string]$ProjectId = "bookwise-509408",
-    [Parameter(Mandatory = $true)][double]$MonthlyAmountUsd,
+    [Parameter(Mandatory = $true)][double]$MonthlyAmount,
+    # Must be the billing account's own currency (bookwise-509408 bills in VND).
+    [string]$Currency = "USD",
     [string]$DisplayName = "bookwise-monthly"
 )
 
@@ -12,8 +14,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if ($MonthlyAmountUsd -le 0) {
-    throw "MonthlyAmountUsd must be greater than zero."
+if ($MonthlyAmount -le 0) {
+    throw "MonthlyAmount must be greater than zero."
+}
+if ($Currency -notmatch "^[A-Z]{3}$") {
+    throw "Currency must be a three-letter ISO code such as USD or VND."
 }
 
 function Invoke-Gcloud {
@@ -49,9 +54,9 @@ if ($existing) {
     exit 0
 }
 
-# The explicit USD currency makes gcloud reject a billing account in another
-# currency instead of silently creating a budget in that currency.
-$amount = "{0}USD" -f $MonthlyAmountUsd.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+# The explicit currency makes gcloud reject a mismatch with the billing account
+# instead of silently creating a budget in the account's currency.
+$amount = "{0}{1}" -f $MonthlyAmount.ToString([System.Globalization.CultureInfo]::InvariantCulture), $Currency
 Invoke-Gcloud billing budgets create `
     "--billing-account=$billingAccount" `
     "--display-name=$DisplayName" `

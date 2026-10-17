@@ -217,14 +217,15 @@ is never run from CI:
 
 ```powershell
 gcloud auth login
-pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmountUsd 10
+pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmount 260000 -Currency VND
 ```
 
 The script enables `billingbudgets.googleapis.com`, then creates the
 `bookwise-monthly` budget scoped to `bookwise-509408`. Running it again with
-the same `-DisplayName` changes nothing. The amount is in USD; if the billing
-account uses another currency, gcloud rejects the request rather than
-creating a budget in the wrong currency.
+the same `-DisplayName` changes nothing. `-Currency` must match the billing
+account's currency: the `bookwise-509408` account bills in VND, and a mismatch
+is rejected rather than creating a budget in the wrong currency. The budget
+created on 2026-10-17 is 260,000 VND per month, about $10.
 
 Verify in the Console under Billing > Budgets & alerts, or with:
 
