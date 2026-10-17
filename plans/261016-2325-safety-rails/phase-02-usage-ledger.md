@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Usage capture and token/cost ledger
-status: pending
+status: implemented-awaiting-live-run
 effort: 1.5d
 dependsOn: [phase-01, migration branch claude/admiring-bhabha-884c6b merged]
 ---
@@ -53,7 +53,7 @@ dependsOn: [phase-01, migration branch claude/admiring-bhabha-884c6b merged]
 2. Write migration 008; apply it with `pnpm run migrate:local`. This needs `pwsh`; otherwise apply the file with `psql` in the container, using the same order as `migrate.ps1`.
 3. Implement the domain, provider hook, repository, and wiring.
 4. Add `BOOKWISE_MODEL_PRICING_JSON` to `.env.example`, the GCP runtime ConfigMap, and README's Vertex section. Prices are placeholders the user confirms from the official pricing page.
-5. Run the worker on one small TXT book and inspect `data.model_usage`.
+5. (Pending, user: worker intentionally stopped) Run the worker on one small TXT book and inspect `data.model_usage`.
 
 ## Validation
 - `select operation, count(*), sum(input_tokens), sum(estimated_cost_usd) from data.model_usage group by 1;` shows evidence, summary, and embedding rows for the test book.

@@ -6,7 +6,7 @@ priority: P1
 effort: 4d
 branch: master
 tags: [backend, worker, devops, cost]
-blockedBy: [branch claude/admiring-bhabha-884c6b (model migration, commit 702610a)]
+blockedBy: []
 blocks: []
 created: 2026-10-16
 ---
