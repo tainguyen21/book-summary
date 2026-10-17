@@ -1,7 +1,7 @@
 ---
 phase: 5
 title: GCP billing budget alert
-status: awaiting-user-run
+status: completed
 effort: 0.5d
 dependsOn: []
 ---
@@ -25,7 +25,7 @@ dependsOn: []
 ## Steps
 1. (Done 2026-10-17) Write the script, mirroring the parameter and error style of `configure-services.ps1`.
 2. (Done 2026-10-17) Add the runbook section.
-3. (Pending, user) The user runs `pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmountUsd <amount>`.
+3. (Done 2026-10-17) Created `bookwise-monthly`: 260,000 VND (about $10) per month, thresholds 0.5/0.9/1.0, for `bookwise-509408`. The billing account bills in VND, so the script gained `-Currency`; a re-run reports the existing budget and changes nothing.
 
 ## Validation
 - `gcloud billing budgets list --billing-account=<id>` shows the budget with three thresholds.
