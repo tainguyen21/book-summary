@@ -205,6 +205,37 @@ signed URLs, filenames, file contents, and raw errors.
 
 Do not include bearer tokens or full signed URLs in shared logs or screenshots.
 
+## Budget Alert
+
+A monthly Cloud Billing budget emails the billing account's admins when
+actual project spend reaches 50%, 90%, and 100% of the amount. Billing is the
+source of truth for all spend (GKE, Cloud SQL, storage, Vertex AI).
+
+Required role on the project's billing account: Billing Account Administrator
+or Billing Account Costs Manager. Run the script yourself with that login; it
+is never run from CI:
+
+```powershell
+gcloud auth login
+pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmountUsd 10
+```
+
+The script enables `billingbudgets.googleapis.com`, then creates the
+`bookwise-monthly` budget scoped to `bookwise-509408`. Running it again with
+the same `-DisplayName` changes nothing. The amount is in USD; if the billing
+account uses another currency, gcloud rejects the request rather than
+creating a budget in the wrong currency.
+
+Verify in the Console under Billing > Budgets & alerts, or with:
+
+```powershell
+gcloud billing budgets list --billing-account=BILLING_ACCOUNT_ID `
+  --filter="displayName=bookwise-monthly"
+```
+
+To change the amount, edit the budget in the Console. Re-running the script
+does not update an existing budget.
+
 ## Rollback
 
 Use a previously published commit SHA. The deployment script deletes and

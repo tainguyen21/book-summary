@@ -1,7 +1,7 @@
 ---
 phase: 5
 title: GCP billing budget alert
-status: pending
+status: awaiting-user-run
 effort: 0.5d
 dependsOn: []
 ---
@@ -23,9 +23,9 @@ dependsOn: []
 - **Runbook section "Budget alert":** required roles, the command to run, how to verify in the Console, and how to change the amount.
 
 ## Steps
-1. Write the script, mirroring the parameter and error style of `configure-services.ps1`.
-2. Add the runbook section.
-3. The user runs `pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmountUsd <amount>`.
+1. (Done 2026-10-17) Write the script, mirroring the parameter and error style of `configure-services.ps1`.
+2. (Done 2026-10-17) Add the runbook section.
+3. (Pending, user) The user runs `pwsh infrastructure/gcp/scripts/create-budget-alert.ps1 -MonthlyAmountUsd <amount>`.
 
 ## Validation
 - `gcloud billing budgets list --billing-account=<id>` shows the budget with three thresholds.
