@@ -37,6 +37,8 @@ _ALLOWED_CONTEXT_KEYS = frozenset(
         "model_provider",
         "generation_model",
         "signal",
+        "chunks_reused",
+        "chunk_count",
     }
 )
 

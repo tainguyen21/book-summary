@@ -23,5 +23,7 @@ REVOKE INSERT ON
 
 REVOKE UPDATE, DELETE ON data.model_usage FROM data_rw;
 
+REVOKE UPDATE, DELETE ON data.generation_evidence_checkpoints FROM data_rw;
+
 REVOKE UPDATE, DELETE ON data.generated_summaries FROM data_rw;
 GRANT UPDATE (superseded_by_id) ON data.generated_summaries TO data_rw;

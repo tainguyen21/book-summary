@@ -134,7 +134,8 @@ Logging on GKE parses natively. Every line has `timestamp`, `severity`,
 context: `command_id`, `book_id`, `run_id`, `command_type`,
 `processing_version`, `outcome`, `error_class`, `error_code`, and
 `duration_ms`. Startup also records `batch_limit`, `poll_interval_seconds`,
-`model_provider`, and `generation_model`; shutdown records the `signal`.
+`model_provider`, and `generation_model`; shutdown records the `signal`;
+resumed generation records `chunks_reused` and `chunk_count`.
 
 | Event | Severity | Meaning |
 | --- | --- | --- |
@@ -148,6 +149,8 @@ context: `command_id`, `book_id`, `run_id`, `command_type`,
 | `pricing_missing` | WARNING | A model has no configured price; usage recorded at cost 0 (once per model) |
 | `usage_metadata_missing` | WARNING | A provider response had no token counts; recorded as 0 (once per model) |
 | `usage_record_failed` | ERROR | A usage row could not be written; generation continues |
+| `evidence_resumed` | INFO | A retried summary run reused saved evidence for finished chunks |
+| `evidence_checkpoint_failed` | WARNING | An evidence checkpoint could not be loaded or saved; generation continues without it |
 
 Set the level with `BOOKWISE_LOG_LEVEL` (default `INFO`; unknown values fall
 back to `INFO`). Use `DEBUG` to see idle polls. Book titles, filenames, book

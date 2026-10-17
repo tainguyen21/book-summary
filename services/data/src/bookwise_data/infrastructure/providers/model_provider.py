@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -44,6 +45,11 @@ _EVIDENCE_INSTRUCTIONS = (
     "the narrowest supplied source_span_id values that support each item, "
     "and leave source_excerpt empty."
 )
+# Saved evidence checkpoints are reused only while the instructions match.
+EVIDENCE_PROMPT_VERSION = hashlib.sha256(
+    _EVIDENCE_INSTRUCTIONS.encode("utf-8")
+).hexdigest()[:16]
+
 _SUMMARY_INSTRUCTIONS = (
     "You summarize only the accepted evidence records below and add no "
     "uncited facts. Cover the substance of every evidence record, keeping key "
@@ -159,6 +165,7 @@ class OpenAICompatibleProvider:
         self._api_key = config.api_key
         self._timeout_seconds = config.timeout_seconds
         self._max_output_tokens = config.max_output_tokens
+        self.evidence_prompt_version = EVIDENCE_PROMPT_VERSION
         # Set after construction (per command) to record each call's usage.
         self.usage_sink: UsageSink | None = None
 
@@ -367,6 +374,7 @@ class VertexAIProvider:
         self.embedding_model = config.embedding_model
         self.embedding_dimensions = config.embedding_dimensions
         self._max_output_tokens = config.max_output_tokens
+        self.evidence_prompt_version = EVIDENCE_PROMPT_VERSION
         # Set after construction (per command) to record each call's usage.
         self.usage_sink: UsageSink | None = None
         try:

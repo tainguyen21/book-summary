@@ -10,6 +10,10 @@ from uuid import UUID
 from sqlalchemy.engine import Connection
 
 from bookwise_data.application.build_embeddings import BuildEmbeddings
+from bookwise_data.application.evidence_checkpoints import (
+    EvidenceCheckpoints,
+    EvidenceCheckpointStore,
+)
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
     AcceptedGeneration,
@@ -117,11 +121,13 @@ class GenerateSummary:
         provider_factory: Callable[[], GenerationProvider],
         maximum_chunk_chars_factory: Callable[[], int],
         usage_sink_factory: Callable[[ClaimedCommand], UsageSink] | None = None,
+        checkpoint_store: EvidenceCheckpointStore | None = None,
     ) -> None:
         self._repository = repository
         self._provider_factory = provider_factory
         self._maximum_chunk_chars_factory = maximum_chunk_chars_factory
         self._usage_sink_factory = usage_sink_factory
+        self._checkpoint_store = checkpoint_store
 
     def handle(
         self,
@@ -291,13 +297,20 @@ class GenerateSummary:
                 provider,
             )
 
+        checkpoints = self._checkpoints(command, source.document.id, provider)
         evidence = []
         for chunk in chunks:
             self._require_lease(heartbeat)
+            # A chunk finished by an earlier run of this command is not re-paid.
+            saved_output = checkpoints.get(chunk.input_hash) if checkpoints else None
             try:
-                evidence_output = provider.generate_evidence(
-                    source_chunk_payload(chunk),
-                    EvidenceExtractionOutput,
+                evidence_output = (
+                    saved_output
+                    if saved_output is not None
+                    else provider.generate_evidence(
+                        source_chunk_payload(chunk),
+                        EvidenceExtractionOutput,
+                    )
                 )
             except Exception as error:
                 raise self._failure(
@@ -347,7 +360,11 @@ class GenerateSummary:
                     provider,
                     output_hash=canonical_hash(evidence_output.model_dump(mode="json")),
                 ) from error
+            if checkpoints and saved_output is None:
+                checkpoints.save(chunk.input_hash, evidence_output)
 
+        if checkpoints:
+            checkpoints.log_resumed(len(chunks))
         root_node = min(source.nodes, key=lambda node: node.sequence_number)
         summary_hash = summary_input_hash(source.document.id, root_node.id, evidence)
         self._require_lease(heartbeat)
@@ -498,6 +515,23 @@ class GenerateSummary:
             provider.provider_name,
             provider.generation_model,
             validation_status,
+        )
+
+    def _checkpoints(
+        self,
+        command: ClaimedCommand,
+        source_document_id: UUID,
+        provider: GenerationProvider,
+    ) -> EvidenceCheckpoints | None:
+        if self._checkpoint_store is None:
+            return None
+        return EvidenceCheckpoints(
+            self._checkpoint_store,
+            command,
+            source_document_id,
+            provider.provider_name,
+            provider.generation_model,
+            getattr(provider, "evidence_prompt_version", "unversioned"),
         )
 
     @staticmethod

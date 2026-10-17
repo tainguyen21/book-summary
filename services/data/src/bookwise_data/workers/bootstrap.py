@@ -22,6 +22,9 @@ from bookwise_data.infrastructure.database.command_repository import (
 from bookwise_data.infrastructure.database.event_repository import (
     SqlAlchemyEventRepository,
 )
+from bookwise_data.infrastructure.database.evidence_checkpoint_repository import (
+    SqlAlchemyEvidenceCheckpointRepository,
+)
 from bookwise_data.infrastructure.database.generated_summary_repository import (
     SqlAlchemyGeneratedSummaryRepository,
 )
@@ -77,6 +80,7 @@ def run_worker() -> None:
                 DEFAULT_GENERATION_CHUNK_CHARS
             ),
             record_usage.sink_for,
+            SqlAlchemyEvidenceCheckpointRepository(engine),
         )
         worker = CommandWorker(
             ClaimCommand(commands, EmitEvent(SqlAlchemyEventRepository())),
