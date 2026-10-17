@@ -5,11 +5,14 @@ from __future__ import annotations
 import logging
 import os
 import signal
+from decimal import Decimal, InvalidOperation
 from threading import Event
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import create_engine
 
 from bookwise_data.application.claim_command import ClaimCommand
+from bookwise_data.application.daily_budget import DailyBudget
 from bookwise_data.application.emit_event import EmitEvent
 from bookwise_data.application.generate_summary import GenerateSummary
 from bookwise_data.application.ingest_book import IngestBook
@@ -68,9 +71,13 @@ def run_worker() -> None:
     signal.signal(signal.SIGINT, request_stop)
     try:
         commands = SqlAlchemyCommandRepository(engine)
-        record_usage = RecordModelUsage(
-            SqlAlchemyUsageRepository(engine),
-            _model_pricing_from_environment(),
+        usage = SqlAlchemyUsageRepository(engine)
+        record_usage = RecordModelUsage(usage, _model_pricing_from_environment())
+        budget_timezone = os.environ.get("BOOKWISE_BUDGET_TIMEZONE", "").strip()
+        daily_budget = DailyBudget(
+            usage.spent_since,
+            _daily_budget_from_environment(),
+            _timezone(budget_timezone or "Asia/Saigon"),
         )
         ingest_book = IngestBook(SqlAlchemySourceRepository(engine), _storage_from_environment())
         generate_summary = GenerateSummary(
@@ -81,6 +88,7 @@ def run_worker() -> None:
             ),
             record_usage.sink_for,
             SqlAlchemyEvidenceCheckpointRepository(engine),
+            daily_budget,
         )
         worker = CommandWorker(
             ClaimCommand(commands, EmitEvent(SqlAlchemyEventRepository())),
@@ -89,6 +97,7 @@ def run_worker() -> None:
                 if command.command_type == "regenerate_summary"
                 else ingest_book.handle(command, heartbeat)
             ),
+            daily_budget,
         )
         batch_limit = _positive_integer_environment("PROCESSING_BATCH_LIMIT", 1)
         poll_interval = _positive_float_environment(
@@ -106,6 +115,8 @@ def run_worker() -> None:
             poll_interval_seconds=poll_interval,
             model_provider=model_provider or None,
             generation_model=generation_model or None,
+            cap_usd=str(daily_budget.cap_usd),
+            budget_timezone=budget_timezone or "Asia/Saigon",
         )
         while not stop_requested.is_set():
             processed = worker.run_once(batch_limit)
@@ -127,6 +138,28 @@ def _required_environment(name: str) -> str:
     if not value:
         raise RuntimeError(f"{name} must be configured.")
     return value
+
+
+def _daily_budget_from_environment() -> Decimal:
+    """USD cap per local day; 0 disables the cap. Defaults to 2."""
+
+    raw_value = os.environ.get("BOOKWISE_DAILY_BUDGET_USD", "").strip() or "2"
+    try:
+        value = Decimal(raw_value)
+    except InvalidOperation as error:
+        raise RuntimeError("BOOKWISE_DAILY_BUDGET_USD must be a number.") from error
+    if not value.is_finite() or value < 0:
+        raise RuntimeError("BOOKWISE_DAILY_BUDGET_USD must be zero or positive.")
+    return value
+
+
+def _timezone(name: str) -> ZoneInfo:
+    try:
+        return ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError) as error:
+        raise RuntimeError(
+            "BOOKWISE_BUDGET_TIMEZONE must be an IANA time zone name."
+        ) from error
 
 
 def _model_pricing_from_environment() -> dict[str, ModelPrice]:

@@ -10,6 +10,7 @@ from uuid import UUID
 from sqlalchemy.engine import Connection
 
 from bookwise_data.application.build_embeddings import BuildEmbeddings
+from bookwise_data.application.daily_budget import DailyBudget, DailyBudgetExceeded
 from bookwise_data.application.evidence_checkpoints import (
     EvidenceCheckpoints,
     EvidenceCheckpointStore,
@@ -122,12 +123,14 @@ class GenerateSummary:
         maximum_chunk_chars_factory: Callable[[], int],
         usage_sink_factory: Callable[[ClaimedCommand], UsageSink] | None = None,
         checkpoint_store: EvidenceCheckpointStore | None = None,
+        daily_budget: DailyBudget | None = None,
     ) -> None:
         self._repository = repository
         self._provider_factory = provider_factory
         self._maximum_chunk_chars_factory = maximum_chunk_chars_factory
         self._usage_sink_factory = usage_sink_factory
         self._checkpoint_store = checkpoint_store
+        self._daily_budget = daily_budget
 
     def handle(
         self,
@@ -303,6 +306,8 @@ class GenerateSummary:
             self._require_lease(heartbeat)
             # A chunk finished by an earlier run of this command is not re-paid.
             saved_output = checkpoints.get(chunk.input_hash) if checkpoints else None
+            if saved_output is None:
+                self._require_budget()
             try:
                 evidence_output = (
                     saved_output
@@ -368,6 +373,7 @@ class GenerateSummary:
         root_node = min(source.nodes, key=lambda node: node.sequence_number)
         summary_hash = summary_input_hash(source.document.id, root_node.id, evidence)
         self._require_lease(heartbeat)
+        self._require_budget()
         try:
             summary_output = provider.generate_summary(
                 [
@@ -433,6 +439,8 @@ class GenerateSummary:
                 for (target_type, target_id), body in target_texts.items()
             ]
         )
+        # No budget check here: embeddings cost almost nothing, and pausing now
+        # would throw away the already-paid summary call.
         self._require_lease(heartbeat)
         try:
             embeddings = BuildEmbeddings(provider).execute(
@@ -464,7 +472,8 @@ class GenerateSummary:
         """Append an immutable validation outcome before the worker transitions."""
 
         error = failure.cause
-        if isinstance(error, ProviderRequestError):
+        # Transient provider errors and budget pauses are not output outcomes.
+        if isinstance(error, ProviderRequestError | DailyBudgetExceeded):
             return
         reason_code = getattr(error, "code", None)
         if not isinstance(reason_code, str) or not reason_code:
@@ -533,6 +542,12 @@ class GenerateSummary:
             provider.generation_model,
             getattr(provider, "evidence_prompt_version", "unversioned"),
         )
+
+    def _require_budget(self) -> None:
+        """Stop before a paid provider call once today's budget is spent."""
+
+        if self._daily_budget is not None:
+            self._daily_budget.require_available()
 
     @staticmethod
     def _require_lease(heartbeat: Callable[[], bool]) -> None:

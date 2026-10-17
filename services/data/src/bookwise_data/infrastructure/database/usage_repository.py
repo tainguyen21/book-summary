@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -40,6 +41,9 @@ _INSERT_USAGE = text(
 )
 
 
+_SPENT_SINCE = text("SELECT data.model_usage_spent_since(:since)")
+
+
 class SqlAlchemyUsageRepository:
     """Insert usage rows, each in its own short owner-scoped transaction.
 
@@ -49,6 +53,14 @@ class SqlAlchemyUsageRepository:
 
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
+
+    def spent_since(self, since: datetime) -> Decimal:
+        """Global estimated spend since ``since``, without reading any rows."""
+
+        with self._engine.begin() as transaction:
+            return Decimal(
+                transaction.execute(_SPENT_SINCE, {"since": since}).scalar_one()
+            )
 
     def record(
         self,

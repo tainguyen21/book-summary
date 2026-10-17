@@ -107,6 +107,18 @@ without a price is recorded at cost 0 with one `pricing_missing` warning. The
 values above are list rates to confirm against the Vertex AI pricing page;
 billing remains the source of truth.
 
+### Daily budget
+
+The worker stops spending once today's estimated model cost reaches
+`BOOKWISE_DAILY_BUDGET_USD` (default `2`; `0` disables the cap). "Today" starts
+at midnight in `BOOKWISE_BUDGET_TIMEZONE` (default `Asia/Saigon`) and counts
+spend across all users from `data.model_usage`. While the budget is spent,
+the worker still ingests uploads but leaves summary commands queued. A run
+that reaches the cap mid-book stops before its next model call, becomes
+`retryable_failed` with a `budget_paused` processing event, and resumes after
+midnight from its saved evidence chunks. A full-length book can therefore take
+more than one day. Billing remains the source of truth for actual spend.
+
 The Python worker reads the process environment rather than loading `.env`
 itself. Import `.env` into the current PowerShell process before starting the
 worker:
@@ -135,7 +147,9 @@ context: `command_id`, `book_id`, `run_id`, `command_type`,
 `processing_version`, `outcome`, `error_class`, `error_code`, and
 `duration_ms`. Startup also records `batch_limit`, `poll_interval_seconds`,
 `model_provider`, and `generation_model`; shutdown records the `signal`;
-resumed generation records `chunks_reused` and `chunk_count`.
+resumed generation records `chunks_reused` and `chunk_count`; budget events
+record `spent_usd` and `cap_usd`, and startup also records the cap and
+`budget_timezone`.
 
 | Event | Severity | Meaning |
 | --- | --- | --- |
@@ -151,6 +165,8 @@ resumed generation records `chunks_reused` and `chunk_count`.
 | `usage_record_failed` | ERROR | A usage row could not be written; generation continues |
 | `evidence_resumed` | INFO | A retried summary run reused saved evidence for finished chunks |
 | `evidence_checkpoint_failed` | WARNING | An evidence checkpoint could not be loaded or saved; generation continues without it |
+| `budget_paused` | WARNING | A summary run hit the daily cap and was paused; includes `spent_usd` and `cap_usd` |
+| `budget_hold_started` / `budget_hold_ended` | WARNING / INFO | Summary claiming stopped or resumed because of the daily cap |
 
 Set the level with `BOOKWISE_LOG_LEVEL` (default `INFO`; unknown values fall
 back to `INFO`). Use `DEBUG` to see idle polls. Book titles, filenames, book

@@ -33,6 +33,7 @@ class ProcessingEventType(StrEnum):
     STAGE_STARTED = "stage_started"
     STAGE_COMPLETED = "stage_completed"
     COMMAND_FAILED = "command_failed"
+    BUDGET_PAUSED = "budget_paused"
 
 
 _ALLOWED_TRANSITIONS: dict[

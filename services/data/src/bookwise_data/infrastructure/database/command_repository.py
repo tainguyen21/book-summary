@@ -58,6 +58,11 @@ _CLAIM_CANDIDATES = text(
         LIMIT 1
     ) AS ingest ON TRUE
     WHERE command.status = 'queued'
+        -- Over the daily budget only ingestion (no model calls) is claimed.
+        AND (
+            CAST(:allow_generation AS boolean)
+            OR command.command_type <> 'regenerate_summary'
+        )
         AND (
             CAST(:after_id AS uuid) IS NULL
             OR (command.created_at, command.id) > (
@@ -239,6 +244,7 @@ class SqlAlchemyCommandRepository:
         self,
         transaction: Connection,
         limit: int,
+        allow_generation: bool = True,
     ) -> list[ClaimedCommand]:
         """Lock command identities, then create or reopen their data runs."""
 
@@ -252,6 +258,7 @@ class SqlAlchemyCommandRepository:
                     _CLAIM_CANDIDATES,
                     {
                         "limit": limit - len(commands),
+                        "allow_generation": allow_generation,
                         "lease_seconds": self._claim_lease_seconds,
                         "after_id": after_id,
                         "after_created_at": after_created_at,

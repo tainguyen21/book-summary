@@ -6,6 +6,7 @@ from contextlib import AbstractContextManager
 from typing import Protocol
 from uuid import UUID
 
+from bookwise_data.application.daily_budget import DailyBudgetExceeded
 from bookwise_data.application.emit_event import EmitEvent
 from bookwise_data.domain.commands import (
     ClaimedCommand,
@@ -26,6 +27,7 @@ class ProcessingCommandRepository(Protocol):
         self,
         transaction: object,
         limit: int,
+        allow_generation: bool = True,
     ) -> list[ClaimedCommand]:
         """Claim available commands and create/reopen their runs."""
 
@@ -76,14 +78,23 @@ class ClaimCommand:
         self._repository = repository
         self._emit_event = emit_event
 
-    def execute(self, limit: int) -> list[ClaimedCommand]:
-        """Claim at most ``limit`` commands and record their initial events."""
+    def execute(
+        self,
+        limit: int,
+        allow_generation: bool = True,
+    ) -> list[ClaimedCommand]:
+        """Claim at most ``limit`` commands and record their initial events.
+
+        With ``allow_generation`` false, summary commands stay queued.
+        """
 
         if limit <= 0:
             raise ValueError("limit must be greater than zero")
 
         with self._repository.transaction() as transaction:
-            commands = self._repository.claim_available(transaction, limit)
+            commands = self._repository.claim_available(
+                transaction, limit, allow_generation
+            )
             for command in commands:
                 self._emit_event.execute(
                     transaction,
@@ -149,15 +160,25 @@ class ClaimCommand:
             if not self._repository.fail_retryably(transaction, command):
                 return None
 
+            # A budget pause is retryable like any failure, but gets its own
+            # durable event so the library can show "paused" instead of "retrying".
+            paused = isinstance(error, DailyBudgetExceeded)
+            event_type = (
+                ProcessingEventType.BUDGET_PAUSED
+                if paused
+                else ProcessingEventType.COMMAND_FAILED
+            )
             self._emit_event.execute(
                 transaction,
                 self._event_for(
                     command,
-                    ProcessingEventType.COMMAND_FAILED,
+                    event_type,
                     {
                         "run_id": str(command.run_id),
                         "error_code": error_code(error),
-                        "message": "Retryable processing failure.",
+                        "message": "Paused: daily budget reached."
+                        if paused
+                        else "Retryable processing failure.",
                     },
                 ),
             )
@@ -165,7 +186,7 @@ class ClaimCommand:
                 transaction,
                 command,
                 ProcessingRunStatus.RETRYABLE_FAILED,
-                ProcessingEventType.COMMAND_FAILED,
+                event_type,
             )
 
     def fail_permanently(

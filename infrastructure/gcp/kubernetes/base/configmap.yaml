@@ -19,6 +19,9 @@ data:
   # Vertex rates; confirm against the official pricing page.
   BOOKWISE_MODEL_PRICING_JSON: '{"gemini-3.8-flash":{"input_per_mtok":1.50,"output_per_mtok":7.50},"gemini-embedding-001":{"input_per_mtok":0.15,"output_per_mtok":0}}'
   BOOKWISE_GENERATION_CHUNK_CHARS: "12000"
+  # Estimated USD per local day before summary generation pauses; "0" disables.
+  BOOKWISE_DAILY_BUDGET_USD: "2"
+  BOOKWISE_BUDGET_TIMEZONE: Asia/Saigon
   PROCESSING_BATCH_LIMIT: "1"
   PROCESSING_POLL_INTERVAL_SECONDS: "2"
   CLOUD_SQL_INSTANCE: bookwise-509408:asia-southeast1:bookwise-postgres

@@ -39,6 +39,9 @@ _ALLOWED_CONTEXT_KEYS = frozenset(
         "signal",
         "chunks_reused",
         "chunk_count",
+        "spent_usd",
+        "cap_usd",
+        "budget_timezone",
     }
 )
 
