@@ -1,6 +1,6 @@
 # Project Timeline
 
-Last updated: October 14, 2026
+Last updated: October 17, 2026
 
 ## Completed
 
@@ -19,31 +19,48 @@ Last updated: October 14, 2026
 | October 10-11, 2026 | GCP deployment and operational fixes | Deployed web/API/worker to GKE with Cloud SQL, private GCS, and Vertex AI configuration. Corrected TLS routing, Auth0 origin/audience alignment, and browser-upload CORS. Claims use nonblocking transaction-scoped advisory locks and leases; CI/CD reuses verification, caches images, deploys by digest, and gates application rollout on migrations. |
 | October 11, 2026 | Upload and processing guidance | Deployed incomplete-upload guidance, terminal polling behavior, run-state labels, and sanitized browser upload-failure diagnostics in `e8bbcba`. An abandoned upload was distinguished from a stalled worker by read-only storage/database inspection. |
 | October 14, 2026 | New-device and agent handoff | Added portable setup and agent handoff guides, linked repository instructions, and preserved a reviewed generated code map while excluding analysis caches. Existing static/build/test checks pass; new-device authentication and a real-provider browser flow still need verification on the target device. |
+| October 16-17, 2026 | Web redesign | Shipped a public landing page at `/`, a `/library` dashboard with stats and a "Processing now" panel, a split upload dialog, a cited summary reader, a shared loading system, and robots/sitemap/Open Graph metadata. Deployed in `95067c6`. |
+| October 17, 2026 | Worker logs and model migration | The worker writes one JSON object per line with allow-listed ids only (`BOOKWISE_LOG_LEVEL`). The summary model moved from `gemini-2.5-flash` to `gemini-3.8-flash` ahead of the older model's retirement. |
+| October 17, 2026 | Usage ledger and evidence checkpoints | Migration `008` records every model call's tokens and estimated cost in `data.model_usage`, priced from `BOOKWISE_MODEL_PRICING_JSON`. Migration `009` saves each validated evidence chunk, so a failed or paused run resumes instead of restarting. |
+| October 17, 2026 | Summary quality | An original evaluation book and rubric measured coverage at 5/12 key facts. Coverage prompts, paragraph-level TXT citations, low Gemini thinking, and a 16,384-token output ceiling raised it to 11.5/12 with no hallucination traps triggered. Cost per book rose about 4x. See `plans/reports/eval-261017-1047-slow-orchard/report.md`. |
+| October 17, 2026 | Spending guardrails | The worker pauses summary generation once estimated daily spend reaches `BOOKWISE_DAILY_BUDGET_USD` (2 USD, Asia/Saigon day). Paused books show "Paused · daily budget" and resume after midnight; the library shows today's spend (`GET /v1/usage/today`, migration `010`). A GCP billing budget of 260,000 VND per month emails at 50/90/100%. |
+| October 17, 2026 | Structured-format chunking | EPUB chapters, PDF pages, and DOCX sections are split into paragraph spans and packed into shared chunks. Long EPUB chapters no longer fail, and short PDFs/DOCX use one or two model calls instead of one per page or paragraph. A 10-chapter EPUB scored 11.5/12 end to end. Deployed in `7381c63`. |
 
 ## In Progress
 
-The current delivery focus is private retrieval and operational validation:
+Everything above is deployed to production. Still unconfirmed:
 
-1. Add private search across normalized source material and accepted generated
-   artifacts.
-2. Add cited question answering while preserving owner and evidence boundaries.
-3. Run the complete browser workflow with a configured model provider.
-4. Harden production credentials, monitoring, failure recovery, and worker
-   operations.
+1. No real upload has gone through the production worker since the October 17
+   changes. The model-backed pipeline was verified end to end locally against
+   live Vertex AI, not through the production browser flow.
+2. The usage ledger, daily budget pause, and cost card have not yet been
+   observed with production traffic.
+3. Cloud SQL has no backups: it is a free-trial instance, and automated
+   backups and point-in-time recovery are off by decision.
 
-Production components were Running and ready on October 14, but that does not
-confirm model-backed summary publication or every dependency. See
-[agent handoff](agent-handoff.md) for verification limits and
+See [agent handoff](agent-handoff.md) for verification limits and
 [new-device setup](new-device-setup.md) for the migration checklist.
 
 ## Next
 
-1. Add private search and cited question answering.
-2. Decide whether summary editing belongs in the next publication iteration.
-3. Continue operational hardening, including credential rotation, monitoring,
-   and failure recovery. Production storage and SPA Auth0 configuration now exist.
-4. Consider later upload capabilities such as multipart/resumable uploads,
-   OCR, malware scanning, and files larger than 100 MiB.
+1. Production smoke test: upload one small TXT, EPUB, PDF, and DOCX, then
+   confirm summaries, citations, ledger rows, and worker logs.
+2. Book management: rename, delete (including stored files), retry failed, and
+   clear incomplete uploads.
+3. Citation passage viewer: open a cited paragraph with its surrounding text.
+4. Hierarchical summaries for long books (per section, then the whole book),
+   because one summary call over all evidence will not scale to full-length books.
+5. Private hybrid search, then cited question answering ("Ask a book") with an
+   answer cache under the daily budget.
+6. Operational hardening: real readiness checks, uptime and stuck-run alerts,
+   and credential rotation.
+7. Decide whether summary editing belongs in the next publication iteration.
+8. Later upload capabilities: multipart/resumable uploads, OCR, malware
+   scanning, and files larger than 100 MiB.
+
+Roadmap and rationale:
+[feature roadmap](../plans/reports/brainstorm-261016-2157-feature-roadmap.md) and
+[safety-rails plan](../plans/261016-2325-safety-rails/plan.md).
 
 ## Reference Plans
 
