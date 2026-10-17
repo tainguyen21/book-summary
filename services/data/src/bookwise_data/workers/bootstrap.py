@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import signal
 from threading import Event
@@ -38,15 +39,25 @@ from bookwise_data.infrastructure.storage.object_storage import (
     S3ObjectStorageConfig,
 )
 from bookwise_data.workers.command_worker import CommandWorker
+from bookwise_data.workers.logging_setup import configure_logging, log_event
 
 
 def run_worker() -> None:
     """Compose and run the long-lived private processing worker."""
 
+    logger = configure_logging()
     engine = create_engine(_required_environment("DATA_DATABASE_URL"))
     stop_requested = Event()
-    signal.signal(signal.SIGTERM, lambda *_: stop_requested.set())
-    signal.signal(signal.SIGINT, lambda *_: stop_requested.set())
+    received_signals: list[str] = []
+
+    # Signal handlers only record the request; logging happens on the main
+    # loop, because logging from a signal handler can deadlock on its lock.
+    def request_stop(signal_number: int, _frame: object) -> None:
+        received_signals.append(signal.Signals(signal_number).name)
+        stop_requested.set()
+
+    signal.signal(signal.SIGTERM, request_stop)
+    signal.signal(signal.SIGINT, request_stop)
     try:
         commands = SqlAlchemyCommandRepository(engine)
         ingest_book = IngestBook(SqlAlchemySourceRepository(engine), _storage_from_environment())
@@ -70,10 +81,29 @@ def run_worker() -> None:
             "PROCESSING_POLL_INTERVAL_SECONDS",
             2.0,
         )
+        model_provider = os.environ.get("BOOKWISE_MODEL_PROVIDER", "").strip()
+        generation_model = os.environ.get("BOOKWISE_SUMMARY_MODEL", "").strip()
+        log_event(
+            logger,
+            logging.INFO,
+            "worker_started",
+            "Processing worker started.",
+            batch_limit=batch_limit,
+            poll_interval_seconds=poll_interval,
+            model_provider=model_provider or None,
+            generation_model=generation_model or None,
+        )
         while not stop_requested.is_set():
             processed = worker.run_once(batch_limit)
             if processed == 0:
                 stop_requested.wait(poll_interval)
+        log_event(
+            logger,
+            logging.INFO,
+            "worker_stopping",
+            "Processing worker stopping.",
+            signal=received_signals[0] if received_signals else None,
+        )
     finally:
         engine.dispose()
 

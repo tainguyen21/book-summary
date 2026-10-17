@@ -156,7 +156,7 @@ class ClaimCommand:
                     ProcessingEventType.COMMAND_FAILED,
                     {
                         "run_id": str(command.run_id),
-                        "error_code": _error_code(error),
+                        "error_code": error_code(error),
                         "message": "Retryable processing failure.",
                     },
                 ),
@@ -186,7 +186,7 @@ class ClaimCommand:
                     ProcessingEventType.COMMAND_FAILED,
                     {
                         "run_id": str(command.run_id),
-                        "error_code": _error_code(error),
+                        "error_code": error_code(error),
                         "message": _error_message(
                             error, "Permanent processing failure."
                         ),
@@ -242,7 +242,7 @@ class ClaimCommand:
         )
 
 
-def _error_code(error: Exception) -> str:
+def error_code(error: Exception) -> str:
     """Convert an exception type to a bounded, non-sensitive event code."""
 
     code = getattr(error, "code", None)
