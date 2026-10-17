@@ -224,6 +224,12 @@
   line-height: 1.65;
 }
 
+.passage-body p {
+  /* Older PDF spans keep their line breaks and can hold long unbroken runs. */
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
 .passage-context {
   color: var(--color-text-muted);
 }

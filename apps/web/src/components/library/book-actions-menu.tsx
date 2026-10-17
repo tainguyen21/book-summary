@@ -74,7 +74,8 @@ export function BookActionsMenu({
 
   function closeDialog() {
     setDialog(undefined);
-    triggerRef.current?.focus();
+    // Refocus after the modal is removed; removing it resets focus to <body>.
+    requestAnimationFrame(() => triggerRef.current?.focus());
   }
 
   return (

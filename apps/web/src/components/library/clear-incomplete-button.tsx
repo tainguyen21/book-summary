@@ -2,7 +2,7 @@
 
 import { useAuth0 } from "@auth0/auth0-react";
 import { Eraser } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { clearIncompleteUploads } from "../../lib/book-management";
 import { ConfirmDialog } from "./book-management-dialogs";
@@ -19,6 +19,7 @@ export function ClearIncompleteButton({
   const { getAccessTokenSilently } = useAuth0();
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState("");
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   if (count === 0) {
     return (
@@ -31,6 +32,7 @@ export function ClearIncompleteButton({
   return (
     <>
       <button
+        ref={buttonRef}
         className="button button-line button-sm lib-clear-incomplete"
         type="button"
         onClick={() => setConfirming(true)}
@@ -51,7 +53,11 @@ export function ClearIncompleteButton({
             setNotice(`Cleared ${deleted} incomplete upload${deleted === 1 ? "" : "s"}.`);
             onCleared();
           }}
-          onClose={() => setConfirming(false)}
+          onClose={() => {
+            setConfirming(false);
+            // After the modal is removed; the button is gone once everything is cleared.
+            requestAnimationFrame(() => buttonRef.current?.focus());
+          }}
         />
       )}
     </>

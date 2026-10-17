@@ -97,7 +97,9 @@ export function BookSummaryReader({
           label={open.label}
           onClose={() => {
             setOpen(undefined);
-            triggerRef.current?.focus();
+            // Refocus after the modal is removed; removing it resets focus to <body>.
+            const trigger = triggerRef.current;
+            requestAnimationFrame(() => trigger?.focus());
           }}
         />
       )}
