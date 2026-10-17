@@ -20,7 +20,7 @@ export interface OidcTokenVerifierConfig {
 }
 
 export class OidcTokenVerifier implements TokenVerifier {
-  private jwks: JWTVerifyGetKey | undefined;
+  private jwks: Promise<JWTVerifyGetKey> | undefined;
 
   constructor(private readonly config: OidcTokenVerifierConfig) {}
 
@@ -53,11 +53,21 @@ export class OidcTokenVerifier implements TokenVerifier {
     }
   }
 
-  private async getJwks(): Promise<JWTVerifyGetKey> {
-    if (this.jwks) {
-      return this.jwks;
-    }
+  /**
+   * Concurrent first requests share one discovery lookup and one key set, so
+   * a cold start fetches the keys once. A failed lookup is not cached, which
+   * lets the next request try again.
+   */
+  private getJwks(): Promise<JWTVerifyGetKey> {
+    this.jwks ??= this.discoverJwks().catch((error: unknown) => {
+      this.jwks = undefined;
+      throw error;
+    });
 
+    return this.jwks;
+  }
+
+  private async discoverJwks(): Promise<JWTVerifyGetKey> {
     const discoveryUrl = new URL(
       ".well-known/openid-configuration",
       `${this.config.issuer.replace(/\/$/, "")}/`,
@@ -77,9 +87,7 @@ export class OidcTokenVerifier implements TokenVerifier {
       throw new InvalidTokenError();
     }
 
-    this.jwks = createRemoteJWKSet(new URL(document.jwks_uri));
-
-    return this.jwks;
+    return createRemoteJWKSet(new URL(document.jwks_uri));
   }
 
   private requiredClaim(value: unknown): string {

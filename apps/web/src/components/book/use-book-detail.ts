@@ -24,6 +24,8 @@ export type DetailState =
 /**
  * Loads a book's processing state and, once complete, its accepted summary.
  * Polls every 5s only while processing; incomplete uploads stop polling.
+ * A failed first request is retried once before the error is shown, so a
+ * momentary sign-in rejection on page load does not need a manual retry.
  */
 export function useBookDetail(bookId: string) {
   const { getAccessTokenSilently } = useAuth0();
@@ -83,6 +85,8 @@ export function useBookDetail(bookId: string) {
     let uploadIncomplete = false;
     let inFlight = false;
     let interval: number | undefined;
+    let firstLoadRetry: number | undefined;
+    let shown = false;
 
     const poll = () => {
       if (document.hidden || uploadIncomplete || inFlight) {
@@ -96,6 +100,12 @@ export function useBookDetail(bookId: string) {
           return;
         }
 
+        if (nextState.kind === "error" && !shown && firstLoadRetry === undefined) {
+          firstLoadRetry = window.setTimeout(poll, 1000);
+          return;
+        }
+
+        shown = true;
         setState(nextState);
         uploadIncomplete = nextState.kind === "upload-incomplete";
         if (nextState.kind === "processing" && interval === undefined) {
@@ -119,6 +129,7 @@ export function useBookDetail(bookId: string) {
 
     return () => {
       active = false;
+      window.clearTimeout(firstLoadRetry);
       if (interval !== undefined) {
         window.clearInterval(interval);
       }
