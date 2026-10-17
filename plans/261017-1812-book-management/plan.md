@@ -1,7 +1,7 @@
 ---
 title: "Book management: rename, delete, retry failed, clear incomplete uploads"
 description: "Let owners fix and clean up their library: rename a book, delete it with its stored files, retry a failed summary, and clear unfinished uploads."
-status: planned
+status: completed
 priority: P2
 effort: 2.5d
 branch: master
@@ -138,3 +138,32 @@ created: 2026-10-17
 1. Should delete be allowed while a book is summarizing? The plan blocks it with 409.
 2. Should "clear" also remove failed books, or only incomplete uploads? The plan covers only incomplete uploads.
 3. Is a confirmation enough for delete, or do you want a short undo window? An undo window is out of scope here.
+
+## Results (2026-10-17)
+
+Built with the defaults the user approved: delete is blocked while
+summarizing, clear covers incomplete uploads only, and deletes are confirmed
+with no undo.
+
+- **Retry, end to end** (local Postgres, MinIO, live Vertex):
+  1. A TXT with invalid UTF-8 failed ingest (`invalid_text_encoding`), and its
+     summary failed permanently (`missing_normalized_source`).
+  2. After the file was fixed, retry requests went in through the repository's
+     SQL as `app_rw`.
+  3. With one claim allowed, the worker reclaimed **ingest** (`retry=True`) and
+     held the summary back. It then reclaimed and completed the summary.
+  4. The book ends with exactly 1 source document, and the retry requests were consumed.
+- **Use cases** (real `pg` pool and S3 storage):
+  - Rename trims the title, another owner's book gives 404, and a blank title is rejected.
+  - Retry on a completed book is `not_failed`; on an unknown book, `not_found`.
+  - Delete while running is `processing` (409).
+  - A real delete removed all rows and both storage prefixes (1 to 0 objects
+    each) and kept 3 usage rows; a repeat delete is `not_found`.
+- **Clear incomplete:** as `app_rw`, it deleted only `pending_upload` books
+  (1 removed, 9 others kept), checked in a rolled-back transaction.
+- **Checks:** API lint, build, and Prettier pass; web lint, typecheck, the 3
+  existing tests, and the build pass; Python ruff and compileall pass.
+- **Not verified:** the signed-in browser flow (needs the user's Auth0 sign-in)
+  and production. The local 76 MB test book was left untouched for the user to delete.
+
+Acceptance 1–4 verified at the use-case and database level; 5 met.
