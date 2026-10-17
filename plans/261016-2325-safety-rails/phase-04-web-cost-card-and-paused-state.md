@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: Cost card and paused state in the web app
-status: pending
+status: completed
 effort: 0.5d
 dependsOn: [phase-02, phase-03]
 ---
@@ -41,3 +41,23 @@ dependsOn: [phase-02, phase-03]
 
 ## Risks
 - Commit the web redesign first, so this phase doesn't mix with the large uncommitted UI change.
+
+## Results (2026-10-17)
+
+- **Deviation (correctness):** the card shows the shared daily budget, meaning
+  global spend since local midnight in `BOOKWISE_BUDGET_TIMEZONE`, which is
+  exactly what the worker pauses on. The per-owner UTC-day view would
+  disagree with the pause. Migration `010` grants `app_rw` execute on
+  `data.model_usage_spent_since`, which returns only a total.
+- **API:** `GET /v1/usage/today` (guarded) returns `{spentUsd, capUsd, paused, resetsAt}`.
+  The cap and time zone come from the shared ConfigMap. Its SQL was checked as
+  `app_rw` locally: $0.4839 spent, resets at 17:00 UTC (midnight Saigon).
+- **Web:**
+  - A slim budget strip under the stats shows "Today’s AI spend: $X of $Y",
+    with a progress bar and a warning tone plus "summaries resume at 00:00" when
+    paused. It is hidden when the cap is 0.
+  - A `budget_paused` latest event shows the badge "Paused · daily budget"
+    (queued category, still polled), and the detail page shows the paused copy.
+- **Checks:** API lint, build, and Prettier pass; web lint, typecheck, the 3
+  existing tests, and the build pass.
+- **Not verified:** the signed-in browser view (Auth0 sign-in is the user's).
