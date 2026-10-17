@@ -54,6 +54,8 @@ _ALLOWED_TRANSITIONS: dict[
             ProcessingRunStatus.PERMANENT_FAILED,
         }
     ),
+    # Only through an owner's retry request (see the claim query).
+    ProcessingRunStatus.PERMANENT_FAILED: frozenset({ProcessingRunStatus.RUNNING}),
 }
 
 
@@ -78,6 +80,8 @@ class ClaimedCommand:
     processing_version: str
     run_id: UUID
     lease_started_at: datetime
+    # True when an owner's retry request reopened a permanently failed run.
+    retried: bool = False
 
 
 @dataclass(frozen=True, slots=True)

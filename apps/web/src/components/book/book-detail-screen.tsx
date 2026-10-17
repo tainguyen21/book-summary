@@ -2,6 +2,7 @@
 
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { formatDate } from "../../lib/format";
@@ -10,12 +11,14 @@ import type { LibraryBook } from "../../lib/library-types";
 import { AppShell } from "../app-shell/app-shell";
 import { useUpload } from "../app-shell/upload-context";
 import { StateCallout } from "../layout/state-callout";
+import { BookActionsMenu } from "../library/book-actions-menu";
 import { BookCover } from "../library/book-cover";
 import { BookStatusBadge } from "../library/book-status-badge";
 import { useLibraryBooks } from "../library/use-library-books";
 import { Skeleton } from "../ui/loading";
 import { BookProcessingSteps } from "./book-processing-steps";
 import { BookSummaryReader, readingMinutes } from "./book-summary-reader";
+import { RetrySummaryButton } from "./retry-summary-button";
 import { useBookDetail, type DetailState } from "./use-book-detail";
 import "./reader.css";
 
@@ -38,8 +41,18 @@ function statusSourceFor(state: DetailState): BookStatusSource | undefined {
 export function BookDetailScreen({ bookId }: { bookId: string }) {
   const library = useLibraryBooks();
   const { state, reload } = useBookDetail(bookId);
+  const router = useRouter();
   const books = library.state.kind === "ready" ? library.state.books : undefined;
-  const book = books?.find((candidate) => candidate.id === bookId);
+  const listed = books?.find((candidate) => candidate.id === bookId);
+  // The detail poll knows the run state even when the library list does not.
+  const book =
+    listed && (state.kind === "processing" || state.kind === "failed")
+      ? { ...listed, runStatus: state.status.runStatus }
+      : listed;
+  const refreshAll = () => {
+    library.refresh();
+    reload();
+  };
 
   return (
     <AppShell books={books} onUploaded={library.refresh}>
@@ -50,7 +63,14 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
         </Link>
 
         <div className="reader-layout">
-          <BookAside bookId={bookId} book={book} state={state} libraryLoading={library.state.kind === "loading"} />
+          <BookAside
+            bookId={bookId}
+            book={book}
+            state={state}
+            libraryLoading={library.state.kind === "loading"}
+            onChanged={refreshAll}
+            onDeleted={() => router.push("/library")}
+          />
 
           <article className="reader-main" aria-labelledby="book-title">
             <p className="reader-eyebrow">
@@ -75,7 +95,7 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
               </p>
             )}
 
-            <DetailBody state={state} reload={reload} />
+            <DetailBody bookId={bookId} state={state} reload={reload} onRetried={refreshAll} />
           </article>
         </div>
       </div>
@@ -88,11 +108,15 @@ function BookAside({
   book,
   state,
   libraryLoading,
+  onChanged,
+  onDeleted,
 }: {
   bookId: string;
   book?: LibraryBook;
   state: DetailState;
   libraryLoading: boolean;
+  onChanged(): void;
+  onDeleted(): void;
 }) {
   const statusSource = statusSourceFor(state);
 
@@ -134,12 +158,30 @@ function BookAside({
             <dd>{readingMinutes(state.summary.summary.body)} min</dd>
           </div>
         )}
+        {book && (
+          <div>
+            <dt>Actions</dt>
+            <dd>
+              <BookActionsMenu book={book} onChanged={onChanged} onDeleted={onDeleted} />
+            </dd>
+          </div>
+        )}
       </dl>
     </aside>
   );
 }
 
-function DetailBody({ state, reload }: { state: DetailState; reload(): void }) {
+function DetailBody({
+  bookId,
+  state,
+  reload,
+  onRetried,
+}: {
+  bookId: string;
+  state: DetailState;
+  reload(): void;
+  onRetried(): void;
+}) {
   const { openUpload } = useUpload();
   const retryButton: ReactNode = (
     <button className="button button-line button-sm" type="button" onClick={reload}>
@@ -189,7 +231,10 @@ function DetailBody({ state, reload }: { state: DetailState; reload(): void }) {
           </p>
           <BookProcessingSteps status={state.status} failed />
           <div className="callout-actions">
-            <button className="button button-ink button-sm" type="button" onClick={openUpload}>
+            {state.status.runStatus === "permanent_failed" && (
+              <RetrySummaryButton bookId={bookId} onRetried={onRetried} />
+            )}
+            <button className="button button-line button-sm" type="button" onClick={openUpload}>
               Upload another file
             </button>
           </div>

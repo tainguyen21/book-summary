@@ -8,6 +8,7 @@ import { presentStatus } from "../../lib/book-status";
 import { formatDay, formatTime } from "../../lib/format";
 import type { LibraryBook } from "../../lib/library-types";
 import { useUpload } from "../app-shell/upload-context";
+import { BookActionsMenu } from "./book-actions-menu";
 import { BookCover, fileFormat } from "./book-cover";
 import { BookStatusBadge } from "./book-status-badge";
 
@@ -76,11 +77,14 @@ export function BookCollection({
   books,
   totalCount,
   onClearFilters,
+  onChanged,
 }: {
   title: string;
   books: LibraryBook[];
   totalCount: number;
   onClearFilters(): void;
+  /** Refreshes the library after a rename, retry, or delete. */
+  onChanged(): void;
 }) {
   // Rendered only on the client (after sign-in), so storage is safe to read.
   const [layout, setLayout] = useState<Layout>(readSavedLayout);
@@ -196,6 +200,7 @@ export function BookCollection({
                   <td className="lib-col-action">
                     <div className="lib-actions">
                       <BookAction book={book} />
+                      <BookActionsMenu book={book} onChanged={onChanged} />
                     </div>
                   </td>
                 </tr>
@@ -221,6 +226,7 @@ export function BookCollection({
                   <BookStatusBadge source={book} />
                 </span>
               </Link>
+              <BookActionsMenu book={book} onChanged={onChanged} />
             </li>
           ))}
         </ul>

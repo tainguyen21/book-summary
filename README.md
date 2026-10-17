@@ -66,6 +66,24 @@ Accepted immutable summaries are exposed through the owner-scoped
 `/books/[bookId]` shows processing states, the current accepted summary, and
 ordered citation locations without exposing source text.
 
+## Book management
+
+Owners manage books from the library row menu and the book page. All routes
+are owner-scoped, and another owner's book returns 404.
+
+| Route | Effect |
+| --- | --- |
+| `PATCH /v1/books/:bookId` | Renames the book (`{ title }`, trimmed, 1–500 characters) |
+| `DELETE /v1/books/:bookId` | Deletes the book and every app/data row through cascades, then its `books/` and `normalized/` storage prefixes. Returns 409 while a run is summarizing. `data.model_usage` rows are kept, so spend history and today's budget stay accurate |
+| `POST /v1/books/:bookId/retry` | Records an `app.processing_retry_requests` row for each permanently failed command. Returns 409 unless one has failed |
+| `DELETE /v1/books/incomplete` | Deletes the owner's `pending_upload` books and returns `{ deleted }` |
+
+Retry never creates a second source document. The worker reopens the same
+`permanent_failed` run when a retry request is newer than the run's last
+update, and that reopening consumes the request. A summary retry waits while
+the book's ingestion still has a pending retry. A reopened summary resumes
+from its saved evidence chunks.
+
 The local PostgreSQL configuration uses the fresh `bookwise_next` database.
 `pnpm run migrate:local` applies all pending, lexically ordered migrations,
 starting with the immutable `001_create_initial_schema` baseline. Summary
@@ -147,7 +165,8 @@ context: `command_id`, `book_id`, `run_id`, `command_type`,
 `processing_version`, `outcome`, `error_class`, `error_code`, and
 `duration_ms`. Startup also records `batch_limit`, `poll_interval_seconds`,
 `model_provider`, and `generation_model`; shutdown records the `signal`;
-resumed generation records `chunks_reused` and `chunk_count`; budget events
+resumed generation records `chunks_reused` and `chunk_count`; a claim reopened
+by an owner's retry records `retry`; budget events
 record `spent_usd` and `cap_usd`, and startup also records the cap and
 `budget_timezone`.
 

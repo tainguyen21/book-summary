@@ -66,4 +66,8 @@ export class GcsObjectStorage implements ObjectStorage {
       throw error;
     }
   }
+
+  async deletePrefix(prefix: string): Promise<void> {
+    await this.bucket.deleteFiles({ prefix, force: true });
+  }
 }

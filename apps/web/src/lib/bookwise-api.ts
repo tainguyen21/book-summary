@@ -56,6 +56,60 @@ export async function bookwiseApi<T>(
   return result.data;
 }
 
+/** A rejected request, with the API's user-facing message when it sent one. */
+export class BookwiseRequestError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "BookwiseRequestError";
+  }
+}
+
+/**
+ * Sends a request that may return no body (for example 204 No Content).
+ * Errors carry the API's message so actions can explain a 409.
+ */
+export async function bookwiseSend(
+  getAccessTokenSilently: GetAccessTokenSilently,
+  path: string,
+  init: RequestInit,
+): Promise<unknown> {
+  const token = await getAccessTokenSilently();
+  const { publicConfig } = await import("./config");
+  const headers = new Headers(init.headers);
+
+  headers.set("authorization", `Bearer ${token}`);
+  if (init.body) {
+    headers.set("content-type", "application/json");
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(new URL(path, publicConfig.NEXT_PUBLIC_API_URL), {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookwiseConnectionError();
+  }
+
+  const body: unknown =
+    response.status === 204 ? undefined : await response.json().catch(() => undefined);
+
+  if (!response.ok) {
+    const message =
+      body && typeof body === "object" && "message" in body && typeof body.message === "string"
+        ? body.message
+        : "Something went wrong. Please try again.";
+    throw new BookwiseRequestError(response.status, message);
+  }
+
+  return body;
+}
+
 export async function syncBookwiseIdentity(
   getAccessTokenSilently: GetAccessTokenSilently,
 ): Promise<BookwisePrincipal> {

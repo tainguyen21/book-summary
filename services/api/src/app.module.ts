@@ -33,6 +33,11 @@ import {
   LIST_LIBRARY_USE_CASE,
 } from "./application/books/list-library.use-case";
 import {
+  ManageBookUseCase,
+  MANAGE_BOOK_USE_CASE,
+} from "./application/books/manage-book.use-case";
+import { BOOK_MANAGEMENT_REPOSITORY } from "./domain/books/book-management";
+import {
   SyncIdentityUseCase,
   SYNC_IDENTITY_USE_CASE,
 } from "./application/identity/sync-identity.use-case";
@@ -43,6 +48,7 @@ import {
 } from "./application/usage/get-daily-usage.use-case";
 import { USAGE_READ_REPOSITORY } from "./domain/usage/daily-usage";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
+import { BookManagementRepository } from "./infrastructure/database/book-management.repository";
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
 import { BookRepository } from "./infrastructure/database/book.repository";
 import { ProcessingCommandRepository } from "./infrastructure/database/processing-command.repository";
@@ -51,6 +57,7 @@ import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier
 import { GcsObjectStorage } from "./infrastructure/storage/gcs-object-storage";
 import { S3ObjectStorage } from "./infrastructure/storage/s3-object-storage";
 import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-principal";
+import { BookManagementController } from "./interfaces/http/book-management.controller";
 import { BooksController } from "./interfaces/http/books.controller";
 import { HealthController } from "./interfaces/http/health.controller";
 import { LibraryController } from "./interfaces/http/library.controller";
@@ -129,6 +136,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     LibraryController,
     SummaryController,
     UsageController,
+    BookManagementController,
   ],
   providers: [
     {
@@ -212,6 +220,17 @@ function objectStorageFromEnvironment(): ObjectStorage {
       useFactory: (books: BookReadRepository) =>
         new GetBookSummaryUseCase(books),
       inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: BOOK_MANAGEMENT_REPOSITORY,
+      useFactory: (pool: Pool) => new BookManagementRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: MANAGE_BOOK_USE_CASE,
+      useFactory: (books: BookManagementRepository, storage: ObjectStorage) =>
+        new ManageBookUseCase(books, storage),
+      inject: [BOOK_MANAGEMENT_REPOSITORY, OBJECT_STORAGE],
     },
     {
       provide: USAGE_READ_REPOSITORY,

@@ -42,6 +42,7 @@ _ALLOWED_CONTEXT_KEYS = frozenset(
         "spent_usd",
         "cap_usd",
         "budget_timezone",
+        "retry",
     }
 )
 

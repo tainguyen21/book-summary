@@ -12,6 +12,7 @@ import { AppShell, libraryViewHref, type LibraryView } from "../app-shell/app-sh
 import { useUpload } from "../app-shell/upload-context";
 import { StateCallout } from "../layout/state-callout";
 import { BookCollection } from "./book-collection";
+import { ClearIncompleteButton } from "./clear-incomplete-button";
 import { DailyBudgetCard } from "./daily-budget-card";
 import { LibraryDashboardSkeleton } from "./library-skeleton";
 import { LibraryStats } from "./library-stats";
@@ -47,7 +48,9 @@ export function LibraryScreen({ view }: { view: LibraryView }) {
         </div>
       )}
 
-      {state.kind === "ready" && <LibraryDashboard view={view} books={state.books} />}
+      {state.kind === "ready" && (
+        <LibraryDashboard view={view} books={state.books} onChanged={refresh} />
+      )}
     </AppShell>
   );
 }
@@ -55,9 +58,11 @@ export function LibraryScreen({ view }: { view: LibraryView }) {
 function LibraryDashboard({
   view,
   books,
+  onChanged,
 }: {
   view: LibraryView;
   books: LibraryBook[];
+  onChanged(): void;
 }) {
   const { user } = useAuth0();
   const router = useRouter();
@@ -112,20 +117,26 @@ function LibraryDashboard({
           {usage && <DailyBudgetCard usage={usage} />}
           <ProcessingNowPanel books={books} />
 
-          <div className="lib-search">
-            <Search aria-hidden="true" size={16} />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by title or file name"
-              aria-label="Search books"
+          <div className="lib-search-row">
+            <div className="lib-search">
+              <Search aria-hidden="true" size={16} />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by title or file name"
+                aria-label="Search books"
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
+                  <X aria-hidden="true" size={14} />
+                </button>
+              )}
+            </div>
+            <ClearIncompleteButton
+              count={books.filter((book) => book.bookStatus === "pending_upload").length}
+              onCleared={onChanged}
             />
-            {query && (
-              <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
-                <X aria-hidden="true" size={14} />
-              </button>
-            )}
           </div>
 
           <BookCollection
@@ -136,6 +147,7 @@ function LibraryDashboard({
               setQuery("");
               router.push(libraryViewHref("all"));
             }}
+            onChanged={onChanged}
           />
         </>
       )}

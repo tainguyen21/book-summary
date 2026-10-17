@@ -50,6 +50,7 @@ class CommandWorker:
                 logging.INFO,
                 "command_claimed",
                 "Command claimed.",
+                retry=command.retried or None,
                 **context,
             )
 

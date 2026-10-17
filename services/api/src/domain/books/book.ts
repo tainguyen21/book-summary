@@ -39,6 +39,8 @@ export interface ObjectStorage {
     expiresInSeconds: number;
   }): Promise<{ uploadUrl: string; expiresAt: string }>;
   head(objectKey: string): Promise<StoredObjectHead | undefined>;
+  /** Delete every object under a key prefix; a missing prefix is not an error. */
+  deletePrefix(prefix: string): Promise<void>;
 }
 
 export interface UploadTicket {

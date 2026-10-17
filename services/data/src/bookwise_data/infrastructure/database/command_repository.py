@@ -36,7 +36,8 @@ _CLAIM_CANDIDATES = text(
             )
             ELSE command.payload
         END AS payload,
-        command.processing_version
+        command.processing_version,
+        run.status = 'permanent_failed' AS retried
     FROM app.processing_commands AS command
     LEFT JOIN data.processing_runs AS run
         ON run.command_id = command.id
@@ -45,7 +46,15 @@ _CLAIM_CANDIDATES = text(
         ON source.owner_id = command.owner_id
         AND source.book_id = command.book_id
     LEFT JOIN LATERAL (
-        SELECT ingest_run.status
+        SELECT
+            ingest_run.status,
+            -- A pending retry means ingestion will run again soon.
+            EXISTS (
+                SELECT 1
+                FROM app.processing_retry_requests AS ingest_retry
+                WHERE ingest_retry.command_id = ingest_command.id
+                    AND ingest_retry.requested_at > ingest_run.updated_at
+            ) AS retry_pending
         FROM app.processing_commands AS ingest_command
         JOIN data.processing_runs AS ingest_run
             ON ingest_run.command_id = ingest_command.id
@@ -79,6 +88,16 @@ _CLAIM_CANDIDATES = text(
                     clock_timestamp() - make_interval(secs => :lease_seconds)
                 )
             )
+            -- An owner asked to retry this permanently failed command.
+            OR (
+                run.status = 'permanent_failed'
+                AND EXISTS (
+                    SELECT 1
+                    FROM app.processing_retry_requests AS retry
+                    WHERE retry.command_id = command.id
+                        AND retry.requested_at > run.updated_at
+                )
+            )
         )
         AND NOT EXISTS (
             SELECT 1
@@ -93,6 +112,8 @@ _CLAIM_CANDIDATES = text(
             OR (
                 COALESCE(source.source_document_count, 0) = 0
                 AND ingest.status = 'permanent_failed'
+                -- Do not fail the summary again while ingestion awaits a retry.
+                AND NOT ingest.retry_pending
             )
         )
     ORDER BY command.created_at, command.id
@@ -137,6 +158,16 @@ _CREATE_OR_REOPEN_RUN = text(
             data.processing_runs.status = 'running'
             AND data.processing_runs.updated_at < (
                 clock_timestamp() - make_interval(secs => :lease_seconds)
+            )
+        )
+        -- Reopening updates updated_at, which consumes the retry request.
+        OR (
+            data.processing_runs.status = 'permanent_failed'
+            AND EXISTS (
+                SELECT 1
+                FROM app.processing_retry_requests AS retry
+                WHERE retry.command_id = data.processing_runs.command_id
+                    AND retry.requested_at > data.processing_runs.updated_at
             )
         )
     RETURNING id, started_at
@@ -308,6 +339,7 @@ class SqlAlchemyCommandRepository:
                         processing_version=row["processing_version"],
                         run_id=run["id"],
                         lease_started_at=run["started_at"],
+                        retried=bool(row["retried"]),
                     )
                 )
 
