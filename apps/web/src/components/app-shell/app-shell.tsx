@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Library, ShieldCheck, Upload } from "lucide-react";
+import { BookOpen, Library, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -35,12 +35,15 @@ export function libraryViewHref(view: LibraryView): string {
 export function AppShell({
   books,
   activeView,
+  searchActive = false,
   onUploaded,
   children,
 }: {
   /** Library books for sidebar counts; undefined while loading. */
   books?: LibraryBook[];
   activeView?: LibraryView;
+  /** True on the search page, so its nav item shows as current. */
+  searchActive?: boolean;
   onUploaded?(): Promise<void> | void;
   children: ReactNode;
 }) {
@@ -108,6 +111,12 @@ export function AppShell({
           </button>
 
           <nav ref={navRef} className="shell-nav" aria-label="Library">
+            <NavItem
+              href="/search"
+              active={searchActive}
+              icon={<Search aria-hidden="true" size={16} />}
+              label="Search books"
+            />
             <p className="shell-nav-heading">Library</p>
             <NavItem
               href={libraryViewHref("all")}

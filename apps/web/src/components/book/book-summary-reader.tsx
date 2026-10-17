@@ -15,7 +15,7 @@ const locationLabels: Record<string, string> = {
 };
 
 /** Turns a raw citation location into a short label such as "Page 12". */
-function locationLabel(location: Record<string, unknown>): string {
+export function locationLabel(location: Record<string, unknown>): string {
   for (const [key, label] of Object.entries(locationLabels)) {
     const value = location[key];
 

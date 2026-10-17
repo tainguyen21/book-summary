@@ -52,6 +52,21 @@ import {
   type DailyBudgetSettings,
 } from "./application/usage/get-daily-usage.use-case";
 import { USAGE_READ_REPOSITORY } from "./domain/usage/daily-usage";
+import {
+  SEARCH_USE_CASE,
+  SearchUseCase,
+} from "./application/search/search.use-case";
+import { parseModelPricing } from "./domain/search/model-pricing";
+import {
+  APP_USAGE_RECORDER,
+  QUERY_EMBEDDER,
+  SEARCH_REPOSITORY,
+  type QueryEmbedder,
+} from "./domain/search/search";
+import { AppUsageRecorder } from "./infrastructure/database/app-usage.recorder";
+import { SearchRepository } from "./infrastructure/database/search.repository";
+import { VertexEmbeddingClient } from "./infrastructure/model/vertex-embedding.client";
+import { SearchController } from "./interfaces/http/search.controller";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
 import { BookManagementRepository } from "./infrastructure/database/book-management.repository";
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
@@ -112,6 +127,32 @@ function dailyBudgetFromEnvironment(): DailyBudgetSettings {
   return { capUsd, timeZone };
 }
 
+/**
+ * Meaning search needs Vertex embeddings in the same 768-dimension space as
+ * the worker's evidence embeddings; otherwise search runs keyword-only.
+ */
+function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
+  const provider = process.env.BOOKWISE_MODEL_PROVIDER?.trim().toLowerCase();
+  const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
+  const model = process.env.BOOKWISE_EMBEDDING_MODEL?.trim();
+  const dimensions = Number(process.env.BOOKWISE_EMBEDDING_DIMENSIONS);
+  if (provider !== "vertex" || !project || !model || dimensions !== 768) {
+    return undefined;
+  }
+
+  return new VertexEmbeddingClient({
+    project,
+    // Interactive calls use a regional endpoint: the global one measured ~11s
+    // per embedding versus ~1-2s regionally, with identical vectors.
+    location:
+      process.env.BOOKWISE_EMBEDDING_LOCATION?.trim() ||
+      process.env.GOOGLE_CLOUD_LOCATION?.trim() ||
+      "global",
+    model,
+    dimensions,
+  });
+}
+
 function objectStorageFromEnvironment(): ObjectStorage {
   const provider =
     process.env.OBJECT_STORAGE_PROVIDER?.trim().toLowerCase() || "minio";
@@ -143,6 +184,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     SummaryController,
     UsageController,
     BookManagementController,
+    SearchController,
   ],
   providers: [
     {
@@ -226,6 +268,46 @@ function objectStorageFromEnvironment(): ObjectStorage {
       useFactory: (books: BookReadRepository) =>
         new GetBookSummaryUseCase(books),
       inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: SEARCH_REPOSITORY,
+      useFactory: (pool: Pool) => new SearchRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: QUERY_EMBEDDER,
+      useFactory: queryEmbedderFromEnvironment,
+    },
+    {
+      provide: APP_USAGE_RECORDER,
+      useFactory: (pool: Pool) =>
+        new AppUsageRecorder(
+          pool,
+          parseModelPricing(process.env.BOOKWISE_MODEL_PRICING_JSON),
+        ),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: SEARCH_USE_CASE,
+      useFactory: (
+        search: SearchRepository,
+        embedder: QueryEmbedder | undefined,
+        usage: AppUsageRecorder,
+        spend: UsageReadRepository,
+      ) =>
+        new SearchUseCase(
+          search,
+          embedder,
+          usage,
+          spend,
+          dailyBudgetFromEnvironment(),
+        ),
+      inject: [
+        SEARCH_REPOSITORY,
+        QUERY_EMBEDDER,
+        APP_USAGE_RECORDER,
+        USAGE_READ_REPOSITORY,
+      ],
     },
     {
       provide: SOURCE_PASSAGE_REPOSITORY,

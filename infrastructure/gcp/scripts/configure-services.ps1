@@ -45,6 +45,10 @@ Add-ProjectRole `
 Add-ProjectRole `
     "serviceAccount:bookwise-api@$ProjectId.iam.gserviceaccount.com" `
     "roles/storage.objectAdmin"
+# Interactive search and question answering call Vertex AI from the API.
+Add-ProjectRole `
+    "serviceAccount:bookwise-api@$ProjectId.iam.gserviceaccount.com" `
+    "roles/aiplatform.user"
 Add-ProjectRole `
     "serviceAccount:bookwise-worker@$ProjectId.iam.gserviceaccount.com" `
     "roles/cloudsql.client"

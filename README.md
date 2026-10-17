@@ -79,6 +79,25 @@ the reader, numbered markers after a sentence expand a card with those quotes
 and a "View in context" link to the passage dialog. Summaries generated before
 this keep the plain view.
 
+## Private search
+
+`/search` searches inside the signed-in owner's books. `GET /v1/search?q=`
+merges three ranked lists by reciprocal rank fusion: keyword matches on
+evidence and on source passages (Postgres full text, `simple` configuration,
+any meaningful query word), and meaning matches on evidence embeddings
+(pgvector cosine over a `gemini-embedding-001` query embedding). Results are
+read through `data.book_search_evidence` and `data.book_source_passages`
+(migrations `012` and `014`). Each result opens the passage in context.
+
+The API embeds the query itself (its service account needs
+`roles/aiplatform.user`) using `BOOKWISE_EMBEDDING_LOCATION`, a regional
+endpoint (the global one measured about 11 s per query, with identical
+vectors). Each query embedding is recorded in `data.model_usage`, with no book
+or command, through `data.record_app_model_usage`, and counts toward the daily
+budget. When the budget is spent, Vertex is not configured, or the call fails
+within 4 s, search returns keyword results only (`mode: "keyword"` with
+`keywordReason`).
+
 ## Book management
 
 Owners manage books from the library row menu and the book page. All routes
