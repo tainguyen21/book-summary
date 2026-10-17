@@ -95,7 +95,17 @@ BOOKWISE_EMBEDDING_DIMENSIONS=768
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 GOOGLE_CLOUD_LOCATION=global
 GOOGLE_GENAI_USE_VERTEXAI=true
+BOOKWISE_MODEL_PRICING_JSON={"gemini-3.8-flash":{"input_per_mtok":1.50,"output_per_mtok":7.50},"gemini-embedding-001":{"input_per_mtok":0.15,"output_per_mtok":0}}
 ```
+
+Every successful model call is recorded in `data.model_usage` (migration
+`008_create_model_usage`) with its operation (`evidence`, `summary`, or
+`embedding`), input and output tokens, and an estimated USD cost. Gemini
+thinking tokens count as output. Prices come from
+`BOOKWISE_MODEL_PRICING_JSON`, in USD per million tokens per model; a model
+without a price is recorded at cost 0 with one `pricing_missing` warning. The
+values above are list rates to confirm against the Vertex AI pricing page;
+billing remains the source of truth.
 
 The Python worker reads the process environment rather than loading `.env`
 itself. Import `.env` into the current PowerShell process before starting the
@@ -135,6 +145,9 @@ context: `command_id`, `book_id`, `run_id`, `command_type`,
 | `command_failed` | WARNING (retryable) / ERROR (permanent) | Handler failed; `outcome`, `error_class`, `error_code` |
 | `lease_lost` | WARNING | Heartbeat failed before handling; command skipped |
 | `batch_idle` | DEBUG | No commands to claim in this poll |
+| `pricing_missing` | WARNING | A model has no configured price; usage recorded at cost 0 (once per model) |
+| `usage_metadata_missing` | WARNING | A provider response had no token counts; recorded as 0 (once per model) |
+| `usage_record_failed` | ERROR | A usage row could not be written; generation continues |
 
 Set the level with `BOOKWISE_LOG_LEVEL` (default `INFO`; unknown values fall
 back to `INFO`). Use `DEBUG` to see idle polls. Book titles, filenames, book

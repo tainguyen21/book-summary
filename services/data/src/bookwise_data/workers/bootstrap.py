@@ -13,7 +13,9 @@ from bookwise_data.application.claim_command import ClaimCommand
 from bookwise_data.application.emit_event import EmitEvent
 from bookwise_data.application.generate_summary import GenerateSummary
 from bookwise_data.application.ingest_book import IngestBook
+from bookwise_data.application.record_model_usage import RecordModelUsage
 from bookwise_data.domain.generation import DEFAULT_GENERATION_CHUNK_CHARS
+from bookwise_data.domain.usage import ModelPrice, parse_model_pricing
 from bookwise_data.infrastructure.database.command_repository import (
     SqlAlchemyCommandRepository,
 )
@@ -25,6 +27,9 @@ from bookwise_data.infrastructure.database.generated_summary_repository import (
 )
 from bookwise_data.infrastructure.database.source_repository import (
     SqlAlchemySourceRepository,
+)
+from bookwise_data.infrastructure.database.usage_repository import (
+    SqlAlchemyUsageRepository,
 )
 from bookwise_data.infrastructure.providers.model_provider import (
     generation_chunk_chars_from_environment,
@@ -60,6 +65,10 @@ def run_worker() -> None:
     signal.signal(signal.SIGINT, request_stop)
     try:
         commands = SqlAlchemyCommandRepository(engine)
+        record_usage = RecordModelUsage(
+            SqlAlchemyUsageRepository(engine),
+            _model_pricing_from_environment(),
+        )
         ingest_book = IngestBook(SqlAlchemySourceRepository(engine), _storage_from_environment())
         generate_summary = GenerateSummary(
             SqlAlchemyGeneratedSummaryRepository(engine),
@@ -67,6 +76,7 @@ def run_worker() -> None:
             lambda: generation_chunk_chars_from_environment(
                 DEFAULT_GENERATION_CHUNK_CHARS
             ),
+            record_usage.sink_for,
         )
         worker = CommandWorker(
             ClaimCommand(commands, EmitEvent(SqlAlchemyEventRepository())),
@@ -113,6 +123,15 @@ def _required_environment(name: str) -> str:
     if not value:
         raise RuntimeError(f"{name} must be configured.")
     return value
+
+
+def _model_pricing_from_environment() -> dict[str, ModelPrice]:
+    try:
+        return parse_model_pricing(os.environ.get("BOOKWISE_MODEL_PRICING_JSON", ""))
+    except ValueError as error:
+        raise RuntimeError(
+            f"BOOKWISE_MODEL_PRICING_JSON is invalid: {error}."
+        ) from error
 
 
 def _storage_from_environment() -> S3ObjectStorage | GcsObjectStorage:

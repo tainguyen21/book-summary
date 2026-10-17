@@ -31,6 +31,7 @@ from bookwise_data.domain.generation import (
     validation_outcome,
 )
 from bookwise_data.domain.source import PermanentProcessingError
+from bookwise_data.domain.usage import UsageSink
 
 
 class GeneratedSummaryRepository(Protocol):
@@ -71,6 +72,7 @@ class GenerationProvider(Protocol):
     generation_model: str
     embedding_model: str
     embedding_dimensions: int
+    usage_sink: UsageSink | None
 
     def generate_evidence(
         self,
@@ -114,10 +116,12 @@ class GenerateSummary:
         repository: GeneratedSummaryRepository,
         provider_factory: Callable[[], GenerationProvider],
         maximum_chunk_chars_factory: Callable[[], int],
+        usage_sink_factory: Callable[[ClaimedCommand], UsageSink] | None = None,
     ) -> None:
         self._repository = repository
         self._provider_factory = provider_factory
         self._maximum_chunk_chars_factory = maximum_chunk_chars_factory
+        self._usage_sink_factory = usage_sink_factory
 
     def handle(
         self,
@@ -177,6 +181,9 @@ class GenerateSummary:
         provider: GenerationProvider | None = None
         try:
             provider = self._provider_factory()
+            if self._usage_sink_factory is not None:
+                # Each provider call records its tokens against this command.
+                provider.usage_sink = self._usage_sink_factory(command)
             maximum_chunk_chars = self._maximum_chunk_chars_factory()
         except Exception as error:
             self._record_failure(

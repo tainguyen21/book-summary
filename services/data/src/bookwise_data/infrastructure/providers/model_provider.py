@@ -22,6 +22,13 @@ from bookwise_data.domain.generation import (
     ProviderRequestError,
     canonical_hash,
 )
+from bookwise_data.domain.usage import UsageOperation, UsageSink
+from bookwise_data.infrastructure.providers.usage_extraction import (
+    emit_usage,
+    openai_counts,
+    vertex_embedding_counts,
+    vertex_generation_counts,
+)
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -33,6 +40,7 @@ class ModelProvider(Protocol):
     generation_model: str
     embedding_model: str
     embedding_dimensions: int
+    usage_sink: UsageSink | None
 
     def generate_evidence(
         self,
@@ -86,6 +94,7 @@ class UnconfiguredModelProvider:
     generation_model = "unconfigured"
     embedding_model = "unconfigured"
     embedding_dimensions = 0
+    usage_sink: UsageSink | None = None
 
     def __init__(self, missing_names: tuple[str, ...]) -> None:
         self._missing_names = missing_names
@@ -127,6 +136,8 @@ class OpenAICompatibleProvider:
         self._api_key = config.api_key
         self._timeout_seconds = config.timeout_seconds
         self._max_output_tokens = config.max_output_tokens
+        # Set after construction (per command) to record each call's usage.
+        self.usage_sink: UsageSink | None = None
 
     def generate_evidence(
         self,
@@ -140,7 +151,7 @@ class OpenAICompatibleProvider:
             f"Schema: {json.dumps(schema.model_json_schema(), sort_keys=True)}\n\n"
             f"Source chunk: {json.dumps(chunk, ensure_ascii=True, sort_keys=True)}"
         )
-        return self._generate_json(prompt, schema)
+        return self._generate_json(prompt, schema, UsageOperation.EVIDENCE)
 
     def generate_summary(
         self,
@@ -154,7 +165,7 @@ class OpenAICompatibleProvider:
             f"Schema: {json.dumps(schema.model_json_schema(), sort_keys=True)}\n\n"
             f"Evidence: {json.dumps(evidence, ensure_ascii=True, sort_keys=True)}"
         )
-        return self._generate_json(prompt, schema)
+        return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
     def embed(self, texts: list[str]) -> list[ProviderEmbedding]:
         response = self._request(
@@ -163,6 +174,13 @@ class OpenAICompatibleProvider:
                 "model": self.embedding_model,
                 "input": texts,
             },
+        )
+        emit_usage(
+            self.usage_sink,
+            UsageOperation.EMBEDDING,
+            self.provider_name,
+            self.embedding_model,
+            openai_counts(response, embedding=True),
         )
         data = response.get("data")
         if not isinstance(data, list):
@@ -212,7 +230,12 @@ class OpenAICompatibleProvider:
             vectors.append(ProviderEmbedding(index=index, values=values))
         return vectors
 
-    def _generate_json(self, prompt: str, schema: type[TModel]) -> TModel:
+    def _generate_json(
+        self,
+        prompt: str,
+        schema: type[TModel],
+        operation: UsageOperation,
+    ) -> TModel:
         response = self._request(
             "chat/completions",
             {
@@ -238,6 +261,13 @@ class OpenAICompatibleProvider:
                 "temperature": 0,
                 "max_tokens": self._max_output_tokens,
             },
+        )
+        emit_usage(
+            self.usage_sink,
+            operation,
+            self.provider_name,
+            self.generation_model,
+            openai_counts(response, embedding=False),
         )
         try:
             content = response["choices"][0]["message"]["content"]
@@ -318,6 +348,8 @@ class VertexAIProvider:
         self.embedding_model = config.embedding_model
         self.embedding_dimensions = config.embedding_dimensions
         self._max_output_tokens = config.max_output_tokens
+        # Set after construction (per command) to record each call's usage.
+        self.usage_sink: UsageSink | None = None
         try:
             self._client = genai.Client(
                 vertexai=True,
@@ -342,7 +374,7 @@ class VertexAIProvider:
             "knowledge.\n\n"
             f"Source chunk: {json.dumps(chunk, ensure_ascii=True, sort_keys=True)}"
         )
-        return self._generate_json(prompt, schema)
+        return self._generate_json(prompt, schema, UsageOperation.EVIDENCE)
 
     def generate_summary(
         self,
@@ -355,7 +387,7 @@ class VertexAIProvider:
             "Return JSON matching the response schema.\n\n"
             f"Evidence: {json.dumps(evidence, ensure_ascii=True, sort_keys=True)}"
         )
-        return self._generate_json(prompt, schema)
+        return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
     def embed(self, texts: list[str]) -> list[ProviderEmbedding]:
         if not texts:
@@ -378,6 +410,13 @@ class VertexAIProvider:
         except httpx.HTTPError as error:
             _raise_vertex_transport_error(error)
 
+        emit_usage(
+            self.usage_sink,
+            UsageOperation.EMBEDDING,
+            self.provider_name,
+            self.embedding_model,
+            vertex_embedding_counts(response),
+        )
         embeddings = response.embeddings
         if not embeddings or len(embeddings) != len(texts):
             raise ProviderOutputError(
@@ -405,7 +444,12 @@ class VertexAIProvider:
             vectors.append(ProviderEmbedding(index=index, values=values))
         return vectors
 
-    def _generate_json(self, prompt: str, schema: type[TModel]) -> TModel:
+    def _generate_json(
+        self,
+        prompt: str,
+        schema: type[TModel],
+        operation: UsageOperation,
+    ) -> TModel:
         try:
             response = self._client.models.generate_content(
                 model=self.generation_model,
@@ -427,6 +471,13 @@ class VertexAIProvider:
         except httpx.HTTPError as error:
             _raise_vertex_transport_error(error)
 
+        emit_usage(
+            self.usage_sink,
+            operation,
+            self.provider_name,
+            self.generation_model,
+            vertex_generation_counts(response),
+        )
         if isinstance(response.parsed, schema):
             return response.parsed
 
