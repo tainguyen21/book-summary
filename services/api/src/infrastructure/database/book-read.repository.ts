@@ -5,6 +5,8 @@ import type {
   BookReadRepository as BookReadRepositoryPort,
   BookSummary,
   LibraryBook,
+  SummaryCitation,
+  SummarySentence,
 } from "../../domain/books/book";
 
 interface LibraryBookRow {
@@ -34,6 +36,14 @@ interface PublishedSummaryRow {
   provider: string;
   model: string;
   created_at: Date;
+  segments: unknown;
+}
+
+interface StoredSegment {
+  sentences?: {
+    text?: unknown;
+    citations?: { source_span_id?: unknown; quote?: unknown }[];
+  }[];
 }
 
 interface SummaryCitationRow {
@@ -152,7 +162,8 @@ export class BookReadRepository implements BookReadRepositoryPort {
          generation_version,
          provider,
          model,
-         created_at
+         created_at,
+         segments
        FROM data.book_current_summaries
        WHERE owner_id = $1
          AND book_id = $2
@@ -176,6 +187,12 @@ export class BookReadRepository implements BookReadRepositoryPort {
       [ownerId, bookId, summary.id],
     );
 
+    const citations = citationResult.rows.map((citation) => ({
+      sourceSpanId: citation.source_span_id,
+      order: citation.citation_order,
+      location: locationRecord(citation.location),
+    }));
+
     return {
       bookId: summary.book_id,
       summary: {
@@ -185,14 +202,49 @@ export class BookReadRepository implements BookReadRepositoryPort {
         provider: summary.provider,
         model: summary.model,
         createdAt: summary.created_at.toISOString(),
-        citations: citationResult.rows.map((citation) => ({
-          sourceSpanId: citation.source_span_id,
-          order: citation.citation_order,
-          location: locationRecord(citation.location),
-        })),
+        citations,
+        paragraphs: sentenceParagraphs(summary.segments, citations),
       },
     };
   }
+}
+
+/**
+ * Stored segments joined with the summary's numbered citations, so sentence
+ * markers use the same numbers and locations as the source list.
+ */
+function sentenceParagraphs(
+  segments: unknown,
+  citations: SummaryCitation[],
+): SummarySentence[][] {
+  if (!Array.isArray(segments)) {
+    return [];
+  }
+  const bySpan = new Map(
+    citations.map((citation) => [citation.sourceSpanId, citation]),
+  );
+
+  return (segments as StoredSegment[]).map((paragraph) =>
+    (paragraph.sentences ?? [])
+      .filter((sentence) => typeof sentence.text === "string" && sentence.text)
+      .map((sentence) => ({
+        text: sentence.text as string,
+        citations: (sentence.citations ?? []).flatMap((stored) => {
+          const citation =
+            typeof stored.source_span_id === "string"
+              ? bySpan.get(stored.source_span_id)
+              : undefined;
+          if (!citation) {
+            return [];
+          }
+          return [
+            typeof stored.quote === "string" && stored.quote
+              ? { ...citation, quote: stored.quote }
+              : citation,
+          ];
+        }),
+      })),
+  );
 }
 
 function locationRecord(value: unknown): Record<string, unknown> {

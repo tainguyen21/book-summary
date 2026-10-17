@@ -101,6 +101,16 @@ export interface SummaryCitation {
   location: Record<string, unknown>;
 }
 
+/** A sentence citation: the source span plus its verbatim quote, if verified. */
+export interface SentenceCitation extends SummaryCitation {
+  quote?: string;
+}
+
+export interface SummarySentence {
+  text: string;
+  citations: SentenceCitation[];
+}
+
 export interface PublishedSummary {
   id: string;
   body: string;
@@ -109,6 +119,8 @@ export interface PublishedSummary {
   model: string;
   createdAt: string;
   citations: SummaryCitation[];
+  /** Paragraphs of cited sentences; empty for summaries made before quotes existed. */
+  paragraphs: SummarySentence[][];
 }
 
 export interface BookSummary {

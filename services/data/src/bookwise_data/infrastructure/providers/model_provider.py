@@ -43,7 +43,8 @@ _EVIDENCE_INSTRUCTIONS = (
     "yourself to one item per evidence type. Keep each item's figures exactly "
     "as written, including qualifiers such as 'about' or 'estimated'. Cite "
     "the narrowest supplied source_span_id values that support each item, "
-    "and leave source_excerpt empty."
+    "and copy into source_excerpt a short exact quote (at most 25 words) from "
+    "the cited text that supports it, character for character."
 )
 # Saved evidence checkpoints are reused only while the instructions match.
 EVIDENCE_PROMPT_VERSION = hashlib.sha256(
@@ -55,10 +56,11 @@ _SUMMARY_INSTRUCTIONS = (
     "uncited facts. Cover the substance of every evidence record, keeping key "
     "numbers, names, outcomes, caveats, and limitations, but be concise: "
     "combine related records into single sentences, group them by theme, "
-    "avoid repetition, and stay under about 600 words. Write plain prose for "
-    "readers: never put ids, brackets, or citation markers in the body. List "
-    "the source_span_id values of the evidence you used only in the "
-    "source_span_ids field."
+    "avoid repetition, and stay under about 600 words. Return the summary as "
+    "paragraphs of sentences. For each sentence, list in its source_span_ids "
+    "the source_span_id values of the evidence records it states; use an "
+    "empty list only for a pure transition. Write plain prose for readers: "
+    "never put ids, brackets, or citation markers in sentence text."
 )
 # Saved section summaries are reused only while the summary instructions match.
 SUMMARY_PROMPT_VERSION = hashlib.sha256(

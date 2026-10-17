@@ -4,6 +4,7 @@ import { Quote } from "lucide-react";
 import { useRef, useState } from "react";
 
 import type { PublishedSummary } from "../../lib/library-types";
+import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
 
 const locationLabels: Record<string, string> = {
@@ -51,11 +52,22 @@ export function BookSummaryReader({
 
   return (
     <>
-      <div className="reader-body">
-        {summaryParagraphs(summary.body).map((paragraph, index) => (
-          <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
-        ))}
-      </div>
+      {summary.paragraphs.length > 0 ? (
+        <CitedSummaryBody
+          paragraphs={summary.paragraphs}
+          labelFor={locationLabel}
+          onViewInContext={(spanId, label, opener) => {
+            triggerRef.current = opener as HTMLButtonElement;
+            setOpen({ spanId, label });
+          }}
+        />
+      ) : (
+        <div className="reader-body">
+          {summaryParagraphs(summary.body).map((paragraph, index) => (
+            <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+          ))}
+        </div>
+      )}
 
       <section className="reader-sources" aria-labelledby="sources-title">
         <h2 id="sources-title">

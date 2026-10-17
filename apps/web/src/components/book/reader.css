@@ -115,11 +115,14 @@
   line-height: 1.8;
 }
 
-.reader-body p + p {
+.reader-body p + p,
+.reader-paragraph + .reader-paragraph {
   margin-top: 1.1em;
 }
 
-.reader-body p:first-child::first-letter {
+/* Drop cap on the first paragraph only (plain or sentence-cited layout). */
+.reader-body > p:first-child::first-letter,
+.reader-body > .reader-paragraph:first-child > p::first-letter {
   float: left;
   padding: 6px 10px 0 0;
   color: var(--color-accent-strong);
@@ -188,6 +191,146 @@
 .reader-chips button:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Sentence source markers and quote cards */
+.reader-sentence {
+  border-radius: 3px;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.reader-sentence[data-active] {
+  background: var(--color-accent-soft);
+}
+
+.reader-cite {
+  position: relative;
+  display: inline-grid;
+  min-width: 20px;
+  height: 18px;
+  margin: 0 2px 0 3px;
+  padding: 0 5px;
+  place-items: center;
+  vertical-align: 0.35em;
+  color: var(--color-accent-strong);
+  font-family: var(--font-sans, inherit);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  background: var(--color-accent-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* A 44x44px hit area around the small visible pill. */
+.reader-cite::after {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 44px;
+  height: 44px;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.reader-cite:hover {
+  border-color: var(--color-accent);
+}
+
+.reader-cite[aria-expanded="true"] {
+  color: var(--color-on-ink);
+  background: var(--color-accent);
+}
+
+.reader-cite:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.quote-card {
+  margin: 14px 0 4px;
+  padding: 14px 16px 16px;
+  font-family: var(--font-sans, inherit);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  animation: quote-card-in 180ms var(--ease-out);
+}
+
+@keyframes quote-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.quote-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.quote-card-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quote-card-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quote-card-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+
+.quote-card-number {
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  color: var(--color-on-ink);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.quote-card blockquote {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.quote-card-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.quote-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
 }
 
 /* Cited passage dialog */

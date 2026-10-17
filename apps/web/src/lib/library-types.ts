@@ -65,6 +65,12 @@ export interface SummaryCitation {
   location: Record<string, unknown>;
 }
 
+/** A summary sentence with its numbered sources and verified quotes. */
+export interface SummarySentence {
+  text: string;
+  citations: (SummaryCitation & { quote?: string })[];
+}
+
 export interface PublishedSummary {
   id: string;
   body: string;
@@ -73,6 +79,8 @@ export interface PublishedSummary {
   model: string;
   createdAt: string;
   citations: SummaryCitation[];
+  /** Empty for summaries generated before sentence quotes existed. */
+  paragraphs: SummarySentence[][];
 }
 
 export interface BookSummary {
@@ -153,5 +161,22 @@ export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
         location: z.record(z.string(), z.unknown()),
       }),
     ),
+    paragraphs: z
+      .array(
+        z.array(
+          z.object({
+            text: z.string(),
+            citations: z.array(
+              z.object({
+                sourceSpanId: z.string().uuid(),
+                order: z.number().int().positive(),
+                location: z.record(z.string(), z.unknown()),
+                quote: z.string().optional(),
+              }),
+            ),
+          }),
+        ),
+      )
+      .default([]),
   }),
 });

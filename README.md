@@ -70,6 +70,15 @@ up to two neighbouring spans on each side, read through the owner-filtered
 `data.book_source_passages` view (migration `012`), so owners see text only
 from their own books.
 
+New summaries are generated sentence by sentence. Each sentence records the
+spans it states (`data.generated_summaries.segments`, migration `013`), and
+each span carries a short quote from the book. Evidence extraction asks for a
+verbatim excerpt of at most 25 words, and the worker keeps it only if it
+appears word for word (ignoring whitespace and quote style) in a cited span. In
+the reader, numbered markers after a sentence expand a card with those quotes
+and a "View in context" link to the passage dialog. Summaries generated before
+this keep the plain view.
+
 ## Book management
 
 Owners manage books from the library row menu and the book page. All routes

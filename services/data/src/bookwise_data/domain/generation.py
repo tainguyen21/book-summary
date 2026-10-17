@@ -125,11 +125,43 @@ class EvidenceExtractionOutput(BaseModel):
     items: list[EvidenceDraft]
 
 
-class SummaryDraft(BaseModel):
-    """Structured summary returned by a model provider before validation."""
+class SummarySentence(BaseModel):
+    """One summary sentence and the source spans of the evidence it states."""
 
-    body: str = Field(min_length=1, max_length=20000)
-    source_span_ids: list[UUID] = Field(min_length=1)
+    text: str = Field(min_length=1, max_length=2000)
+    source_span_ids: list[UUID]
+
+
+class SummaryParagraph(BaseModel):
+    sentences: list[SummarySentence] = Field(min_length=1)
+
+
+class SummaryDraft(BaseModel):
+    """Structured summary returned by a model provider before validation.
+
+    Sentences carry their own citations; ``body`` and ``source_span_ids`` are
+    derived so the flat citation checks keep working unchanged.
+    """
+
+    paragraphs: list[SummaryParagraph] = Field(min_length=1)
+
+    @property
+    def body(self) -> str:
+        return "\n\n".join(
+            " ".join(sentence.text.strip() for sentence in paragraph.sentences)
+            for paragraph in self.paragraphs
+        )
+
+    @property
+    def source_span_ids(self) -> list[UUID]:
+        return list(
+            dict.fromkeys(
+                span_id
+                for paragraph in self.paragraphs
+                for sentence in paragraph.sentences
+                for span_id in sentence.source_span_ids
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -226,6 +258,8 @@ class GeneratedSummary:
     provider: str
     model: str
     supersedes_id: UUID | None
+    # Paragraphs -> sentences -> citations (span id + verified quote or None).
+    segments: tuple[dict[str, Any], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -376,21 +410,24 @@ def accepted_evidence_from_output(
 ) -> tuple[GeneratedEvidence, ...]:
     """Validate provider evidence citations and create immutable records."""
 
-    allowed_span_ids = {span.id for span in chunk.spans}
+    span_content = {span.id: span.content for span in chunk.spans}
     records: list[GeneratedEvidence] = []
     for index, item in enumerate(output.items, start=1):
         cited = tuple(dict.fromkeys(item.source_span_ids))
-        if not cited or any(span_id not in allowed_span_ids for span_id in cited):
+        if not cited or any(span_id not in span_content for span_id in cited):
             raise InvalidGenerationOutput(
                 "invalid_evidence_citation",
                 "Generated evidence cited a source span outside its chunk.",
             )
 
+        excerpt = verified_excerpt(
+            item.source_excerpt, [span_content[span_id] for span_id in cited]
+        )
         citation_data = tuple(
             {
                 "source_span_id": str(span_id),
                 "citation_order": order,
-                "source_excerpt": item.source_excerpt,
+                "source_excerpt": excerpt,
             }
             for order, span_id in enumerate(cited, start=1)
         )
@@ -429,6 +466,33 @@ def accepted_evidence_from_output(
         )
 
     return tuple(records)
+
+
+def _normalized(text: str) -> str:
+    """Whitespace- and quote-insensitive form used to verify excerpts."""
+
+    text = text.translate(
+        str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"'})
+    )
+    return " ".join(text.split()).casefold()
+
+
+def verified_excerpt(excerpt: str | None, cited_contents: Sequence[str]) -> str | None:
+    """Keep an excerpt only if it appears verbatim in one of the cited spans.
+
+    Models sometimes paraphrase when asked to quote; an unverifiable quote is
+    dropped rather than shown to readers as the book's words.
+    """
+
+    if not excerpt or not excerpt.strip():
+        return None
+    cleaned = " ".join(excerpt.split()).strip("\"'\u201c\u201d\u2018\u2019 ")
+    needle = _normalized(cleaned.strip("\u2026. "))
+    if len(needle) < 8:
+        return None
+    if any(needle in _normalized(content) for content in cited_contents):
+        return cleaned
+    return None
 
 
 def accepted_summary_from_output(
@@ -485,7 +549,67 @@ def accepted_summary_from_output(
         provider=provider,
         model=model,
         supersedes_id=supersedes_id,
+        segments=summary_segments(output, evidence, set(cited)),
     )
+
+
+def summary_segments(
+    output: SummaryDraft,
+    evidence: Sequence[GeneratedEvidence],
+    allowed_span_ids: set[UUID],
+) -> tuple[dict[str, Any], ...]:
+    """Attach to each sentence citation the verified quote that best fits it.
+
+    A span can be cited by several evidence items; the quote comes from the
+    item whose words overlap the sentence most. Spans outside the accepted
+    summary citations are dropped.
+    """
+
+    quotes: dict[str, list[tuple[set[str], str]]] = {}
+    for item in evidence:
+        words = _words(item.statement)
+        for citation in item.citation_data:
+            excerpt = citation.get("source_excerpt")
+            if excerpt:
+                quotes.setdefault(str(citation["source_span_id"]), []).append(
+                    (words | _words(excerpt), excerpt)
+                )
+
+    def best_quote(span_id: str, sentence_words: set[str]) -> str | None:
+        candidates = quotes.get(span_id)
+        if not candidates:
+            return None
+        return max(
+            candidates, key=lambda candidate: len(candidate[0] & sentence_words)
+        )[1]
+
+    return tuple(
+        {
+            "sentences": [
+                {
+                    "text": sentence.text.strip(),
+                    "citations": [
+                        {
+                            "source_span_id": str(span_id),
+                            "quote": best_quote(str(span_id), _words(sentence.text)),
+                        }
+                        for span_id in dict.fromkeys(sentence.source_span_ids)
+                        if span_id in allowed_span_ids
+                    ],
+                }
+                for sentence in paragraph.sentences
+            ]
+        }
+        for paragraph in output.paragraphs
+    )
+
+
+def _words(text: str) -> set[str]:
+    return {
+        word
+        for word in _normalized(text).replace(",", " ").replace(".", " ").split()
+        if len(word) > 2
+    }
 
 
 def embedding_records(
