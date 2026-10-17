@@ -1,0 +1,339 @@
+/* Book page: cover + facts column, and the summary as an article. */
+
+.reader-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin: 0 0 20px -8px;
+  padding: 0 10px 0 6px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.reader-back:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+.reader-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.reader-aside {
+  position: sticky;
+  top: 28px;
+  display: grid;
+  gap: 24px;
+}
+
+.reader-aside .book-cover-lg {
+  width: 100%;
+  max-width: 200px;
+}
+
+.reader-facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+.reader-facts > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reader-facts dt {
+  color: var(--color-text-subtle);
+}
+
+.reader-facts dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-weight: 550;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reader-main {
+  max-width: 700px;
+  min-width: 0;
+}
+
+.reader-eyebrow {
+  margin-bottom: 10px;
+  color: var(--color-accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reader-main h1 {
+  margin-bottom: 14px;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.reader-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reader-main > .panel,
+.reader-main > .callout,
+.reader-skeleton {
+  margin-top: 26px;
+}
+
+.reader-body {
+  color: var(--color-text);
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 1.8;
+}
+
+.reader-body p + p {
+  margin-top: 1.1em;
+}
+
+.reader-body p:first-child::first-letter {
+  float: left;
+  padding: 6px 10px 0 0;
+  color: var(--color-accent-strong);
+  font-family: var(--font-display);
+  font-size: 66px;
+  line-height: 0.88;
+}
+
+.reader-sources {
+  margin-top: 40px;
+  padding: 22px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.reader-sources h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.reader-sources > p {
+  margin-bottom: 14px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.reader-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px 0 4px;
+  font-size: 13px;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.reader-chips b {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  place-items: center;
+  color: #ffffff;
+  font-size: 11px;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.reader-skeleton {
+  display: grid;
+  gap: 14px;
+}
+
+/* Processing / failed panel */
+.reader-panel {
+  padding: 26px;
+}
+
+.reader-panel h2 {
+  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.reader-panel-lede {
+  margin-bottom: 24px;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.reader-panel-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
+  border-top: 1px solid var(--color-border);
+}
+
+.reader-live-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--color-info);
+  border-radius: 50%;
+}
+
+.progress-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 14px;
+  padding-bottom: 20px;
+}
+
+.progress-step:last-child {
+  padding-bottom: 0;
+}
+
+.progress-step:not(:last-child)::before {
+  position: absolute;
+  top: 26px;
+  bottom: 2px;
+  left: 11px;
+  width: 1.5px;
+  content: "";
+  background: var(--color-border-strong);
+}
+
+.progress-step[data-state="done"]::before {
+  background: var(--color-accent);
+}
+
+.progress-step-marker {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--color-text-faint);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 50%;
+}
+
+.progress-step[data-state="done"] .progress-step-marker {
+  color: var(--color-on-ink);
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.progress-step[data-state="active"] .progress-step-marker {
+  color: var(--color-info);
+  border-color: var(--color-info);
+}
+
+.progress-step[data-state="failed"] .progress-step-marker {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.progress-step-text {
+  display: grid;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.progress-step-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.progress-step[data-state="pending"] .progress-step-text strong {
+  color: var(--color-text-subtle);
+  font-weight: 500;
+}
+
+.progress-step-text > span {
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
+}
+
+@media (max-width: 960px) {
+  .reader-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .reader-aside {
+    position: static;
+    grid-template-columns: 120px 1fr;
+    align-items: start;
+    gap: 20px;
+  }
+
+  .reader-aside .book-cover-lg {
+    padding: 12px 10px;
+  }
+
+  .reader-aside .book-cover-lg .book-cover-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .reader-body {
+    font-size: 17.5px;
+  }
+
+  .reader-panel {
+    padding: 20px;
+  }
+}

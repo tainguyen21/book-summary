@@ -1,19 +1,24 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { CircleAlert, LoaderCircle, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
   syncBookwiseIdentity,
   type BookwisePrincipal,
 } from "../../lib/bookwise-api";
+import { Spinner } from "../ui/loading";
 
 type ConnectionState =
   | { kind: "connecting" }
   | { kind: "connected"; principal: BookwisePrincipal }
   | { kind: "error" };
 
+/**
+ * Registers the signed-in identity with the API and shows the result as one
+ * quiet line under the account name.
+ */
 export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
   const { getAccessTokenSilently } = useAuth0();
   const [state, setState] = useState<ConnectionState>({
@@ -46,37 +51,34 @@ export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
 
   if (state.kind === "connecting") {
     return (
-      <p className="session-status" role="status">
-        <LoaderCircle className="spin" aria-hidden="true" size={16} />
-        Connecting your account
-      </p>
+      <small className="sync-status">
+        <Spinner size="sm" />
+        Connecting…
+      </small>
     );
   }
 
   if (state.kind === "connected") {
     return (
-      <p className="session-status" role="status">
-        Connected as {state.principal.email}
-      </p>
+      <small className="sync-status" title={state.principal.email}>
+        {state.principal.email}
+      </small>
     );
   }
 
   return (
-    <div className="session-status session-error" role="alert">
-      <CircleAlert aria-hidden="true" size={18} />
-      <span>Bookwise could not connect.</span>
+    <small className="sync-status sync-status-error" role="alert">
+      Not connected.
       <button
-        className="icon-button"
         type="button"
         onClick={() => {
           setState({ kind: "connecting" });
           void requestSynchronization().then(setState);
         }}
-        title="Retry connection"
-        aria-label="Retry connection"
       >
-        <RefreshCw aria-hidden="true" size={18} />
+        <RefreshCw aria-hidden="true" size={12} />
+        Retry
       </button>
-    </div>
+    </small>
   );
 }

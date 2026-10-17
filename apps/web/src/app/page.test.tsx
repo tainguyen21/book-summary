@@ -11,8 +11,10 @@ vi.mock("@auth0/auth0-react", () => ({
   }),
 }));
 
-it("renders the library heading", () => {
+it("renders the landing page heading", () => {
   render(<HomePage />);
 
-  expect(screen.getByRole("heading", { name: "Your library" })).toBeVisible();
+  expect(
+    screen.getByRole("heading", { level: 1, name: /Understand any book/ }),
+  ).toBeVisible();
 });

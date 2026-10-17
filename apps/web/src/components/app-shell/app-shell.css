@@ -1,0 +1,328 @@
+/* Signed-in app frame: sidebar + main content. */
+
+.shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.shell-side {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100dvh;
+  padding: 16px 12px;
+  overflow-y: auto;
+  background: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border);
+}
+
+.shell-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shell-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.shell-mark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #062a1e;
+  background: linear-gradient(135deg, #34d399, #2dd4bf);
+  border-radius: 8px;
+}
+
+.shell-mobile-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.shell-upload {
+  width: 100%;
+  min-height: 40px;
+}
+
+.shell-nav {
+  display: grid;
+  gap: 2px;
+}
+
+.shell-nav-heading {
+  margin-bottom: 4px;
+  padding: 0 10px;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.shell-nav-item:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+.shell-nav-item.is-active {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.shell-dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: 50%;
+}
+
+.shell-count {
+  margin-left: auto;
+  color: var(--color-text-faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.shell-privacy {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding: 14px;
+  color: var(--color-accent-strong);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.shell-privacy p {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.shell-privacy b {
+  display: block;
+  color: var(--color-text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.shell-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 6px 8px;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: #065f46;
+  font-size: 13px;
+  font-weight: 650;
+  background: linear-gradient(135deg, #d1fae5, #e0e7ff);
+  border-radius: 50%;
+}
+
+.shell-account-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.shell-account-text b {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-status-error {
+  color: var(--color-danger);
+}
+
+.sync-status button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+}
+
+.shell-avatar-button {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+
+.shell-main {
+  min-width: 0;
+  padding: 28px 36px 48px;
+}
+
+.shell-content {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Phones and small tablets: sidebar becomes a top bar with scrolling filters. */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .shell-side {
+    z-index: 10;
+    gap: 10px;
+    height: auto;
+    padding: 10px 16px;
+    overflow: visible;
+    background: color-mix(in srgb, var(--color-bg-sidebar) 90%, transparent);
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    backdrop-filter: blur(12px);
+  }
+
+  .shell-mobile-actions {
+    display: flex;
+  }
+
+  .shell-upload,
+  .shell-privacy,
+  .shell-account,
+  .shell-nav-heading {
+    display: none;
+  }
+
+  .shell-nav {
+    display: flex;
+    gap: 6px;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .shell-nav-item {
+    flex: 0 0 auto;
+    min-height: 34px;
+    font-size: 13px;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    border-radius: var(--radius-full);
+  }
+
+  .shell-nav-item.is-active {
+    color: var(--color-on-ink);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+
+  .shell-nav-item.is-active .shell-count {
+    color: inherit;
+    opacity: 0.7;
+  }
+
+  .shell-main {
+    padding: 20px 16px 40px;
+  }
+}
+
+/* Sign-in gate for private routes. */
+.auth-gate {
+  display: grid;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  place-items: center;
+}
+
+.auth-gate-card {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 400px);
+  padding: 36px 32px;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-gate-card h1 {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 650;
+}
+
+.auth-gate-card > p {
+  color: var(--color-text-muted);
+}
+
+.auth-gate-card .button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.auth-gate-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-danger) !important;
+  font-size: 13px;
+}
+
+.auth-gate-back {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}

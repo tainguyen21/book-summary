@@ -1,289 +1,170 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { RefreshCw, Upload } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { z } from "zod";
+import { RefreshCw, Search, Upload, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { bookwiseApi } from "../../lib/bookwise-api";
-import {
-  bookProcessingStatusSchema,
-  libraryBookSchema,
-  type BookProcessingStatus,
-  type LibraryBook,
-} from "../../lib/library-types";
-import { UploadDialog } from "./upload-dialog";
+import { categoryLabels, isActive, presentStatus } from "../../lib/book-status";
+import { greeting } from "../../lib/format";
+import type { LibraryBook } from "../../lib/library-types";
+import { AppShell, libraryViewHref, type LibraryView } from "../app-shell/app-shell";
+import { useUpload } from "../app-shell/upload-context";
+import { StateCallout } from "../layout/state-callout";
+import { BookCollection } from "./book-collection";
+import { LibraryDashboardSkeleton } from "./library-skeleton";
+import { LibraryStats } from "./library-stats";
+import { ProcessingNowPanel } from "./processing-now-panel";
+import { useLibraryBooks } from "./use-library-books";
+import "./library.css";
 
-const libraryBooksSchema = z.array(libraryBookSchema);
+export function LibraryScreen({ view }: { view: LibraryView }) {
+  const { state, reload, refresh } = useLibraryBooks();
 
-const statusLabels: Record<string, string> = {
-  pending_upload: "Upload incomplete",
-  queued: "Queued",
-  processing: "Processing",
-  completed: "Completed",
-  failed: "Failed",
-  running: "Processing",
-  retryable_failed: "Processing will retry",
-  permanent_failed: "Failed",
-  needs_review: "Needs review",
-};
+  return (
+    <AppShell
+      books={state.kind === "ready" ? state.books : undefined}
+      activeView={view}
+      onUploaded={refresh}
+    >
+      {state.kind === "loading" && <LibraryDashboardSkeleton />}
 
-type LibraryState =
-  | { kind: "loading" }
-  | { kind: "error" }
-  | { kind: "ready"; books: LibraryBook[] };
+      {state.kind === "error" && (
+        <div className="shell-content">
+          <StateCallout
+            tone="danger"
+            title="We couldn’t load your library"
+            body="Check your connection, then try again."
+            action={
+              <button className="button button-line button-sm" type="button" onClick={reload}>
+                <RefreshCw aria-hidden="true" size={15} />
+                Try again
+              </button>
+            }
+          />
+        </div>
+      )}
 
-function isPollingBook(book: LibraryBook): boolean {
-  return ["queued", "processing", "running", "retryable_failed"].includes(
-    book.runStatus ?? book.commandStatus ?? book.bookStatus,
+      {state.kind === "ready" && <LibraryDashboard view={view} books={state.books} />}
+    </AppShell>
   );
 }
 
-function statusLabel(book: LibraryBook): string {
-  const status = book.runStatus ?? book.commandStatus ?? book.bookStatus;
+function LibraryDashboard({
+  view,
+  books,
+}: {
+  view: LibraryView;
+  books: LibraryBook[];
+}) {
+  const { user } = useAuth0();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const activeCount = books.filter(isActive).length;
+  const firstName =
+    user?.given_name ||
+    (user?.name && user.name !== user.email ? user.name.split(" ")[0] : "");
 
-  return statusLabels[status] ?? status;
-}
-
-function createdAt(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.valueOf())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function mergeProcessingStatus(
-  book: LibraryBook,
-  status: BookProcessingStatus,
-): LibraryBook {
-  return {
-    ...book,
-    bookStatus: status.bookStatus,
-    commandStatus: status.commandStatus,
-    runStatus: status.runStatus,
-  };
-}
-
-export function LibraryScreen() {
-  const { getAccessTokenSilently } = useAuth0();
-  const [state, setState] = useState<LibraryState>({ kind: "loading" });
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const pollingBookIdsKey =
-    state.kind === "ready"
-      ? state.books
-          .filter(isPollingBook)
-          .map((book) => book.id)
-          .sort()
-          .join(",")
-      : "";
-
-  const requestLibrary = useCallback(async (): Promise<LibraryState> => {
-    try {
-      const books = await bookwiseApi(
-        getAccessTokenSilently,
-        "/v1/books",
-        { method: "GET" },
-        libraryBooksSchema,
-      );
-
-      return { kind: "ready", books };
-    } catch {
-      return { kind: "error" };
-    }
-  }, [getAccessTokenSilently]);
-
-  const refreshLibrary = useCallback(() => {
-    setState({ kind: "loading" });
-    void requestLibrary().then(setState);
-  }, [requestLibrary]);
-
-  useEffect(() => {
-    let active = true;
-
-    void requestLibrary().then((nextState) => {
-      if (active) {
-        setState(nextState);
-      }
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [requestLibrary]);
-
-  useEffect(() => {
-    if (!pollingBookIdsKey) {
-      return;
-    }
-
-    const bookIds = pollingBookIdsKey.split(",");
-
-    let active = true;
-
-    const poll = () => {
-      if (document.hidden) {
-        return;
-      }
-
-      void Promise.all(
-        bookIds.map(async (bookId) => {
-          try {
-            return await bookwiseApi(
-              getAccessTokenSilently,
-              `/v1/books/${bookId}/processing`,
-              { method: "GET" },
-              bookProcessingStatusSchema,
-            );
-          } catch {
-            return undefined;
-          }
-        }),
-      ).then((statuses) => {
-        if (!active) {
-          return;
-        }
-
-        const byBookId = new Map(
-          statuses
-            .filter(
-              (status): status is BookProcessingStatus => status !== undefined,
-            )
-            .map((status) => [status.bookId, status]),
-        );
-
-        if (byBookId.size === 0) {
-          return;
-        }
-
-        setState((current) => {
-          if (current.kind !== "ready") {
-            return current;
-          }
-
-          return {
-            kind: "ready",
-            books: current.books.map((book) => {
-              const status = byBookId.get(book.id);
-
-              return status ? mergeProcessingStatus(book, status) : book;
-            }),
-          };
-        });
-      });
-    };
-
-    const onVisibilityChange = () => {
-      if (!document.hidden) {
-        poll();
-      }
-    };
-
-    poll();
-    const interval = window.setInterval(poll, 5000);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [getAccessTokenSilently, pollingBookIdsKey]);
-
-  async function refreshAfterUpload(): Promise<void> {
-    setState(await requestLibrary());
-  }
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleBooks = books.filter(
+    (book) =>
+      (view === "all" || presentStatus(book).category === view) &&
+      (!normalizedQuery ||
+        book.title.toLowerCase().includes(normalizedQuery) ||
+        book.filename.toLowerCase().includes(normalizedQuery)),
+  );
 
   return (
-    <section className="library" aria-labelledby="library-title">
-      <div className="library-toolbar">
+    <div className="shell-content">
+      <header className="lib-heading">
         <div>
-          <p className="eyebrow">Private library</p>
-          <h2 id="library-title">Books</h2>
+          <h1>
+            {greeting()}
+            {firstName ? (
+              <>
+                , <span className="display-italic">{firstName}</span>
+              </>
+            ) : null}
+          </h1>
+          <p>
+            {books.length === 0
+              ? "Your private library is ready for its first book."
+              : "Here’s what’s happening in your library."}
+          </p>
         </div>
-        <div className="library-actions">
-          <button
-            className="icon-button"
-            type="button"
-            onClick={refreshLibrary}
-            title="Refresh library"
-            aria-label="Refresh library"
-          >
-            <RefreshCw aria-hidden="true" size={18} />
-          </button>
-          <button
-            className="primary-button"
-            type="button"
-            onClick={() => setUploadOpen(true)}
-          >
-            <Upload aria-hidden="true" size={18} />
-            Upload book
-          </button>
-        </div>
+        {activeCount > 0 && (
+          <span className="lib-live" role="status">
+            <span className="lib-live-dot" aria-hidden="true" />
+            {activeCount} {activeCount === 1 ? "book" : "books"} processing ·
+            updates live
+          </span>
+        )}
+      </header>
+
+      {books.length === 0 ? (
+        <EmptyLibrary />
+      ) : (
+        <>
+          <LibraryStats books={books} />
+          <ProcessingNowPanel books={books} />
+
+          <div className="lib-search">
+            <Search aria-hidden="true" size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by title or file name"
+              aria-label="Search books"
+            />
+            {query && (
+              <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
+                <X aria-hidden="true" size={14} />
+              </button>
+            )}
+          </div>
+
+          <BookCollection
+            title={view === "all" ? "All books" : categoryLabels[view]}
+            books={visibleBooks}
+            totalCount={books.length}
+            onClearFilters={() => {
+              setQuery("");
+              router.push(libraryViewHref("all"));
+            }}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function EmptyLibrary() {
+  const { openUpload } = useUpload();
+
+  return (
+    <section className="lib-empty" aria-labelledby="empty-title">
+      <div className="lib-empty-stack" aria-hidden="true">
+        <span className="book-cover cover-2" />
+        <span className="book-cover cover-1" />
+        <span className="book-cover cover-3" />
       </div>
-
-      {state.kind === "loading" && (
-        <p className="library-message" role="status">
-          Loading your library...
-        </p>
-      )}
-
-      {state.kind === "error" && (
-        <div className="library-message library-error" role="alert">
-          <p>Bookwise could not load your library.</p>
-          <button className="secondary-button" type="button" onClick={refreshLibrary}>
-            Retry
-          </button>
-        </div>
-      )}
-
-      {state.kind === "ready" && state.books.length === 0 && (
-        <div className="library-empty">
-          <p>Your library is empty.</p>
-          <button
-            className="primary-button"
-            type="button"
-            onClick={() => setUploadOpen(true)}
-          >
-            <Upload aria-hidden="true" size={18} />
-            Upload book
-          </button>
-        </div>
-      )}
-
-      {state.kind === "ready" && state.books.length > 0 && (
-        <ul className="book-list" aria-label="Your books">
-          {state.books.map((book) => (
-            <li key={book.id}>
-              <Link className="book-row book-row-link" href={`/books/${book.id}`}>
-                <div className="book-details">
-                  <strong>{book.title}</strong>
-                  <span>{book.filename}</span>
-                </div>
-                <div className="book-meta">
-                  <span>{createdAt(book.createdAt)}</span>
-                  <span className={`status status-${book.runStatus ?? book.commandStatus ?? book.bookStatus}`}>
-                    {statusLabel(book)}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {uploadOpen && (
-        <UploadDialog
-          onClose={() => setUploadOpen(false)}
-          onComplete={refreshAfterUpload}
-        />
-      )}
+      <h2 id="empty-title">Add your first book</h2>
+      <p>
+        Upload a book and Bookwise will read it privately and write a summary
+        with sources you can check.
+      </p>
+      <button className="button button-ink button-lg" type="button" onClick={openUpload}>
+        <Upload aria-hidden="true" size={18} />
+        Upload a book
+      </button>
+      <ul className="lib-empty-formats" aria-label="Supported formats">
+        <li>PDF</li>
+        <li>EPUB</li>
+        <li>DOCX</li>
+        <li>TXT</li>
+      </ul>
+      <small>Up to 100 MB per file</small>
     </section>
   );
 }

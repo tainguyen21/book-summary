@@ -9,6 +9,8 @@ export interface LibraryBook {
   createdAt: string;
   commandStatus?: string;
   runStatus?: string;
+  /** Filled in from processing polls; not part of the list response. */
+  latestEventAt?: string;
 }
 
 export interface UploadTicket {
