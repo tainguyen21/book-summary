@@ -11,10 +11,10 @@ from bookwise_data.domain.source import (
     SourceFormat,
 )
 from bookwise_data.infrastructure.parsers.limits import validate_source_size
-
-# Keeps every span well inside one generation chunk (12,000 chars by default),
-# because chunks group whole spans and never split one.
-MAX_TEXT_SPAN_CHARS = 4_000
+from bookwise_data.infrastructure.parsers.spans import (
+    MAX_SPAN_CHARS,
+    split_long_text,
+)
 
 
 def parse_text(source_content: bytes) -> ParsedSource:
@@ -76,8 +76,8 @@ def _bounded_spans(
 
     pieces: list[tuple[int, int, str]] = []
     for line_number, line in paragraph:
-        for part in _split_long_line(line):
-            if pieces and len(pieces[-1][2]) + 1 + len(part) <= MAX_TEXT_SPAN_CHARS:
+        for part in split_long_text(line):
+            if pieces and len(pieces[-1][2]) + 1 + len(part) <= MAX_SPAN_CHARS:
                 start, _, joined = pieces[-1]
                 pieces[-1] = (start, line_number, f"{joined} {part}")
             else:
@@ -95,16 +95,3 @@ def _bounded_spans(
         )
         for index, (line_start, line_end, content) in enumerate(pieces, start=1)
     ]
-
-
-def _split_long_line(line: str) -> list[str]:
-    parts: list[str] = []
-    while len(line) > MAX_TEXT_SPAN_CHARS:
-        cut = line.rfind(" ", 0, MAX_TEXT_SPAN_CHARS)
-        if cut <= 0:
-            cut = MAX_TEXT_SPAN_CHARS
-        parts.append(line[:cut].rstrip())
-        line = line[cut:].lstrip()
-    if line:
-        parts.append(line)
-    return parts

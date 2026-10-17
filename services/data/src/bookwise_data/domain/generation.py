@@ -288,14 +288,33 @@ def build_chunks(
     source: GenerationSourceBook,
     maximum_chars: int = DEFAULT_GENERATION_CHUNK_CHARS,
 ) -> tuple[EvidenceChunk, ...]:
-    """Group adjacent spans without crossing a source structure-node boundary."""
+    """Pack adjacent spans, in reading order, into chunks of ``maximum_chars``.
+
+    Chunks may cross section boundaries so short pages, paragraphs, or
+    chapters share one provider call. A chunk inside one section keeps that
+    section's node; a chunk spanning sections belongs to the document node.
+    Citations only need to stay within the same source document.
+    """
 
     if maximum_chars <= 0:
         raise ValueError("maximum_chars must be greater than zero")
 
     spans_by_sequence = {span.sequence_number: span for span in source.spans}
+    document_node = min(source.nodes, key=lambda node: node.sequence_number)
     chunks: list[EvidenceChunk] = []
-    chunk_sequence = 1
+    current: list[tuple[GenerationStructureNode, GenerationSourceSpan]] = []
+    current_chars = 0
+
+    def flush() -> None:
+        nonlocal current, current_chars
+        if not current:
+            return
+        node_ids = {node.id for node, _ in current}
+        owner = current[0][0] if len(node_ids) == 1 else document_node
+        chunks.append(_chunk(owner.id, len(chunks) + 1, (span for _, span in current)))
+        current = []
+        current_chars = 0
+
     for node in _leaf_section_nodes(source.nodes):
         if (
             node.source_span_start_sequence is None
@@ -303,23 +322,17 @@ def build_chunks(
         ):
             continue
 
-        section_spans = tuple(
-            spans_by_sequence[sequence]
-            for sequence in range(
-                node.source_span_start_sequence,
-                node.source_span_end_sequence + 1,
-            )
-            if sequence in spans_by_sequence
-        )
-        current: list[GenerationSourceSpan] = []
-        current_chars = 0
-        for span in section_spans:
+        for sequence in range(
+            node.source_span_start_sequence,
+            node.source_span_end_sequence + 1,
+        ):
+            span = spans_by_sequence.get(sequence)
+            if span is None:
+                continue
             span_size = len(span.content)
             if span_size > maximum_chars:
                 candidate = _chunk(
-                    node.id,
-                    chunk_sequence + (1 if current else 0),
-                    (span,),
+                    node.id, len(chunks) + (2 if current else 1), (span,)
                 )
                 raise SourceSpanChunkLimitError(
                     node.id,
@@ -327,17 +340,11 @@ def build_chunks(
                     candidate.input_hash,
                 )
             if current and current_chars + span_size > maximum_chars:
-                chunks.append(_chunk(node.id, chunk_sequence, current))
-                chunk_sequence += 1
-                current = []
-                current_chars = 0
-            current.append(span)
+                flush()
+            current.append((node, span))
             current_chars += span_size
 
-        if current:
-            chunks.append(_chunk(node.id, chunk_sequence, current))
-            chunk_sequence += 1
-
+    flush()
     return tuple(chunks)
 
 

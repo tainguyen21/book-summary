@@ -19,10 +19,11 @@ from bookwise_data.infrastructure.parsers.limits import (
     MAX_DOCX_PARAGRAPHS,
     validate_archive_limits,
 )
+from bookwise_data.infrastructure.parsers.spans import bounded_spans
 
 
 def parse_docx(source_content: bytes) -> ParsedSource:
-    """Extract document paragraphs in their original order."""
+    """Group paragraphs into sections that start at each heading."""
 
     try:
         validate_archive_limits(source_content, "docx")
@@ -41,19 +42,16 @@ def parse_docx(source_content: bytes) -> ParsedSource:
             "The DOCX document exceeds the supported paragraph limit.",
         )
 
-    sections = tuple(
-        ParsedSection(
-            node_type=_node_type(paragraph.style.name),
-            title=text if _node_type(paragraph.style.name) == "heading" else None,
-            text=text,
-            location={
-                "paragraph_number": index,
-                "style": paragraph.style.name,
-            },
-        )
-        for index, paragraph in enumerate(document.paragraphs, start=1)
-        if (text := paragraph.text.strip())
-    )
+    groups: list[list[tuple[int, str, str]]] = []
+    for index, paragraph in enumerate(document.paragraphs, start=1):
+        text = paragraph.text.strip()
+        if not text:
+            continue
+        style = paragraph.style.name
+        if not groups or _node_type(style) == "heading":
+            groups.append([])
+        groups[-1].append((index, style, text))
+    sections = tuple(_section(group) for group in groups)
 
     if not sections:
         raise EmptySourceError(
@@ -62,6 +60,23 @@ def parse_docx(source_content: bytes) -> ParsedSource:
         )
 
     return ParsedSource(source_format=SourceFormat.DOCX, sections=sections)
+
+
+def _section(paragraphs: list[tuple[int, str, str]]) -> ParsedSection:
+    """A heading (if any) and the paragraphs up to the next heading."""
+
+    first_index, first_style, first_text = paragraphs[0]
+    return ParsedSection(
+        node_type="section",
+        title=first_text if _node_type(first_style) == "heading" else None,
+        text="\n\n".join(text for _, _, text in paragraphs),
+        location={"paragraph_number": first_index, "style": first_style},
+        spans=tuple(
+            span
+            for index, style, text in paragraphs
+            for span in bounded_spans(text, {"paragraph_number": index, "style": style})
+        ),
+    )
 
 
 def _node_type(style_name: str) -> str:
