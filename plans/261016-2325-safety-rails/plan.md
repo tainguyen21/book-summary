@@ -42,7 +42,7 @@ created: 2026-10-16
 | Topic | Decision |
 | --- | --- |
 | Answer cache | Deferred to the A3 plan |
-| Daily cap | $1/day, set by `BOOKWISE_DAILY_BUDGET_USD` |
+| Daily cap | $2/day (raised from $1 on 2026-10-17), set by `BOOKWISE_DAILY_BUDGET_USD` |
 | On limit | Pause generation; resume after midnight Asia/Saigon |
 | GCP alert | Reviewed `gcloud` script; the user runs it with billing access |
 

@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: Daily budget pause
-status: pending
+status: completed
 effort: 1d
 dependsOn: [phase-02]
 ---
@@ -49,6 +49,24 @@ dependsOn: [phase-02]
 ## Risks
 - A paused book repeats its evidence spend the next day, at most one day's cap per day. Saving finished chunks is a separate follow-up.
 - Concurrency: with `PROCESSING_BATCH_LIMIT=1` (the default) and one worker pod, overshoot is bounded by one provider call.
+
+## Results (2026-10-17)
+
+- **Cap:** raised from $1 to $2/day by user decision (a full book costs about
+  $4–5 after the coverage fix). It is set in the ConfigMap and `.env.example`; `0` disables it.
+- **Local run** on the evaluation book with 3,000-character chunks (4 chunks):
+  1. With the cap set just above today's spend, 2 chunks ran, then the run
+     stopped with `budget_paused` ($0.422 spent of a $0.406 cap) and ended
+     `retryable_failed`. A durable `budget_paused` event says "Paused: daily
+     budget reached." and no validation outcome was recorded.
+  2. With the same cap, the summary command was not claimed (`budget_hold_started`).
+  3. With the cap raised, the run resumed (`evidence_resumed`, 2 of 4 reused)
+     and completed: 4 evidence calls in total, summary persisted.
+- **No embeddings check:** the budget is not checked before embeddings, so a
+  paid summary call is never thrown away.
+- **Image:** `Asia/Saigon` resolves inside the built worker image (via `tzdata`,
+  installed through Celery's `kombu`).
+- **Overshoot:** one provider call per pause (here about $0.016), as designed.
 
 ## Rollback
 Set `BOOKWISE_DAILY_BUDGET_USD=0`.
