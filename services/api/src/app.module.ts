@@ -36,10 +36,17 @@ import {
   SyncIdentityUseCase,
   SYNC_IDENTITY_USE_CASE,
 } from "./application/identity/sync-identity.use-case";
+import {
+  GetDailyUsageUseCase,
+  GET_DAILY_USAGE_USE_CASE,
+  type DailyBudgetSettings,
+} from "./application/usage/get-daily-usage.use-case";
+import { USAGE_READ_REPOSITORY } from "./domain/usage/daily-usage";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
 import { BookRepository } from "./infrastructure/database/book.repository";
 import { ProcessingCommandRepository } from "./infrastructure/database/processing-command.repository";
+import { UsageReadRepository } from "./infrastructure/database/usage-read.repository";
 import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier";
 import { GcsObjectStorage } from "./infrastructure/storage/gcs-object-storage";
 import { S3ObjectStorage } from "./infrastructure/storage/s3-object-storage";
@@ -49,6 +56,7 @@ import { HealthController } from "./interfaces/http/health.controller";
 import { LibraryController } from "./interfaces/http/library.controller";
 import { SessionController } from "./interfaces/http/session.controller";
 import { SummaryController } from "./interfaces/http/summary.controller";
+import { UsageController } from "./interfaces/http/usage.controller";
 
 const APP_DATABASE_POOL = Symbol("AppDatabasePool");
 
@@ -70,6 +78,25 @@ function positiveIntegerEnvironment(name: string): number {
   }
 
   return value;
+}
+
+/** Must match the worker: BOOKWISE_DAILY_BUDGET_USD (default 2, 0 disables). */
+function dailyBudgetFromEnvironment(): DailyBudgetSettings {
+  const rawCap = process.env.BOOKWISE_DAILY_BUDGET_USD?.trim() || "2";
+  const capUsd = Number(rawCap);
+  if (!Number.isFinite(capUsd) || capUsd < 0) {
+    throw new Error("BOOKWISE_DAILY_BUDGET_USD must be zero or positive.");
+  }
+
+  const timeZone =
+    process.env.BOOKWISE_BUDGET_TIMEZONE?.trim() || "Asia/Saigon";
+  try {
+    new Intl.DateTimeFormat("en", { timeZone });
+  } catch {
+    throw new Error("BOOKWISE_BUDGET_TIMEZONE must be an IANA time zone name.");
+  }
+
+  return { capUsd, timeZone };
 }
 
 function objectStorageFromEnvironment(): ObjectStorage {
@@ -101,6 +128,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     BooksController,
     LibraryController,
     SummaryController,
+    UsageController,
   ],
   providers: [
     {
@@ -184,6 +212,17 @@ function objectStorageFromEnvironment(): ObjectStorage {
       useFactory: (books: BookReadRepository) =>
         new GetBookSummaryUseCase(books),
       inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: USAGE_READ_REPOSITORY,
+      useFactory: (pool: Pool) => new UsageReadRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: GET_DAILY_USAGE_USE_CASE,
+      useFactory: (usage: UsageReadRepository) =>
+        new GetDailyUsageUseCase(usage, dailyBudgetFromEnvironment()),
+      inject: [USAGE_READ_REPOSITORY],
     },
     AuthenticatedPrincipalGuard,
   ],

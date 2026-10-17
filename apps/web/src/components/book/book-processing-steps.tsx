@@ -19,7 +19,9 @@ interface Step {
 function stepsFor(status: BookProcessingStatus, failed: boolean): Step[] {
   const run = status.runStatus;
   const started = run !== undefined;
-  const retrying = run === "retryable_failed";
+  const paused =
+    run === "retryable_failed" && status.latestEventType === "budget_paused";
+  const retrying = run === "retryable_failed" && !paused;
 
   return [
     {
@@ -36,12 +38,14 @@ function stepsFor(status: BookProcessingStatus, failed: boolean): Step[] {
       title: "Reading and summarizing",
       detail: failed
         ? "Processing stopped before a summary was written."
-        : retrying
+        : paused
+          ? "Paused because today’s AI budget was reached. It resumes automatically after midnight."
+          : retrying
           ? "Hit a temporary problem — retrying automatically."
           : started
             ? "Extracting text and writing a cited summary."
             : "Bookwise reads every chapter and cites its sources.",
-      state: failed ? "failed" : started ? "active" : "pending",
+      state: failed ? "failed" : paused ? "pending" : started ? "active" : "pending",
     },
     {
       title: "Summary ready",

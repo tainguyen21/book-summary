@@ -11,6 +11,15 @@ export interface LibraryBook {
   runStatus?: string;
   /** Filled in from processing polls; not part of the list response. */
   latestEventAt?: string;
+  latestEventType?: string;
+}
+
+/** Shared daily AI budget; `capUsd` 0 means no cap. */
+export interface DailyUsage {
+  spentUsd: number;
+  capUsd: number;
+  paused: boolean;
+  resetsAt: string;
 }
 
 export interface UploadTicket {
@@ -93,6 +102,13 @@ export const bookProcessingStatusSchema: z.ZodType<BookProcessingStatus> =
     latestEventType: z.string().optional(),
     latestEventAt: z.string().datetime().optional(),
   });
+
+export const dailyUsageSchema: z.ZodType<DailyUsage> = z.object({
+  spentUsd: z.number().nonnegative(),
+  capUsd: z.number().nonnegative(),
+  paused: z.boolean(),
+  resetsAt: z.string().datetime(),
+});
 
 export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
   bookId: z.string().uuid(),

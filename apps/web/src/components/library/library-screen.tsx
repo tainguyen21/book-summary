@@ -12,9 +12,11 @@ import { AppShell, libraryViewHref, type LibraryView } from "../app-shell/app-sh
 import { useUpload } from "../app-shell/upload-context";
 import { StateCallout } from "../layout/state-callout";
 import { BookCollection } from "./book-collection";
+import { DailyBudgetCard } from "./daily-budget-card";
 import { LibraryDashboardSkeleton } from "./library-skeleton";
 import { LibraryStats } from "./library-stats";
 import { ProcessingNowPanel } from "./processing-now-panel";
+import { useDailyUsage } from "./use-daily-usage";
 import { useLibraryBooks } from "./use-library-books";
 import "./library.css";
 
@@ -60,6 +62,7 @@ function LibraryDashboard({
   const { user } = useAuth0();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const usage = useDailyUsage();
   const activeCount = books.filter(isActive).length;
   const firstName =
     user?.given_name ||
@@ -106,6 +109,7 @@ function LibraryDashboard({
       ) : (
         <>
           <LibraryStats books={books} />
+          {usage && <DailyBudgetCard usage={usage} />}
           <ProcessingNowPanel books={books} />
 
           <div className="lib-search">

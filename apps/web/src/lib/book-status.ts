@@ -8,6 +8,7 @@ export interface BookStatusSource {
   bookStatus: string;
   commandStatus?: string;
   runStatus?: string;
+  latestEventType?: string;
 }
 
 export type StatusTone = "success" | "info" | "warning" | "danger" | "neutral";
@@ -25,6 +26,8 @@ const presentations: Record<string, StatusPresentation> = {
   processing: { label: "Summarizing", tone: "info", category: "processing" },
   running: { label: "Summarizing", tone: "info", category: "processing" },
   retryable_failed: { label: "Retrying", tone: "warning", category: "processing" },
+  // Waiting for tomorrow's budget, so it reads as queued rather than running.
+  budget_paused: { label: "Paused · daily budget", tone: "warning", category: "queued" },
   pending_upload: { label: "Upload incomplete", tone: "warning", category: "attention" },
   needs_review: { label: "Needs review", tone: "warning", category: "attention" },
   failed: { label: "Failed", tone: "danger", category: "attention" },
@@ -35,6 +38,14 @@ export function effectiveStatus(source: BookStatusSource): string {
   // An unfinished upload outranks any command state.
   if (source.bookStatus === "pending_upload") {
     return "pending_upload";
+  }
+
+  // A retryable run stopped by the daily budget is waiting, not failing.
+  if (
+    source.runStatus === "retryable_failed" &&
+    source.latestEventType === "budget_paused"
+  ) {
+    return "budget_paused";
   }
 
   return source.runStatus ?? source.commandStatus ?? source.bookStatus;

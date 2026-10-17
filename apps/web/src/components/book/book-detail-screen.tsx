@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { formatDate } from "../../lib/format";
-import type { BookStatusSource } from "../../lib/book-status";
+import { effectiveStatus, type BookStatusSource } from "../../lib/book-status";
 import type { LibraryBook } from "../../lib/library-types";
 import { AppShell } from "../app-shell/app-shell";
 import { useUpload } from "../app-shell/upload-context";
@@ -168,7 +168,9 @@ function DetailBody({ state, reload }: { state: DetailState; reload(): void }) {
         <section className="panel reader-panel" aria-labelledby="processing-title">
           <h2 id="processing-title">Your summary is on its way</h2>
           <p className="reader-panel-lede">
-            Usually a few minutes, depending on the book’s length.
+            {effectiveStatus(state.status) === "budget_paused"
+              ? "Paused until today’s AI budget resets at midnight; no action needed."
+              : "Usually a few minutes, depending on the book’s length."}
           </p>
           <BookProcessingSteps status={state.status} />
           <p className="reader-panel-foot" role="status">

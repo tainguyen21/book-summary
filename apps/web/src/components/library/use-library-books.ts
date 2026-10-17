@@ -31,6 +31,7 @@ function mergeProcessingStatus(
     commandStatus: status.commandStatus,
     runStatus: status.runStatus,
     latestEventAt: status.latestEventAt,
+    latestEventType: status.latestEventType,
   };
 }
 
