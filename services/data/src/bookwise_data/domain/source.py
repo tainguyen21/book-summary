@@ -62,13 +62,26 @@ class OriginalBookObject:
 
 
 @dataclass(frozen=True, slots=True)
+class ParsedSpan:
+    """A citable passage inside a section, with its own source coordinates."""
+
+    text: str
+    location: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
 class ParsedSection:
-    """A parser-produced unit with durable ordering and source coordinates."""
+    """A parser-produced unit with durable ordering and source coordinates.
+
+    A section is one structure node. Without ``spans`` its whole text is one
+    citable span; with ``spans`` each entry becomes its own span under the node.
+    """
 
     node_type: str
     text: str
     location: Mapping[str, Any]
     title: str | None = None
+    spans: tuple[ParsedSpan, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -181,15 +194,24 @@ def normalize_source(
         )
     )
     source_id = uuid5(_SOURCE_NAMESPACE, identity)
+    span_entries: list[ParsedSpan] = []
+    section_ranges: list[tuple[int, int]] = []
+    for section in sections:
+        entries = tuple(span for span in section.spans if span.text.strip()) or (
+            ParsedSpan(text=section.text, location=section.location),
+        )
+        start = len(span_entries) + 1
+        span_entries.extend(entries)
+        section_ranges.append((start, len(span_entries)))
     spans = tuple(
         SourceSpan(
             id=uuid5(source_id, f"span:{sequence_number}"),
             sequence_number=sequence_number,
-            content=section.text.strip(),
-            content_hash=sha256_hex(section.text.strip().encode("utf-8")),
-            location=dict(section.location),
+            content=entry.text.strip(),
+            content_hash=sha256_hex(entry.text.strip().encode("utf-8")),
+            location=dict(entry.location),
         )
-        for sequence_number, section in enumerate(sections, start=1)
+        for sequence_number, entry in enumerate(span_entries, start=1)
     )
     nodes = (
         StructureNode(
@@ -204,16 +226,16 @@ def normalize_source(
         ),
         *tuple(
             StructureNode(
-                id=uuid5(source_id, f"node:{span.sequence_number}"),
-                sequence_number=span.sequence_number,
+                id=uuid5(source_id, f"node:{start}"),
+                sequence_number=start,
                 node_type=section.node_type,
                 title=section.title,
                 location=dict(section.location),
                 parent_sequence_number=0,
-                source_span_start_sequence=span.sequence_number,
-                source_span_end_sequence=span.sequence_number,
+                source_span_start_sequence=start,
+                source_span_end_sequence=end,
             )
-            for span, section in zip(spans, sections, strict=True)
+            for (start, end), section in zip(section_ranges, sections, strict=True)
         ),
     )
     artifact_key = (
