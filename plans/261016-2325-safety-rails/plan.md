@@ -84,7 +84,7 @@ The sections below are summaries. The phase files are the execution contract.
 - **New `application/daily_budget.py`:** sums today's `estimated_cost_usd`, with the day boundary in Asia/Saigon (configurable through `BOOKWISE_BUDGET_TIMEZONE`).
 - **Before claiming:** if over budget, the claim excludes `regenerate_summary` commands. They stay queued, and ingestion keeps running.
 - **During generation:** before each provider call, if over budget, raise a retryable `DailyBudgetExceeded`. The run becomes `retryable_failed` and is reclaimed tomorrow, with no permanent failure. Emit a `budget_paused` processing event and log line.
-- **Known waste:** evidence is saved only at the end, so a paused book restarts from scratch and repeats its spend (at most one day's budget). Saving chunks as they finish is a separate follow-up.
+- **Resume:** finished chunks are saved as evidence checkpoints (`plans/261017-1459-evidence-chunk-checkpoints`), so a paused book resumes from its next unfinished chunk the following day.
 
 ### 4. Web cost card and paused state
 - **API:** `GET /v1/usage/today` returns spend, cap, and paused status from the daily view. Add it under `services/api/src/interfaces/http`, reading through `book-read.repository.ts` or a new usage repository.
