@@ -29,7 +29,8 @@ Last updated: October 17, 2026
 | October 17, 2026 | Citation passage viewer | Citation chips on a summary open the cited passage, highlighted, with up to two neighbouring passages on each side (`GET /v1/books/:bookId/passages/:spanId`, migration `012`). Owners see source text only from their own books. Deployed and checked in production in `6401a45`. |
 | October 17, 2026 | Hierarchical summaries | Books with more than `BOOKWISE_SUMMARY_GROUP_RECORDS` (120) evidence records are summarized in groups, then the group summaries are summarized, so each call stays bounded. Group summaries are checkpointed for resume. A two-level run of the evaluation book scored 10.5/12. Deployed in `a270b38`. |
 | October 17, 2026 | Sentence source quotes | Summary sentences carry numbered markers that expand verbatim quotes from the book (excerpts verified against the cited span, migration `013`), with a link to the passage in context. On the evaluation book: 21 of 21 sentences cited, 36 quotes, 0 not found verbatim; about 21% more cost per book. Verified locally in the browser; deployed in `9b21280`. |
-| October 17, 2026 | Hybrid private search | `/search` finds facts and passages across the owner's books by keyword and by meaning (query embeddings from the API, migration `014`), merged by rank fusion, with a keyword-only fallback when the budget is spent or Vertex is unavailable. The API now calls Vertex for interactive requests (user decision) and records that spend in the shared ledger. Verified locally; not yet deployed. |
+| October 17, 2026 | Hybrid private search | `/search` finds facts and passages across the owner's books by keyword and by meaning (query embeddings from the API, migration `014`), merged by rank fusion, with a keyword-only fallback when the budget is spent or Vertex is unavailable. The API now calls Vertex for interactive requests (user decision) and records that spend in the shared ledger. Deployed in `32ae788`. |
+| October 17, 2026 | Ask a book | A book page answers questions from that book only, streamed with numbered markers that open verified quotes, and says so when the book doesn't cover it. Answers are cached per book and source document (migration `015`), and new answers count toward the daily budget. Verified locally in the browser against live Vertex (first text in about 7 s, cached repeats instant); not yet deployed. |
 
 ## In Progress
 
@@ -52,9 +53,8 @@ See [agent handoff](agent-handoff.md) for verification limits and
    confirm summaries, citations, ledger rows, and worker logs.
 2. Use book management to remove the local 76 MB test book and the production
    incomplete upload.
-3. Deploy sentence source quotes, then watch the first long book in production.
-4. Deploy private search (grant the API `roles/aiplatform.user` first), then
-   build cited question answering ("Ask a book") with an answer cache under the daily budget.
+3. Deploy "Ask a book" (migration `015`), then try it on a production book.
+4. Watch the first long book in production with sentence quotes and hierarchical summaries.
 5. Operational hardening: real readiness checks, uptime and stuck-run alerts,
    and credential rotation.
 6. Decide whether summary editing belongs in the next publication iteration.

@@ -98,6 +98,24 @@ budget. When the budget is spent, Vertex is not configured, or the call fails
 within 4 s, search returns keyword results only (`mode: "keyword"` with
 `keywordReason`).
 
+## Ask a book
+
+A ready book page has an "Ask this book" panel. `POST /v1/books/:bookId/ask`
+with `{ "question": "..." }` streams server-sent events: `sources` (numbered
+passages with location and verified quote), `delta` text with `[n]` markers,
+then `done` (`answered`, `cached`), or `error` (`budget` or `unavailable`).
+
+- Retrieval reuses the search queries filtered to the one book (top 8 spans,
+  about 16,000 characters). The API calls `BOOKWISE_SUMMARY_MODEL` on the
+  Vertex streaming endpoint (`GOOGLE_CLOUD_LOCATION`, `global` for
+  `gemini-3.8-flash`) and is told to answer only from those passages, or say
+  the book doesn't cover it.
+- Answers are cached in `app.book_answers` (migration `015`), keyed by book,
+  normalized question, prompt version, and current source document, so a
+  repeated question costs nothing and still works over the budget.
+- New answers record `query_embedding` and `answer` usage with the book id and
+  are refused once the daily budget is spent.
+
 ## Book management
 
 Owners manage books from the library row menu and the book page. All routes
