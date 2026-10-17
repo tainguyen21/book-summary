@@ -26,7 +26,7 @@ Last updated: October 17, 2026
 | October 17, 2026 | Spending guardrails | The worker pauses summary generation once estimated daily spend reaches `BOOKWISE_DAILY_BUDGET_USD` (2 USD, Asia/Saigon day). Paused books show "Paused · daily budget" and resume after midnight; the library shows today's spend (`GET /v1/usage/today`, migration `010`). A GCP billing budget of 260,000 VND per month emails at 50/90/100%. |
 | October 17, 2026 | Structured-format chunking | EPUB chapters, PDF pages, and DOCX sections are split into paragraph spans and packed into shared chunks. Long EPUB chapters no longer fail, and short PDFs/DOCX use one or two model calls instead of one per page or paragraph. A 10-chapter EPUB scored 11.5/12 end to end. Deployed in `7381c63`. |
 | October 17, 2026 | Book management | Owners can rename, delete (rows through cascades plus stored files; usage history kept), retry a permanently failed summary, and clear incomplete uploads. Retry is an app-side request (migration `011`) that the worker honours by reopening the same run, ingestion first. Verified locally against Postgres, MinIO, and live Vertex; deployed in `7b747fa`. |
-| October 17, 2026 | Citation passage viewer | Citation chips on a summary open the cited passage, highlighted, with up to two neighbouring passages on each side (`GET /v1/books/:bookId/passages/:spanId`, migration `012`). Owners see source text only from their own books. Verified locally; not yet deployed. |
+| October 17, 2026 | Citation passage viewer | Citation chips on a summary open the cited passage, highlighted, with up to two neighbouring passages on each side (`GET /v1/books/:bookId/passages/:spanId`, migration `012`). Owners see source text only from their own books. Deployed and checked in production in `6401a45`. |
 
 ## In Progress
 
@@ -49,15 +49,14 @@ See [agent handoff](agent-handoff.md) for verification limits and
    confirm summaries, citations, ledger rows, and worker logs.
 2. Use book management to remove the local 76 MB test book and the production
    incomplete upload.
-3. Deploy the citation passage viewer and check it on a real summary.
-4. Hierarchical summaries for long books (per section, then the whole book),
+3. Hierarchical summaries for long books (per section, then the whole book),
    because one summary call over all evidence will not scale to full-length books.
-5. Private hybrid search, then cited question answering ("Ask a book") with an
+4. Private hybrid search, then cited question answering ("Ask a book") with an
    answer cache under the daily budget.
-6. Operational hardening: real readiness checks, uptime and stuck-run alerts,
+5. Operational hardening: real readiness checks, uptime and stuck-run alerts,
    and credential rotation.
-7. Decide whether summary editing belongs in the next publication iteration.
-8. Later upload capabilities: multipart/resumable uploads, OCR, malware
+6. Decide whether summary editing belongs in the next publication iteration.
+7. Later upload capabilities: multipart/resumable uploads, OCR, malware
    scanning, and files larger than 100 MiB.
 
 Roadmap and rationale:

@@ -60,5 +60,12 @@ against local Postgres. Browser check after the user signs in.
   - Another owner, and a span from a different book, both returned nothing (404).
 - **Checks:** API lint, build, and Prettier pass; web lint, typecheck, the 3
   existing tests, and the build pass. Migration 012 applied locally after a backup.
-- **Not verified:** the signed-in browser dialog. It can be checked in
-  production after deploy on the user's existing ready PDF (read-only).
+- **Production check** (`8298902`, then fix `6401a45`), on the user's ready PDF:
+  - The "Page 1" chip is a button and opens a dialog titled "Page 1" with the
+    cited passage highlighted and no error.
+  - The first check found two bugs: long unbroken runs overflowed horizontally,
+    and closing returned focus to `<body>`. After the fix, the passage body has
+    no horizontal overflow and Escape returns focus to the chip. The same focus
+    fix applies to the book-actions and clear-incomplete dialogs.
+  - This PDF was ingested before paragraph spans, so it shows one page-sized
+    passage with the PDF's original line breaks and no neighbouring context.
