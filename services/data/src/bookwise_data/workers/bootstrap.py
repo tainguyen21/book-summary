@@ -15,6 +15,9 @@ from bookwise_data.application.claim_command import ClaimCommand
 from bookwise_data.application.daily_budget import DailyBudget
 from bookwise_data.application.emit_event import EmitEvent
 from bookwise_data.application.generate_summary import GenerateSummary
+from bookwise_data.application.hierarchical_summary import (
+    DEFAULT_SUMMARY_GROUP_RECORDS,
+)
 from bookwise_data.application.ingest_book import IngestBook
 from bookwise_data.application.record_model_usage import RecordModelUsage
 from bookwise_data.domain.generation import DEFAULT_GENERATION_CHUNK_CHARS
@@ -40,6 +43,7 @@ from bookwise_data.infrastructure.database.usage_repository import (
 from bookwise_data.infrastructure.providers.model_provider import (
     generation_chunk_chars_from_environment,
     provider_from_environment,
+    summary_group_records_from_environment,
 )
 from bookwise_data.infrastructure.storage.gcs_object_storage import (
     GcsObjectStorage,
@@ -89,6 +93,9 @@ def run_worker() -> None:
             record_usage.sink_for,
             SqlAlchemyEvidenceCheckpointRepository(engine),
             daily_budget,
+            lambda: summary_group_records_from_environment(
+                DEFAULT_SUMMARY_GROUP_RECORDS
+            ),
         )
         worker = CommandWorker(
             ClaimCommand(commands, EmitEvent(SqlAlchemyEventRepository())),

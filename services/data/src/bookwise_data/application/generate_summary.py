@@ -15,11 +15,19 @@ from bookwise_data.application.evidence_checkpoints import (
     EvidenceCheckpoints,
     EvidenceCheckpointStore,
 )
+from bookwise_data.application.hierarchical_summary import (
+    DEFAULT_SUMMARY_GROUP_RECORDS,
+    SummaryRecord,
+    evidence_records,
+    reduce_records,
+    section_citations,
+)
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
     AcceptedGeneration,
     EmbeddingTargetType,
     EvidenceExtractionOutput,
+    GeneratedEvidence,
     GenerationSourceBook,
     GenerationValidationOutcome,
     InvalidGenerationOutput,
@@ -124,6 +132,7 @@ class GenerateSummary:
         usage_sink_factory: Callable[[ClaimedCommand], UsageSink] | None = None,
         checkpoint_store: EvidenceCheckpointStore | None = None,
         daily_budget: DailyBudget | None = None,
+        summary_group_records_factory: Callable[[], int] | None = None,
     ) -> None:
         self._repository = repository
         self._provider_factory = provider_factory
@@ -131,6 +140,9 @@ class GenerateSummary:
         self._usage_sink_factory = usage_sink_factory
         self._checkpoint_store = checkpoint_store
         self._daily_budget = daily_budget
+        self._summary_group_records_factory = summary_group_records_factory or (
+            lambda: DEFAULT_SUMMARY_GROUP_RECORDS
+        )
 
     def handle(
         self,
@@ -372,24 +384,13 @@ class GenerateSummary:
             checkpoints.log_resumed(len(chunks))
         root_node = min(source.nodes, key=lambda node: node.sequence_number)
         summary_hash = summary_input_hash(source.document.id, root_node.id, evidence)
+        records = self._reduce_for_summary(
+            command, source, root_node.id, evidence, provider, heartbeat
+        )
         self._require_lease(heartbeat)
         self._require_budget()
         try:
-            summary_output = provider.generate_summary(
-                [
-                    {
-                        "evidence_id": str(item.id),
-                        "statement": item.statement,
-                        "evidence_type": item.evidence_type.value,
-                        "source_span_ids": [
-                            citation["source_span_id"]
-                            for citation in item.citation_data
-                        ],
-                    }
-                    for item in evidence
-                ],
-                SummaryDraft,
-            )
+            summary_output = provider.generate_summary(records, SummaryDraft)
         except Exception as error:
             raise self._failure(
                 error,
@@ -525,6 +526,73 @@ class GenerateSummary:
             provider.generation_model,
             validation_status,
         )
+
+    def _reduce_for_summary(
+        self,
+        command: ClaimedCommand,
+        source: GenerationSourceBook,
+        root_node_id: UUID,
+        evidence: list[GeneratedEvidence],
+        provider: GenerationProvider,
+        heartbeat: Callable[[], bool],
+    ) -> list[SummaryRecord]:
+        """Summarize evidence in groups when it exceeds one summary call."""
+
+        records = evidence_records(evidence)
+        group_size = self._summary_group_records_factory()
+        if len(records) <= group_size:
+            return records
+
+        sections = None
+        if self._checkpoint_store is not None:
+            sections = EvidenceCheckpoints(
+                self._checkpoint_store,
+                command,
+                source.document.id,
+                provider.provider_name,
+                provider.generation_model,
+                "section:"
+                + str(getattr(provider, "summary_prompt_version", "unversioned")),
+            )
+
+        def summarize_group(
+            group: list[SummaryRecord], group_hash: str
+        ) -> SummaryDraft:
+            saved = sections.get_as(group_hash, SummaryDraft) if sections else None
+            if saved is not None:
+                return saved
+            self._require_lease(heartbeat)
+            self._require_budget()
+            try:
+                draft = provider.generate_summary(group, SummaryDraft)
+            except Exception as error:
+                raise self._failure(
+                    error,
+                    "section_summary_generation",
+                    source.document.id,
+                    root_node_id,
+                    None,
+                    group_hash,
+                    provider,
+                ) from error
+            if sections:
+                # Save only valid sections, or a bad one would be reused on every retry.
+                section_citations(group, draft)
+                sections.save(group_hash, draft)
+            return draft
+
+        try:
+            return reduce_records(records, group_size, summarize_group)
+        except InvalidGenerationOutput as error:
+            raise self._failure(
+                error,
+                "section_summary_validation",
+                source.document.id,
+                root_node_id,
+                None,
+                None,
+                provider,
+            ) from error
 
     def _checkpoints(
         self,

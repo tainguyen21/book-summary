@@ -129,6 +129,15 @@ without a price is recorded at cost 0 with one `pricing_missing` warning. The
 values above are list rates to confirm against the Vertex AI pricing page;
 billing remains the source of truth.
 
+### Long books
+
+When a book yields more evidence records than `BOOKWISE_SUMMARY_GROUP_RECORDS`
+(default `120`), the summary is built in levels. Consecutive groups of records
+are summarized first, each citing only spans from its own group. The group
+summaries are then summarized again, until one group fits a single final call.
+Short books keep one summary call. Group summaries are saved as checkpoints,
+so a retried or budget-paused run reuses the finished groups.
+
 ### Daily budget
 
 The worker stops spending once today's estimated model cost reaches

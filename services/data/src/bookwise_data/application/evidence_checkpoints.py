@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from typing import Any, Protocol
+from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import EvidenceExtractionOutput
@@ -16,6 +16,8 @@ from bookwise_data.workers.logging_setup import (
     log_event,
     worker_logger,
 )
+
+TOutput = TypeVar("TOutput", bound=BaseModel)
 
 
 class EvidenceCheckpointStore(Protocol):
@@ -70,18 +72,23 @@ class EvidenceCheckpoints:
     def get(self, chunk_input_hash: str) -> EvidenceExtractionOutput | None:
         """Return a saved, still-valid output for the chunk, if any."""
 
-        saved = self._saved.get(chunk_input_hash)
+        return self.get_as(chunk_input_hash, EvidenceExtractionOutput)
+
+    def get_as(self, input_hash: str, schema: type[TOutput]) -> TOutput | None:
+        """Return a saved output parsed as ``schema`` (also used for section summaries)."""
+
+        saved = self._saved.get(input_hash)
         if saved is None:
             return None
         try:
-            output = EvidenceExtractionOutput.model_validate(saved)
+            output = schema.model_validate(saved)
         except ValidationError:
             return None
         self.reused += 1
         return output
 
-    def save(self, chunk_input_hash: str, output: EvidenceExtractionOutput) -> None:
-        """Save a chunk's output after it passed evidence validation."""
+    def save(self, chunk_input_hash: str, output: BaseModel) -> None:
+        """Save an output after it passed validation."""
 
         source_document_id, provider, model, prompt_version = self._key
         try:

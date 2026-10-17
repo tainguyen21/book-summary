@@ -60,6 +60,10 @@ _SUMMARY_INSTRUCTIONS = (
     "the source_span_id values of the evidence you used only in the "
     "source_span_ids field."
 )
+# Saved section summaries are reused only while the summary instructions match.
+SUMMARY_PROMPT_VERSION = hashlib.sha256(
+    _SUMMARY_INSTRUCTIONS.encode("utf-8")
+).hexdigest()[:16]
 
 
 class ModelProvider(Protocol):
@@ -166,6 +170,7 @@ class OpenAICompatibleProvider:
         self._timeout_seconds = config.timeout_seconds
         self._max_output_tokens = config.max_output_tokens
         self.evidence_prompt_version = EVIDENCE_PROMPT_VERSION
+        self.summary_prompt_version = SUMMARY_PROMPT_VERSION
         # Set after construction (per command) to record each call's usage.
         self.usage_sink: UsageSink | None = None
 
@@ -375,6 +380,7 @@ class VertexAIProvider:
         self.embedding_dimensions = config.embedding_dimensions
         self._max_output_tokens = config.max_output_tokens
         self.evidence_prompt_version = EVIDENCE_PROMPT_VERSION
+        self.summary_prompt_version = SUMMARY_PROMPT_VERSION
         # Set after construction (per command) to record each call's usage.
         self.usage_sink: UsageSink | None = None
         try:
@@ -627,6 +633,15 @@ def provider_from_environment() -> ModelProvider:
             max_output_tokens=max_output_tokens,
         )
     )
+
+
+def summary_group_records_from_environment(default: int) -> int:
+    """Records per summary call before the summary step reduces in groups."""
+
+    raw_value = os.environ.get("BOOKWISE_SUMMARY_GROUP_RECORDS")
+    if raw_value is None:
+        return default
+    return _positive_integer_environment("BOOKWISE_SUMMARY_GROUP_RECORDS")
 
 
 def generation_chunk_chars_from_environment(default: int) -> int:
