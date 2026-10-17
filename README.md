@@ -116,6 +116,30 @@ Get-Content .env |
 uv run --project services/data python -m bookwise_data.workers.main
 ```
 
+## Worker logs
+
+The Python worker writes one JSON object per line to stdout, which Cloud
+Logging on GKE parses natively. Every line has `timestamp`, `severity`,
+`logger` (`bookwise.worker`), `event`, and `message`, plus only allow-listed
+context: `command_id`, `book_id`, `run_id`, `command_type`,
+`processing_version`, `outcome`, `error_class`, `error_code`, and
+`duration_ms`. Startup also records `batch_limit`, `poll_interval_seconds`,
+`model_provider`, and `generation_model`; shutdown records the `signal`.
+
+| Event | Severity | Meaning |
+| --- | --- | --- |
+| `worker_started` | INFO | Worker composed and entering the poll loop |
+| `worker_stopping` | INFO | SIGTERM/SIGINT received; loop exiting |
+| `command_claimed` | INFO | A command was claimed for handling |
+| `command_completed` | INFO | Handler succeeded, with `duration_ms` |
+| `command_failed` | WARNING (retryable) / ERROR (permanent) | Handler failed; `outcome`, `error_class`, `error_code` |
+| `lease_lost` | WARNING | Heartbeat failed before handling; command skipped |
+| `batch_idle` | DEBUG | No commands to claim in this poll |
+
+Set the level with `BOOKWISE_LOG_LEVEL` (default `INFO`; unknown values fall
+back to `INFO`). Use `DEBUG` to see idle polls. Book titles, filenames, book
+text, owner IDs, and raw exception messages are never logged.
+
 ## GKE deployment
 
 The production target uses one GKE Autopilot cluster with one Pod each for the

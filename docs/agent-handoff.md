@@ -144,9 +144,11 @@ already-running process does not reread env-from secrets.
 - Do not log or replay old credentials from conversation history.
 - Preserve user edits. No destructive resets, volume deletion, or production
   migrations without an explicit task and verified target.
-- Empty worker logs do not prove an idle or healthy pipeline: the current worker
-  lacks routine lifecycle logging. Inspect durable commands/runs/events with
-  read-only, owner-scoped diagnostics; never dump whole user tables.
+- The worker emits structured JSON lifecycle logs; see
+  [Worker logs](../README.md#worker-logs). At the default `INFO` level an idle
+  worker is silent after `worker_started`, so quiet logs still do not prove a
+  healthy pipeline. Inspect durable commands/runs/events with read-only,
+  owner-scoped diagnostics; never dump whole user tables.
 - API health checks prove process availability, not DB/model/storage readiness.
 - A browser Network entry stuck Pending is different from a returned
   `pending_upload` JSON status. The earlier hanging-request report was not
