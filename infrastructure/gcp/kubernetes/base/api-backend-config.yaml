@@ -4,6 +4,8 @@ metadata:
   name: bookwise-api-health
   namespace: bookwise
 spec:
+  # Streamed answers (Ask a book) can run up to 45 s; the load balancer default is 30 s.
+  timeoutSec: 60
   healthCheck:
     type: HTTP
     requestPath: /v1/health

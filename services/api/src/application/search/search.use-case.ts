@@ -110,7 +110,7 @@ export class SearchUseCase {
 }
 
 /** Reciprocal rank fusion keyed by source span; evidence wins over a bare passage. */
-function fuse(lists: RankedHit[][]): SearchResult[] {
+export function fuse(lists: RankedHit[][]): SearchResult[] {
   const merged = new Map<string, SearchResult>();
   for (const list of lists) {
     list.forEach((hit, rank) => {

@@ -67,6 +67,18 @@ import { AppUsageRecorder } from "./infrastructure/database/app-usage.recorder";
 import { SearchRepository } from "./infrastructure/database/search.repository";
 import { VertexEmbeddingClient } from "./infrastructure/model/vertex-embedding.client";
 import { SearchController } from "./interfaces/http/search.controller";
+import {
+  ASK_BOOK_USE_CASE,
+  AskBookUseCase,
+} from "./application/ask/ask-book.use-case";
+import {
+  ANSWER_GENERATOR,
+  ASK_REPOSITORY,
+  type AnswerGenerator,
+} from "./domain/ask/ask";
+import { AskRepository } from "./infrastructure/database/ask.repository";
+import { VertexGenerationClient } from "./infrastructure/model/vertex-generation.client";
+import { AskController } from "./interfaces/http/ask.controller";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
 import { BookManagementRepository } from "./infrastructure/database/book-management.repository";
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
@@ -153,6 +165,22 @@ function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
   });
 }
 
+/** Answers use the summary model, which Vertex serves only from the global endpoint. */
+function answerGeneratorFromEnvironment(): AnswerGenerator | undefined {
+  const provider = process.env.BOOKWISE_MODEL_PROVIDER?.trim().toLowerCase();
+  const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
+  const model = process.env.BOOKWISE_SUMMARY_MODEL?.trim();
+  if (provider !== "vertex" || !project || !model) {
+    return undefined;
+  }
+
+  return new VertexGenerationClient({
+    project,
+    location: process.env.GOOGLE_CLOUD_LOCATION?.trim() || "global",
+    model,
+  });
+}
+
 function objectStorageFromEnvironment(): ObjectStorage {
   const provider =
     process.env.OBJECT_STORAGE_PROVIDER?.trim().toLowerCase() || "minio";
@@ -185,6 +213,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     UsageController,
     BookManagementController,
     SearchController,
+    AskController,
   ],
   providers: [
     {
@@ -286,6 +315,43 @@ function objectStorageFromEnvironment(): ObjectStorage {
           parseModelPricing(process.env.BOOKWISE_MODEL_PRICING_JSON),
         ),
       inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: ASK_REPOSITORY,
+      useFactory: (pool: Pool) => new AskRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: ANSWER_GENERATOR,
+      useFactory: answerGeneratorFromEnvironment,
+    },
+    {
+      provide: ASK_BOOK_USE_CASE,
+      useFactory: (
+        ask: AskRepository,
+        search: SearchRepository,
+        embedder: QueryEmbedder | undefined,
+        generator: AnswerGenerator | undefined,
+        usage: AppUsageRecorder,
+        spend: UsageReadRepository,
+      ) =>
+        new AskBookUseCase(
+          ask,
+          search,
+          embedder,
+          generator,
+          usage,
+          spend,
+          dailyBudgetFromEnvironment(),
+        ),
+      inject: [
+        ASK_REPOSITORY,
+        SEARCH_REPOSITORY,
+        QUERY_EMBEDDER,
+        ANSWER_GENERATOR,
+        APP_USAGE_RECORDER,
+        USAGE_READ_REPOSITORY,
+      ],
     },
     {
       provide: SEARCH_USE_CASE,

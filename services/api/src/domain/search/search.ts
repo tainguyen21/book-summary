@@ -104,21 +104,25 @@ export function keywordTsQuery(query: string): string | undefined {
   return terms.join(meaningful.length > 0 ? " | " : " & ");
 }
 
+/** Every query is owner-scoped; `bookId` narrows it to one book. */
 export interface SearchRepository {
   keywordEvidence(
     ownerId: string,
     query: string,
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]>;
   keywordPassages(
     ownerId: string,
     query: string,
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]>;
   similarEvidence(
     ownerId: string,
     embedding: number[],
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]>;
 }
 

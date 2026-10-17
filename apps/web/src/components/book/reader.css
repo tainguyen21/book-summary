@@ -333,6 +333,118 @@
   font-size: 12.5px;
 }
 
+/* Ask this book */
+.ask-panel {
+  margin-top: 40px;
+  padding: 22px;
+  font-family: var(--font-sans, inherit);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.ask-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ask-lede {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.ask-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ask-form textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 12px;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+}
+
+.ask-form textarea:focus-visible {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent-soft);
+}
+
+.ask-form .button {
+  min-height: 44px;
+}
+
+.ask-answers {
+  display: grid;
+  gap: 18px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ask-answer + .ask-answer {
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ask-question {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ask-text {
+  margin-top: 6px;
+  color: var(--color-text);
+  font-family: var(--font-serif);
+  font-size: 16.5px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.ask-thinking,
+.ask-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
+}
+
+.ask-not-found {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.ask-error {
+  margin-top: 6px;
+  color: var(--color-danger);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .ask-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* Cited passage dialog */
 .passage-dialog {
   width: min(640px, calc(100% - 24px));

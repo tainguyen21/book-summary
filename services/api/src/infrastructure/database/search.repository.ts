@@ -38,6 +38,7 @@ export class SearchRepository implements SearchRepositoryPort {
     ownerId: string,
     query: string,
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]> {
     const result = await this.pool.query<HitRow>(
       `SELECT e.book_id, coalesce(b.title, b.filename) AS book_title,
@@ -45,10 +46,11 @@ export class SearchRepository implements SearchRepositoryPort {
        FROM data.book_search_evidence AS e
        JOIN app.books AS b ON b.id = e.book_id AND b.owner_id = e.owner_id
        WHERE e.owner_id = $1
+         AND ($4::uuid IS NULL OR e.book_id = $4)
          AND to_tsvector('simple', e.statement) @@ to_tsquery('simple', $2)
        ORDER BY ts_rank(to_tsvector('simple', e.statement), to_tsquery('simple', $2)) DESC
        LIMIT $3`,
-      [ownerId, query, limit],
+      [ownerId, query, limit, bookId ?? null],
     );
     return result.rows.map(toHit("evidence"));
   }
@@ -57,6 +59,7 @@ export class SearchRepository implements SearchRepositoryPort {
     ownerId: string,
     query: string,
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]> {
     const result = await this.pool.query<HitRow>(
       `SELECT p.book_id, coalesce(b.title, b.filename) AS book_title,
@@ -67,10 +70,11 @@ export class SearchRepository implements SearchRepositoryPort {
        FROM data.book_source_passages AS p
        JOIN app.books AS b ON b.id = p.book_id AND b.owner_id = p.owner_id
        WHERE p.owner_id = $1
+         AND ($4::uuid IS NULL OR p.book_id = $4)
          AND to_tsvector('simple', p.content) @@ to_tsquery('simple', $2)
        ORDER BY ts_rank(to_tsvector('simple', p.content), to_tsquery('simple', $2)) DESC
        LIMIT $3`,
-      [ownerId, query, limit],
+      [ownerId, query, limit, bookId ?? null],
     );
     return result.rows.map(toHit("passage"));
   }
@@ -79,6 +83,7 @@ export class SearchRepository implements SearchRepositoryPort {
     ownerId: string,
     embedding: number[],
     limit: number,
+    bookId?: string,
   ): Promise<RankedHit[]> {
     const result = await this.pool.query<HitRow>(
       `SELECT e.book_id, coalesce(b.title, b.filename) AS book_title,
@@ -86,9 +91,10 @@ export class SearchRepository implements SearchRepositoryPort {
        FROM data.book_search_evidence AS e
        JOIN app.books AS b ON b.id = e.book_id AND b.owner_id = e.owner_id
        WHERE e.owner_id = $1 AND e.embedding IS NOT NULL
+         AND ($4::uuid IS NULL OR e.book_id = $4)
        ORDER BY e.embedding <=> $2::vector(768)
        LIMIT $3`,
-      [ownerId, `[${embedding.join(",")}]`, limit],
+      [ownerId, `[${embedding.join(",")}]`, limit, bookId ?? null],
     );
     return result.rows.map(toHit("evidence"));
   }

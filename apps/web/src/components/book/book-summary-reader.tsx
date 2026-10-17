@@ -4,6 +4,7 @@ import { Quote } from "lucide-react";
 import { useRef, useState } from "react";
 
 import type { PublishedSummary } from "../../lib/library-types";
+import { AskBookPanel } from "./ask-book-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
 
@@ -68,6 +69,15 @@ export function BookSummaryReader({
           ))}
         </div>
       )}
+
+      <AskBookPanel
+        bookId={bookId}
+        labelFor={locationLabel}
+        onViewInContext={(spanId, label, opener) => {
+          triggerRef.current = opener as HTMLButtonElement;
+          setOpen({ spanId, label });
+        }}
+      />
 
       <section className="reader-sources" aria-labelledby="sources-title">
         <h2 id="sources-title">
