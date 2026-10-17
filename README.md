@@ -64,7 +64,11 @@ the claim transaction ends.
 Accepted immutable summaries are exposed through the owner-scoped
 `GET /v1/books/:bookId/summary` endpoint. The web route at
 `/books/[bookId]` shows processing states, the current accepted summary, and
-ordered citation locations without exposing source text.
+ordered citation locations. Selecting a citation opens the cited passage
+from `GET /v1/books/:bookId/passages/:spanId`. It returns the cited span plus
+up to two neighbouring spans on each side, read through the owner-filtered
+`data.book_source_passages` view (migration `012`), so owners see text only
+from their own books.
 
 ## Book management
 

@@ -1,6 +1,10 @@
+"use client";
+
 import { Quote } from "lucide-react";
+import { useRef, useState } from "react";
 
 import type { PublishedSummary } from "../../lib/library-types";
+import { PassageDialog } from "./passage-dialog";
 
 const locationLabels: Record<string, string> = {
   page_number: "Page",
@@ -35,7 +39,16 @@ export function readingMinutes(body: string): number {
 }
 
 /** The summary as a long-form article, followed by its cited sources. */
-export function BookSummaryReader({ summary }: { summary: PublishedSummary }) {
+export function BookSummaryReader({
+  bookId,
+  summary,
+}: {
+  bookId: string;
+  summary: PublishedSummary;
+}) {
+  const [open, setOpen] = useState<{ spanId: string; label: string }>();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
   return (
     <>
       <div className="reader-body">
@@ -51,20 +64,43 @@ export function BookSummaryReader({ summary }: { summary: PublishedSummary }) {
         </h2>
         {summary.citations.length > 0 ? (
           <>
-            <p>The summary is grounded in these parts of the book.</p>
+            <p>The summary is grounded in these parts of the book. Select one to read it.</p>
             <ol className="reader-chips">
-              {summary.citations.map((citation) => (
-                <li key={citation.sourceSpanId}>
-                  <b>{citation.order}</b>
-                  {locationLabel(citation.location)}
-                </li>
-              ))}
+              {summary.citations.map((citation) => {
+                const label = locationLabel(citation.location);
+                return (
+                  <li key={citation.sourceSpanId}>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        triggerRef.current = event.currentTarget;
+                        setOpen({ spanId: citation.sourceSpanId, label });
+                      }}
+                    >
+                      <b>{citation.order}</b>
+                      {label}
+                    </button>
+                  </li>
+                );
+              })}
             </ol>
           </>
         ) : (
           <p>No source locations are available for this summary.</p>
         )}
       </section>
+
+      {open && (
+        <PassageDialog
+          bookId={bookId}
+          sourceSpanId={open.spanId}
+          label={open.label}
+          onClose={() => {
+            setOpen(undefined);
+            triggerRef.current?.focus();
+          }}
+        />
+      )}
     </>
   );
 }

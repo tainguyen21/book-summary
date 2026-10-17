@@ -204,7 +204,7 @@ function DetailBody({
         </div>
       );
     case "ready":
-      return <BookSummaryReader summary={state.summary.summary} />;
+      return <BookSummaryReader bookId={bookId} summary={state.summary.summary} />;
     case "processing":
       return (
         <section className="panel reader-panel" aria-labelledby="processing-title">

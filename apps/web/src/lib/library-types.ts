@@ -14,6 +14,19 @@ export interface LibraryBook {
   latestEventType?: string;
 }
 
+/** A cited span of the book with nearby spans, in reading order. */
+export interface SourcePassage {
+  bookId: string;
+  sourceSpanId: string;
+  spans: {
+    sourceSpanId: string;
+    sequenceNumber: number;
+    content: string;
+    location: Record<string, unknown>;
+    cited: boolean;
+  }[];
+}
+
 /** Shared daily AI budget; `capUsd` 0 means no cap. */
 export interface DailyUsage {
   spentUsd: number;
@@ -102,6 +115,20 @@ export const bookProcessingStatusSchema: z.ZodType<BookProcessingStatus> =
     latestEventType: z.string().optional(),
     latestEventAt: z.string().datetime().optional(),
   });
+
+export const sourcePassageSchema: z.ZodType<SourcePassage> = z.object({
+  bookId: z.string().uuid(),
+  sourceSpanId: z.string().uuid(),
+  spans: z.array(
+    z.object({
+      sourceSpanId: z.string().uuid(),
+      sequenceNumber: z.number().int(),
+      content: z.string(),
+      location: z.record(z.string(), z.unknown()),
+      cited: z.boolean(),
+    }),
+  ),
+});
 
 export const dailyUsageSchema: z.ZodType<DailyUsage> = z.object({
   spentUsd: z.number().nonnegative(),

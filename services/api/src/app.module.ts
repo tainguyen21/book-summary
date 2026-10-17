@@ -29,9 +29,14 @@ import {
   GET_BOOK_SUMMARY_USE_CASE,
 } from "./application/books/get-book-summary.use-case";
 import {
+  GetSourcePassageUseCase,
+  GET_SOURCE_PASSAGE_USE_CASE,
+} from "./application/books/get-source-passage.use-case";
+import {
   ListLibraryUseCase,
   LIST_LIBRARY_USE_CASE,
 } from "./application/books/list-library.use-case";
+import { SOURCE_PASSAGE_REPOSITORY } from "./domain/books/source-passage";
 import {
   ManageBookUseCase,
   MANAGE_BOOK_USE_CASE,
@@ -52,6 +57,7 @@ import { BookManagementRepository } from "./infrastructure/database/book-managem
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
 import { BookRepository } from "./infrastructure/database/book.repository";
 import { ProcessingCommandRepository } from "./infrastructure/database/processing-command.repository";
+import { SourcePassageRepository } from "./infrastructure/database/source-passage.repository";
 import { UsageReadRepository } from "./infrastructure/database/usage-read.repository";
 import { OidcTokenVerifier } from "./infrastructure/identity/oidc-token-verifier";
 import { GcsObjectStorage } from "./infrastructure/storage/gcs-object-storage";
@@ -220,6 +226,17 @@ function objectStorageFromEnvironment(): ObjectStorage {
       useFactory: (books: BookReadRepository) =>
         new GetBookSummaryUseCase(books),
       inject: [BOOK_READ_REPOSITORY],
+    },
+    {
+      provide: SOURCE_PASSAGE_REPOSITORY,
+      useFactory: (pool: Pool) => new SourcePassageRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: GET_SOURCE_PASSAGE_USE_CASE,
+      useFactory: (passages: SourcePassageRepository) =>
+        new GetSourcePassageUseCase(passages),
+      inject: [SOURCE_PASSAGE_REPOSITORY],
     },
     {
       provide: BOOK_MANAGEMENT_REPOSITORY,
