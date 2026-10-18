@@ -126,6 +126,14 @@ each source carries `bookId` and `bookTitle`. Library answers are cached in
 current source document, so a new, changed, or deleted book refreshes them.
 Library usage rows have no book id.
 
+Answer quality is measured on demand (it spends real tokens, recorded as
+`evaluation` usage) with a golden question set. It needs the same Vertex
+settings as the API:
+
+```bash
+pnpm --dir services/api eval:ask -- --owner <ownerId> --book <bookId> --set evaluation/the-slow-orchard.questions.json --out plans/reports/eval-ask.md
+```
+
 ## Book management
 
 Owners manage books from the library row menu and the book page. All routes
