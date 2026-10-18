@@ -1,6 +1,7 @@
 "use client";
 
-import { BookOpen, Command, Library, Search, ShieldCheck, Upload } from "lucide-react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { BookOpen, Command, Layers, Library, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -16,6 +17,8 @@ import { shellMessages } from "../../lib/i18n/messages/shell";
 import { AccountMenu, CompactAccountMenu, LanguageSwitch } from "../auth/account-menu";
 import { UploadDialog } from "../library/upload-dialog";
 import { CommandPalette } from "./command-palette";
+import { loadDueCards } from "../../lib/flashcards-api";
+import { flashcardMessages } from "../../lib/i18n/messages/flashcards";
 import { UploadContext } from "./upload-context";
 import "./app-shell.css";
 
@@ -40,6 +43,7 @@ export function AppShell({
   books,
   activeView,
   searchActive = false,
+  reviewActive = false,
   onUploaded,
   children,
 }: {
@@ -48,12 +52,16 @@ export function AppShell({
   activeView?: LibraryView;
   /** True on the search page, so its nav item shows as current. */
   searchActive?: boolean;
+  /** True on the review page. */
+  reviewActive?: boolean;
   onUploaded?(): Promise<void> | void;
   children: ReactNode;
 }) {
   useDocumentLanguage();
+  const dueCards = useDueCardCount();
   const locale = useLocale();
   const t = useMessages(shellMessages);
+  const flashcards = useMessages(flashcardMessages);
   const categoryLabels = categoryLabelsByLocale[locale];
   const [uploadOpen, setUploadOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -167,6 +175,13 @@ export function AppShell({
               icon={<Search aria-hidden="true" size={16} />}
               label={t.searchBooks}
             />
+            <NavItem
+              href="/review"
+              active={reviewActive}
+              count={dueCards}
+              icon={<Layers aria-hidden="true" size={16} />}
+              label={flashcards.navReview}
+            />
             <p className="shell-nav-heading">{t.libraryHeading}</p>
             <NavItem
               href={libraryViewHref("all")}
@@ -242,4 +257,22 @@ function NavItem({
       {count !== undefined && <span className="shell-count">{count}</span>}
     </Link>
   );
+}
+
+/** Flashcards due now, for the Review nav badge; undefined until known or on error. */
+function useDueCardCount(): number | undefined {
+  const { getAccessTokenSilently } = useAuth0();
+  const [count, setCount] = useState<number>();
+
+  useEffect(() => {
+    let active = true;
+    loadDueCards(getAccessTokenSilently)
+      .then(({ dueCount }) => active && setCount(dueCount))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [getAccessTokenSilently]);
+
+  return count;
 }

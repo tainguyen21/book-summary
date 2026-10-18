@@ -1,11 +1,13 @@
 "use client";
 
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { formatDate } from "../../lib/format";
+import { readerMessages } from "../../lib/i18n/messages/reader";
+import { downloadMarkdown, summaryMarkdown } from "../../lib/summary-markdown";
 import { effectiveStatus, type BookStatusSource } from "../../lib/book-status";
 import { useLocale } from "../../lib/i18n/locale";
 import { useMessages } from "../../lib/i18n/messages";
@@ -20,7 +22,7 @@ import { BookStatusBadge } from "../library/book-status-badge";
 import { useLibraryBooks } from "../library/use-library-books";
 import { Skeleton } from "../ui/loading";
 import { BookProcessingSteps } from "./book-processing-steps";
-import { BookSummaryReader, readingMinutes } from "./book-summary-reader";
+import { BookSummaryReader, locationLabel, readingMinutes } from "./book-summary-reader";
 import { RetrySummaryButton } from "./retry-summary-button";
 import { useBookDetail, type DetailState } from "./use-book-detail";
 import "./reader.css";
@@ -94,6 +96,28 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
                 <span>{t.minutesRead(readingMinutes(state.summary.summary.body))}</span>
                 <span>{t.sourceCount(state.summary.summary.citations.length)}</span>
                 <span>{t.generated(formatDate(state.summary.summary.createdAt, locale))}</span>
+                <button
+                  className="reader-export"
+                  type="button"
+                  aria-label={t.exportMarkdownLabel}
+                  title={t.exportMarkdownLabel}
+                  onClick={() => {
+                    const title = book?.title || t.fallbackTitle;
+                    downloadMarkdown(
+                      title,
+                      summaryMarkdown({
+                        title,
+                        filename: book?.filename ?? "",
+                        summary: state.summary.summary,
+                        labelFor: (location) => locationLabel(location, locale),
+                        sourcesHeading: readerMessages[locale].sourcesTitle,
+                      }),
+                    );
+                  }}
+                >
+                  <Download aria-hidden="true" size={13} />
+                  {t.exportMarkdown}
+                </button>
               </p>
             )}
 

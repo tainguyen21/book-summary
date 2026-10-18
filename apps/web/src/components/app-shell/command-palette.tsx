@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, CornerDownLeft, Library, MessageCircleQuestion, Search, Upload } from "lucide-react";
+import { BookOpen, CornerDownLeft, Layers, Library, MessageCircleQuestion, Search, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
@@ -9,6 +9,7 @@ import type { LibraryBook } from "../../lib/library-types";
 import { useLocale } from "../../lib/i18n/locale";
 import { useMessages } from "../../lib/i18n/messages";
 import { paletteMessages } from "../../lib/i18n/messages/palette";
+import { flashcardMessages } from "../../lib/i18n/messages/flashcards";
 import { shellMessages } from "../../lib/i18n/messages/shell";
 import "./command-palette.css";
 
@@ -63,6 +64,7 @@ export function CommandPalette({
   const locale = useLocale();
   const t = useMessages(paletteMessages);
   const shell = useMessages(shellMessages);
+  const flashcards = useMessages(flashcardMessages);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -122,6 +124,7 @@ export function CommandPalette({
         icon: <Library aria-hidden="true" size={16} />,
       })),
       { id: "search-page", label: shell.searchBooks, href: "/search", icon: <Search aria-hidden="true" size={16} /> },
+      { id: "review", label: flashcards.navReview, href: "/review", icon: <Layers aria-hidden="true" size={16} /> },
     ];
     for (const destination of destinations) {
       if (!trimmed || matches(destination.label, trimmed)) {
@@ -141,7 +144,7 @@ export function CommandPalette({
       });
     }
     return list;
-  }, [books, locale, onClose, onUpload, query, router, shell, t]);
+  }, [books, flashcards, locale, onClose, onUpload, query, router, shell, t]);
 
   const activeIndex = Math.min(active, Math.max(commands.length - 1, 0));
   const activeCommand = commands[activeIndex];

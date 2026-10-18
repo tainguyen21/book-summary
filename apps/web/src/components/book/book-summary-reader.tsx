@@ -9,6 +9,7 @@ import { readerMessages } from "../../lib/i18n/messages/reader";
 import type { PublishedSummary } from "../../lib/library-types";
 import { textLanguage } from "../../lib/text-language";
 import { AskPanel } from "../ask/ask-panel";
+import { BookFlashcardsPanel } from "../flashcards/book-flashcards-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
 
@@ -91,6 +92,8 @@ export function BookSummaryReader({
           setOpen({ spanId, label });
         }}
       />
+
+      <BookFlashcardsPanel bookId={bookId} />
 
       <section className="reader-sources" aria-labelledby="sources-title">
         <h2 id="sources-title">
