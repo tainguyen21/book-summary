@@ -110,13 +110,26 @@ function New-Policy {
         return
     }
     Write-Host "Creating alert policy $DisplayName."
-    Invoke-Api POST "$monitoring/alertPolicies" @{
+    $policy = @{
         displayName          = $DisplayName
         combiner             = "OR"
         conditions           = @($Condition)
         notificationChannels = @($channel.name)
         documentation        = @{ content = $Documentation; mimeType = "text/markdown" }
-    } | Out-Null
+    }
+    # A log metric created moments ago can take up to 10 minutes to become
+    # usable in alert conditions; Monitoring answers 404 until then.
+    for ($attempt = 1; ; $attempt++) {
+        try {
+            Invoke-Api POST "$monitoring/alertPolicies" $policy | Out-Null
+            return
+        } catch {
+            $notFound = $_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404
+            if (-not $notFound -or $attempt -ge 24) { throw }
+            Write-Host "  The metric is not available yet; retrying in 30 s ($attempt/24)."
+            Start-Sleep -Seconds 30
+        }
+    }
 }
 
 function Get-UptimeCondition {
