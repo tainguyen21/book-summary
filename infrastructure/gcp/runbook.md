@@ -237,6 +237,31 @@ gcloud billing budgets list --billing-account=BILLING_ACCOUNT_ID `
 To change the amount, edit the budget in the Console. Re-running the script
 does not update an existing budget.
 
+## Uptime And Failure Alerts
+
+`create-alerts.ps1` sets up Cloud Monitoring email alerts:
+
+- the site (`/`) or the API readiness check (`/v1/ready`) fails uptime checks
+  from more than one region for 5 minutes;
+- the worker logs a permanent command failure (log metric
+  `bookwise_command_failed_permanent`);
+- the worker container restarts, because its liveness heartbeat was stale for
+  10 minutes or it crashed.
+
+It uses the Monitoring and Logging REST APIs with your gcloud login (the
+Monitoring Editor and Logs Configuration Writer roles, or Owner), so any gcloud
+version works. Re-running it skips what already exists.
+
+```powershell
+gcloud auth login
+pwsh infrastructure/gcp/scripts/create-alerts.ps1 -NotificationEmail you@example.com
+```
+
+Readiness: the API's Kubernetes readiness probe is `/v1/ready` (Postgres and
+object storage, 3 s each). Liveness and the load balancer health check stay on
+`/v1/health`, so a database outage takes pods out of rotation without
+restarting them.
+
 ## Rollback
 
 Use a previously published commit SHA. The deployment script deletes and

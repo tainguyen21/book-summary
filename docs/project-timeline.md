@@ -30,6 +30,7 @@ Last updated: October 17, 2026
 | October 17, 2026 | Hierarchical summaries | Books with more than `BOOKWISE_SUMMARY_GROUP_RECORDS` (120) evidence records are summarized in groups, then the group summaries are summarized, so each call stays bounded. Group summaries are checkpointed for resume. A two-level run of the evaluation book scored 10.5/12. Deployed in `a270b38`. |
 | October 17, 2026 | Sentence source quotes | Summary sentences carry numbered markers that expand verbatim quotes from the book (excerpts verified against the cited span, migration `013`), with a link to the passage in context. On the evaluation book: 21 of 21 sentences cited, 36 quotes, 0 not found verbatim; about 21% more cost per book. Verified locally in the browser; deployed in `9b21280`. |
 | October 17, 2026 | Hybrid private search | `/search` finds facts and passages across the owner's books by keyword and by meaning (query embeddings from the API, migration `014`), merged by rank fusion, with a keyword-only fallback when the budget is spent or Vertex is unavailable. The API now calls Vertex for interactive requests (user decision) and records that spend in the shared ledger. Deployed in `32ae788`. |
+| October 18, 2026 | Readiness and alerts | The API's readiness probe is `/v1/ready` (Postgres and object storage), and the worker has a liveness heartbeat (restarted after 10 minutes without progress). `create-alerts.ps1` emails on site or API downtime, permanent processing failures, and worker restarts; it is written but not yet run. |
 | October 18, 2026 | Vietnamese interface, flashcards, Markdown export | The app switches between English and Vietnamese (typed dictionaries, locale-aware dates and money; book text keeps its own language). Flashcards are made from a summary (migration `018`, FSRS scheduling via `ts-fsrs`) and reviewed on `/review` with keyboard ratings. Summaries export as Markdown with quote footnotes. By decision, there are no public share links, and scale-to-zero, audio, chapter summaries, and PWA are skipped for now. |
 | October 18, 2026 | Book-language output | Evidence and summaries are written in the book's language (a Vietnamese test book produced a complete Vietnamese summary), answers follow the question's language, and the reader marks Vietnamese summaries with `lang="vi"`. Verified locally against live Vertex. |
 | October 18, 2026 | Request tracing | With `BOOKWISE_TRACE_EXPORTER=cloud-trace`, API requests, queries, and Vertex calls are traced, and the worker continues the same trace for the command it processes (`traceparent` in the command payload). Spans go over OTLP to `telemetry.googleapis.com` (the Node Cloud Trace exporter is archived after October 30). Verified against Cloud Trace locally; needs `roles/telemetry.tracesWriter` before deploy. |
@@ -60,8 +61,8 @@ See [agent handoff](agent-handoff.md) for verification limits and
 2. Use book management to remove the local 76 MB test book and the production
    incomplete upload.
 3. Watch the first long book in production with sentence quotes and hierarchical summaries.
-4. Operational hardening: real readiness checks, uptime and stuck-run alerts,
-   and credential rotation.
+4. Run `create-alerts.ps1` once after the next deploy; rotate credentials
+   (operator task).
 5. Decide whether summary editing belongs in the next publication iteration.
 6. Later upload capabilities: multipart/resumable uploads, OCR, malware
    scanning, and files larger than 100 MiB.
