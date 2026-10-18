@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { Bell, BellOff, BookOpen, Command, Layers, Library, Search, ShieldCheck, Upload } from "lucide-react";
+import { Activity, Bell, BellOff, BookOpen, Command, Layers, Library, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -20,6 +20,7 @@ import { CommandPalette } from "./command-palette";
 import { loadDueCards } from "../../lib/flashcards-api";
 import { flashcardMessages } from "../../lib/i18n/messages/flashcards";
 import { notificationMessages } from "../../lib/i18n/messages/notifications";
+import { activityMessages } from "../../lib/i18n/messages/activity";
 import { useReadyNotifications } from "./use-ready-notifications";
 import { UploadContext } from "./upload-context";
 import "./app-shell.css";
@@ -46,6 +47,7 @@ export function AppShell({
   activeView,
   searchActive = false,
   reviewActive = false,
+  activityActive = false,
   onUploaded,
   children,
 }: {
@@ -56,6 +58,8 @@ export function AppShell({
   searchActive?: boolean;
   /** True on the review page. */
   reviewActive?: boolean;
+  /** True on the activity page. */
+  activityActive?: boolean;
   onUploaded?(): Promise<void> | void;
   children: ReactNode;
 }) {
@@ -63,6 +67,7 @@ export function AppShell({
   const dueCards = useDueCardCount();
   const notifications = useReadyNotifications(books);
   const notify = useMessages(notificationMessages);
+  const activity = useMessages(activityMessages);
   const locale = useLocale();
   const t = useMessages(shellMessages);
   const flashcards = useMessages(flashcardMessages);
@@ -185,6 +190,12 @@ export function AppShell({
               count={dueCards}
               icon={<Layers aria-hidden="true" size={16} />}
               label={flashcards.navReview}
+            />
+            <NavItem
+              href="/activity"
+              active={activityActive}
+              icon={<Activity aria-hidden="true" size={16} />}
+              label={activity.nav}
             />
             <p className="shell-nav-heading">{t.libraryHeading}</p>
             <NavItem

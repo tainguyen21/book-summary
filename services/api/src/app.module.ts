@@ -92,6 +92,11 @@ import { BOOK_STATUS_FEED } from "./domain/live/book-status-feed";
 import { PostgresBookStatusListener } from "./infrastructure/database/book-status.listener";
 import { LiveStatusController } from "./interfaces/http/live-status.controller";
 import {
+  ACTIVITY_USE_CASE,
+  ActivityUseCase,
+} from "./application/activity/activity.use-case";
+import { ActivityController } from "./interfaces/http/activity.controller";
+import {
   AskController,
   LibraryAskController,
 } from "./interfaces/http/ask.controller";
@@ -249,6 +254,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     FlashcardsController,
     HighlightsController,
     LiveStatusController,
+    ActivityController,
   ],
   providers: [
     {
@@ -359,6 +365,12 @@ function objectStorageFromEnvironment(): ObjectStorage {
     {
       provide: ANSWER_GENERATOR,
       useFactory: answerGeneratorFromEnvironment,
+    },
+    {
+      provide: ACTIVITY_USE_CASE,
+      useFactory: (pool: Pool) =>
+        new ActivityUseCase(pool, dailyBudgetFromEnvironment()),
+      inject: [APP_DATABASE_POOL],
     },
     {
       provide: BOOK_STATUS_FEED,
