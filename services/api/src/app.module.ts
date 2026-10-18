@@ -100,12 +100,12 @@ import { AuthenticatedPrincipalGuard } from "./interfaces/http/authenticated-pri
 import { BookManagementController } from "./interfaces/http/book-management.controller";
 import { BooksController } from "./interfaces/http/books.controller";
 import { HealthController } from "./interfaces/http/health.controller";
+import { ReadinessController } from "./interfaces/http/readiness.controller";
+import { APP_DATABASE_POOL } from "./infrastructure/database/database.tokens";
 import { LibraryController } from "./interfaces/http/library.controller";
 import { SessionController } from "./interfaces/http/session.controller";
 import { SummaryController } from "./interfaces/http/summary.controller";
 import { UsageController } from "./interfaces/http/usage.controller";
-
-const APP_DATABASE_POOL = Symbol("AppDatabasePool");
 
 function requiredEnvironment(name: string): string {
   const value = process.env[name]?.trim();
@@ -227,6 +227,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
 @Module({
   controllers: [
     HealthController,
+    ReadinessController,
     SessionController,
     BooksController,
     LibraryController,

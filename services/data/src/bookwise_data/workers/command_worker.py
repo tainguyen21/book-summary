@@ -10,6 +10,7 @@ from bookwise_data.application.claim_command import ClaimCommand, error_code
 from bookwise_data.application.daily_budget import DailyBudget, DailyBudgetExceeded
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.source import PermanentProcessingError
+from bookwise_data.workers.liveness import mark_alive
 from bookwise_data.workers.logging_setup import (
     command_context,
     log_event,
@@ -38,6 +39,7 @@ class CommandWorker:
     def run_once(self, limit: int) -> int:
         """Claim and handle one bounded batch of commands."""
 
+        mark_alive()
         commands = self._claim_command.execute(limit, self._allow_generation())
         if not commands:
             log_event(
@@ -78,7 +80,7 @@ class CommandWorker:
                 ):
                     self._handler(
                         command,
-                        lambda command=command: self._claim_command.heartbeat(command),
+                        lambda command=command: self._heartbeat(command),
                     )
             except DailyBudgetExceeded as error:
                 self._claim_command.fail_retryably(command, error)
@@ -110,6 +112,12 @@ class CommandWorker:
                 )
 
         return len(commands)
+
+    def _heartbeat(self, command: ClaimedCommand) -> bool:
+        """Renew the command's lease and show the liveness probe progress."""
+
+        mark_alive()
+        return self._claim_command.heartbeat(command)
 
     def _allow_generation(self) -> bool:
         """Hold summary commands while today's budget is spent; log changes only."""

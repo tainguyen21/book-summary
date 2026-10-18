@@ -32,11 +32,14 @@ spec:
             limits:
               cpu: 1
               memory: 1Gi
+          # Ready only while Postgres and object storage answer (3 s checks).
           readinessProbe:
             httpGet:
-              path: /v1/health
+              path: /v1/ready
               port: http
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /v1/health

@@ -50,9 +50,11 @@ if (exporter === "cloud-trace") {
   registerInstrumentations({
     instrumentations: [
       new HttpInstrumentation({
-        // Health probes would otherwise be most of the traces.
+        // Health and readiness probes would otherwise be most of the traces.
         ignoreIncomingRequestHook: (request) =>
-          request.url?.startsWith("/v1/health") ?? false,
+          (request.url?.startsWith("/v1/health") ||
+            request.url?.startsWith("/v1/ready")) ??
+          false,
         // Token and metadata-server calls add noise, not insight.
         ignoreOutgoingRequestHook: (request) =>
           request.hostname === "metadata.google.internal" ||

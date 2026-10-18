@@ -30,6 +30,17 @@ spec:
             limits:
               cpu: 2
               memory: 2Gi
+          # The worker touches this file on every poll and lease heartbeat;
+          # 10 minutes without progress means the loop is stuck.
+          livenessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/bookwise-worker-alive') > 600)"
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 10
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
