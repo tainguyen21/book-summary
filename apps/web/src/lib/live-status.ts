@@ -7,24 +7,35 @@ import { bookProcessingStatusSchema, type BookProcessingStatus } from "./library
 type Listener = (status: BookProcessingStatus) => void;
 
 const listeners = new Set<Listener>();
+// Subscribers that need changes while the page is hidden (ready notifications).
+const background = new Set<Listener>();
 let tokenSource: GetAccessTokenSilently | undefined;
 let running = false;
 let abort: AbortController | undefined;
 
 /**
  * Subscribes to pushed book status changes (`GET /v1/live/books`). All
- * subscribers share one connection, opened while the page is visible and
- * reopened when the server ends it (about every 50 s) or after an error.
+ * subscribers share one connection, open while the page is visible (or while
+ * a `whileHidden` subscriber needs it), and reopened when the server ends it
+ * (about every 50 s) or after an error.
  */
-export function subscribeLiveStatus(getToken: GetAccessTokenSilently, listener: Listener): () => void {
+export function subscribeLiveStatus(
+  getToken: GetAccessTokenSilently,
+  listener: Listener,
+  options: { whileHidden?: boolean } = {},
+): () => void {
   tokenSource = getToken;
   listeners.add(listener);
+  if (options.whileHidden) {
+    background.add(listener);
+  }
   if (listeners.size === 1) {
     document.addEventListener("visibilitychange", onVisibilityChange);
     void run();
   }
   return () => {
     listeners.delete(listener);
+    background.delete(listener);
     if (listeners.size === 0) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       abort?.abort();
@@ -32,8 +43,10 @@ export function subscribeLiveStatus(getToken: GetAccessTokenSilently, listener: 
   };
 }
 
+const keepRunning = () => listeners.size > 0 && (!document.hidden || background.size > 0);
+
 function onVisibilityChange() {
-  if (document.hidden) {
+  if (!keepRunning()) {
     abort?.abort();
   } else {
     void run();
@@ -47,7 +60,7 @@ async function run() {
   running = true;
   let failures = 0;
   try {
-    while (listeners.size > 0 && !document.hidden && tokenSource) {
+    while (keepRunning() && tokenSource) {
       abort = new AbortController();
       try {
         const token = await tokenSource();

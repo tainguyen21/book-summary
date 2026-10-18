@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { BookOpen, Command, Layers, Library, Search, ShieldCheck, Upload } from "lucide-react";
+import { Bell, BellOff, BookOpen, Command, Layers, Library, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -19,6 +19,8 @@ import { UploadDialog } from "../library/upload-dialog";
 import { CommandPalette } from "./command-palette";
 import { loadDueCards } from "../../lib/flashcards-api";
 import { flashcardMessages } from "../../lib/i18n/messages/flashcards";
+import { notificationMessages } from "../../lib/i18n/messages/notifications";
+import { useReadyNotifications } from "./use-ready-notifications";
 import { UploadContext } from "./upload-context";
 import "./app-shell.css";
 
@@ -59,6 +61,8 @@ export function AppShell({
 }) {
   useDocumentLanguage();
   const dueCards = useDueCardCount();
+  const notifications = useReadyNotifications(books);
+  const notify = useMessages(notificationMessages);
   const locale = useLocale();
   const t = useMessages(shellMessages);
   const flashcards = useMessages(flashcardMessages);
@@ -210,6 +214,30 @@ export function AppShell({
             </p>
           </div>
 
+          {notifications.setting !== "unsupported" && (
+            <button
+              className="shell-language"
+              type="button"
+              aria-pressed={notifications.setting === "on"}
+              aria-label={notifications.setting === "blocked" ? notify.blocked : notify.enable}
+              disabled={notifications.setting === "blocked"}
+              title={notifications.setting === "blocked" ? notify.blocked : undefined}
+              onClick={() =>
+                notifications.setting === "on" ? notifications.disable() : void notifications.enable()
+              }
+            >
+              {notifications.setting === "on" ? (
+                <Bell aria-hidden="true" size={15} />
+              ) : (
+                <BellOff aria-hidden="true" size={15} />
+              )}
+              {notifications.setting === "on"
+                ? notify.enabled
+                : notifications.setting === "blocked"
+                  ? notify.blocked
+                  : notify.enable}
+            </button>
+          )}
           <LanguageSwitch />
           <AccountMenu />
         </aside>
