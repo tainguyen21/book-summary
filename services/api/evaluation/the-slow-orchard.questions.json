@@ -1,0 +1,121 @@
+{
+  "book": "The Slow Orchard (plans/reports/eval-261017-1047-slow-orchard/the-slow-orchard.txt)",
+  "questions": [
+    {
+      "question": "Why did so many trees in the first planting die?",
+      "expect": "answer",
+      "keyFacts": [
+        "A late May 2019 frost killed 17 of the first 38 trees",
+        "The nursery trees were raised in a milder inland climate and had already broken bud"
+      ],
+      "traps": ["The trees died only because of bad weather"]
+    },
+    {
+      "question": "Would frost cloth have saved the 2019 trees?",
+      "expect": "answer",
+      "keyFacts": [
+        "A 2020 test found covered and uncovered trees suffered almost the same damage",
+        "Local stock, not frost cloth, was the answer"
+      ],
+      "traps": ["Frost cloth would have saved or did save the trees"]
+    },
+    {
+      "question": "How did the Circle reduce tree losses after the first year?",
+      "expect": "answer",
+      "keyFacts": [
+        "Grafting cuttings from old local survivor trees onto hardy rootstock",
+        "Only 9 of 102 grafted trees were lost, under nine percent"
+      ],
+      "traps": []
+    },
+    {
+      "question": "What happened at the harbour roundabout site?",
+      "expect": "answer",
+      "keyFacts": [
+        "Only 4 of 14 trees planted in 2021 were alive in 2024",
+        "Road salt and truck spray killed them",
+        "The land was given back to the council in 2023"
+      ],
+      "traps": []
+    },
+    {
+      "question": "What are the Orchard Circle's three rules?",
+      "expect": "answer",
+      "keyFacts": [
+        "A named person waters each new tree for its first two summers",
+        "Pruning happens only on one fixed Saturday in late February (Cutting Day)",
+        "Fruit is never sold"
+      ],
+      "traps": [
+        "Fruit is sold or an offer from the cider maker or supermarket was accepted"
+      ]
+    },
+    {
+      "question": "Does the Circle sell its fruit?",
+      "expect": "answer",
+      "keyFacts": [
+        "No; it refused offers from a cider maker and a supermarket",
+        "Unpicked fruit goes to the food bank and the school kitchen"
+      ],
+      "traps": [
+        "Fruit is sold or an offer from the cider maker or supermarket was accepted"
+      ]
+    },
+    {
+      "question": "How big were the harvests, and how reliable are those numbers?",
+      "expect": "answer",
+      "keyFacts": [
+        "About 0.8 tonnes in 2022, 1.9 in 2023, and 3.1 in 2024",
+        "Only the donated portion was weighed; passer-by picking was estimated"
+      ],
+      "traps": ["The harvest figures are exact or precisely measured"]
+    },
+    {
+      "question": "Did the orchard end up costing the town nothing?",
+      "expect": "answer",
+      "keyFacts": [
+        "No; the council pays about 600 euros a year for volunteer insurance",
+        "It still costs less than the roughly 1,500 euros a year of mowing it replaced"
+      ],
+      "traps": [
+        "The orchard costs the town nothing or fully met its zero-cost goal"
+      ]
+    },
+    {
+      "question": "How much did the orchard cost and where did the money come from?",
+      "expect": "answer",
+      "keyFacts": [
+        "About 9,400 euros over five years",
+        "Mostly from yearly sales of spare grafted saplings, plus small donations"
+      ],
+      "traps": []
+    },
+    {
+      "question": "Who started the orchard, and who runs Cutting Day now?",
+      "expect": "answer",
+      "keyFacts": [
+        "Odile Fenn, a retired ferry engineer, proposed it in January 2019",
+        "Three of Ravi Osei's former pupils now run Cutting Day"
+      ],
+      "traps": []
+    },
+    {
+      "question": "Năm 2024 vườn cây cho bao nhiêu tấn trái cây?",
+      "expect": "answer",
+      "keyFacts": ["3.1 tonnes in 2024"],
+      "traps": ["The harvest figures are exact or precisely measured"]
+    },
+    {
+      "question": "What does the book say about growing oranges on Mars?",
+      "expect": "not_in_book",
+      "keyFacts": [],
+      "traps": []
+    },
+    {
+      "question": "What is the name of Merrow Bay's mayor?",
+      "expect": "not_in_book",
+      "keyFacts": [],
+      "traps": []
+    }
+  ]
+}

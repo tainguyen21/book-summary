@@ -23,6 +23,11 @@ import { fuse } from "../search/search.use-case";
 import type { DailyBudgetSettings } from "../usage/get-daily-usage.use-case";
 
 const SOURCE_LIMIT = 8;
+// The best hits also bring the paragraphs after them: a list or argument that
+// a heading introduces usually continues there.
+const EXPANDED_HITS = 3;
+const FOLLOWING_SPANS = 2;
+const EXPANDED_SOURCE_LIMIT = 12;
 // Library answers keep several books in view instead of one book's passages.
 const LIBRARY_SOURCES_PER_BOOK = 3;
 const CANDIDATES = 20;
@@ -35,7 +40,8 @@ const SHARED_RULES = [
   "Write plain text: no Markdown, asterisks, headings, or lists.",
   "After every sentence that uses a passage, add its number in square brackets, like [2] or [1][3].",
   "Use only the passage numbers provided. Do not add outside knowledge.",
-  `If the passages do not contain the answer, reply with exactly ${NOT_IN_BOOK} and nothing else.`,
+  "If the passages answer only part of the question, answer that part and say briefly what they do not cover.",
+  `If the passages contain nothing that answers the question, reply with exactly ${NOT_IN_BOOK} and nothing else.`,
 ];
 
 const INSTRUCTIONS: Record<AskScope["kind"], string> = {
@@ -123,6 +129,7 @@ export class AskUseCase {
     scope: AskScope,
     question: string,
     emit: (event: AskEvent) => void,
+    options: { skipCache?: boolean } = {},
   ): Promise<void> {
     const key = {
       ownerId,
@@ -132,7 +139,8 @@ export class AskUseCase {
     };
     const bookId = scope.kind === "book" ? scope.bookId : undefined;
 
-    const cached = await this.ask.cached(key);
+    // Evaluation runs skip the cache so every question reaches the model.
+    const cached = options.skipCache ? undefined : await this.ask.cached(key);
     if (cached) {
       emit({ event: "sources", data: { sources: cached.sources } });
       if (cached.answerText) {
@@ -222,11 +230,20 @@ export class AskUseCase {
 
     let tokens: { inputTokens: number; outputTokens: number };
     try {
-      tokens = await this.generator.stream(
-        INSTRUCTIONS[scope.kind],
-        prompt,
-        onText,
-      );
+      tokens = await this.generator
+        .stream(INSTRUCTIONS[scope.kind], prompt, onText)
+        .catch((error: unknown) => {
+          // One retry for a transient failure, only if nothing was shown yet.
+          if (released) {
+            throw error;
+          }
+          full = "";
+          return this.generator!.stream(
+            INSTRUCTIONS[scope.kind],
+            prompt,
+            onText,
+          );
+        });
     } catch (error) {
       this.logger.warn(
         `Answer generation failed (${error instanceof Error ? error.name : "unknown error"}).`,
@@ -280,7 +297,7 @@ export class AskUseCase {
     question: string,
   ): Promise<RetrievedPassage[]> {
     const limit = bookId ? CANDIDATES : LIBRARY_CANDIDATES;
-    const tsQuery = keywordTsQuery(question);
+    const tsQuery = keywordTsQuery(question, { prefixes: true });
     const meaning = await this.meaningHits(ownerId, bookId, question, limit);
     const [keywordEvidence, keywordPassages] = await Promise.all([
       tsQuery
@@ -301,11 +318,16 @@ export class AskUseCase {
       perBook.set(hit.bookId, count + 1);
       return true;
     });
-    const passages = await this.ask.passages(
+    const top = picked.slice(0, SOURCE_LIMIT).map((hit) => hit.sourceSpanId);
+    const following = await this.ask.followingSpanIds(
       ownerId,
-      picked.slice(0, SOURCE_LIMIT).map((hit) => hit.sourceSpanId),
-      bookId,
+      top.slice(0, EXPANDED_HITS),
+      FOLLOWING_SPANS,
     );
+    const spanIds = [
+      ...new Set(top.flatMap((id) => [id, ...(following.get(id) ?? [])])),
+    ].slice(0, EXPANDED_SOURCE_LIMIT);
+    const passages = await this.ask.passages(ownerId, spanIds, bookId);
 
     let total = 0;
     return passages.filter((passage) => {

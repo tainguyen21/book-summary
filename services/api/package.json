@@ -5,7 +5,8 @@
     "build": "tsc -p tsconfig.build.json",
     "start:dev": "tsx watch src/main.ts",
     "lint": "eslint \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "eval:ask": "tsx src/evaluation/run-ask-evaluation.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1126.0",

@@ -34,6 +34,15 @@ export interface AskRepository {
   ): Promise<string | undefined>;
   /** Changes whenever any book's current source document changes; undefined with no ready books. */
   libraryVersion(ownerId: string): Promise<string | undefined>;
+  /**
+   * For each anchor span, the ids of the next `count` spans of the same
+   * document, in reading order (a point often continues in the next paragraph).
+   */
+  followingSpanIds(
+    ownerId: string,
+    anchorSpanIds: string[],
+    count: number,
+  ): Promise<Map<string, string[]>>;
   /** Passages in `spanIds` order, limited to one book when `bookId` is given. */
   passages(
     ownerId: string,

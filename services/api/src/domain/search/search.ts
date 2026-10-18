@@ -90,7 +90,10 @@ const STOP_WORDS = new Set([
  * documents with more matching words first. Falls back to all words when
  * nothing meaningful remains (for example "of the").
  */
-export function keywordTsQuery(query: string): string | undefined {
+export function keywordTsQuery(
+  query: string,
+  options: { prefixes?: boolean } = {},
+): string | undefined {
   const words = query.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
   const meaningful = [
     ...new Set(
@@ -101,7 +104,17 @@ export function keywordTsQuery(query: string): string | undefined {
   if (terms.length === 0) {
     return undefined;
   }
-  return terms.join(meaningful.length > 0 ? " | " : " & ");
+  // Optional prefix matching on longer words ("costing" → cost:*, which also
+  // matches "cost"), since the simple configuration does no stemming. Short
+  // and accented words (Vietnamese syllables) stay exact.
+  const expanded = options.prefixes
+    ? terms.map((term) =>
+        term.length >= 5 && /^[a-z]+$/.test(term)
+          ? `${term.slice(0, 4)}:*`
+          : term,
+      )
+    : terms;
+  return [...new Set(expanded)].join(meaningful.length > 0 ? " | " : " & ");
 }
 
 /** Every query is owner-scoped; `bookId` narrows it to one book. */
@@ -136,7 +149,7 @@ export interface AppUsageRecorder {
   record(input: {
     ownerId: string;
     bookId?: string;
-    operation: "query_embedding" | "answer";
+    operation: "query_embedding" | "answer" | "evaluation";
     provider: string;
     model: string;
     inputTokens: number;

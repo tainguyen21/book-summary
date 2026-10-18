@@ -44,6 +44,35 @@ export class AskRepository implements AskRepositoryPort {
       .slice(0, 32);
   }
 
+  async followingSpanIds(
+    ownerId: string,
+    anchorSpanIds: string[],
+    count: number,
+  ): Promise<Map<string, string[]>> {
+    const following = new Map<string, string[]>();
+    if (anchorSpanIds.length === 0) {
+      return following;
+    }
+    const result = await this.pool.query<{ anchor: string; span: string }>(
+      `SELECT anchor.source_span_id AS anchor, next.source_span_id AS span
+       FROM data.book_source_passages AS anchor
+       JOIN data.book_source_passages AS next
+         ON next.source_document_id = anchor.source_document_id
+        AND next.sequence_number > anchor.sequence_number
+        AND next.sequence_number <= anchor.sequence_number + $3
+       WHERE anchor.owner_id = $1 AND anchor.source_span_id = ANY($2::uuid[])
+       ORDER BY anchor.source_span_id, next.sequence_number`,
+      [ownerId, anchorSpanIds, count],
+    );
+    for (const row of result.rows) {
+      following.set(row.anchor, [
+        ...(following.get(row.anchor) ?? []),
+        row.span,
+      ]);
+    }
+    return following;
+  }
+
   async passages(
     ownerId: string,
     spanIds: string[],

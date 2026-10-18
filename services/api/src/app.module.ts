@@ -121,7 +121,7 @@ function positiveIntegerEnvironment(name: string): number {
 }
 
 /** Must match the worker: BOOKWISE_DAILY_BUDGET_USD (default 2, 0 disables). */
-function dailyBudgetFromEnvironment(): DailyBudgetSettings {
+export function dailyBudgetFromEnvironment(): DailyBudgetSettings {
   const rawCap = process.env.BOOKWISE_DAILY_BUDGET_USD?.trim() || "2";
   const capUsd = Number(rawCap);
   if (!Number.isFinite(capUsd) || capUsd < 0) {
@@ -143,7 +143,7 @@ function dailyBudgetFromEnvironment(): DailyBudgetSettings {
  * Meaning search needs Vertex embeddings in the same 768-dimension space as
  * the worker's evidence embeddings; otherwise search runs keyword-only.
  */
-function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
+export function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
   const provider = process.env.BOOKWISE_MODEL_PROVIDER?.trim().toLowerCase();
   const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
   const model = process.env.BOOKWISE_EMBEDDING_MODEL?.trim();
@@ -166,7 +166,7 @@ function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
 }
 
 /** Answers use the summary model, which Vertex serves only from the global endpoint. */
-function answerGeneratorFromEnvironment(): AnswerGenerator | undefined {
+export function answerGeneratorFromEnvironment(): AnswerGenerator | undefined {
   const provider = process.env.BOOKWISE_MODEL_PROVIDER?.trim().toLowerCase();
   const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
   const model = process.env.BOOKWISE_SUMMARY_MODEL?.trim();
