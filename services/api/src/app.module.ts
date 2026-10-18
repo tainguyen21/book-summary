@@ -83,6 +83,12 @@ import { FLASHCARD_REPOSITORY } from "./domain/flashcards/flashcards";
 import { FlashcardRepository } from "./infrastructure/database/flashcard.repository";
 import { FlashcardsController } from "./interfaces/http/flashcards.controller";
 import {
+  HIGHLIGHTS_USE_CASE,
+  HighlightsUseCase,
+} from "./application/highlights/highlights.use-case";
+import { HighlightRepository } from "./infrastructure/database/highlight.repository";
+import { HighlightsController } from "./interfaces/http/highlights.controller";
+import {
   AskController,
   LibraryAskController,
 } from "./interfaces/http/ask.controller";
@@ -238,6 +244,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     AskController,
     LibraryAskController,
     FlashcardsController,
+    HighlightsController,
   ],
   providers: [
     {
@@ -348,6 +355,12 @@ function objectStorageFromEnvironment(): ObjectStorage {
     {
       provide: ANSWER_GENERATOR,
       useFactory: answerGeneratorFromEnvironment,
+    },
+    {
+      provide: HIGHLIGHTS_USE_CASE,
+      useFactory: (pool: Pool, books: BookReadRepository) =>
+        new HighlightsUseCase(new HighlightRepository(pool), books),
+      inject: [APP_DATABASE_POOL, BOOK_READ_REPOSITORY],
     },
     {
       provide: FLASHCARD_REPOSITORY,

@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpenText, Quote, X } from "lucide-react";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { useMessages } from "../../lib/i18n/messages";
 import { readerMessages } from "../../lib/i18n/messages/reader";
@@ -19,10 +19,16 @@ export function CitedSummaryBody({
   paragraphs,
   labelFor,
   onViewInContext,
+  highlighted,
+  cardFooter,
 }: {
   paragraphs: SummarySentence[][];
   labelFor(location: Record<string, unknown>): string;
   onViewInContext(spanId: string, label: string, opener: HTMLElement): void;
+  /** Sentence keys ("paragraph:sentence") the reader has highlighted. */
+  highlighted?: ReadonlySet<string>;
+  /** Extra controls at the end of an open quote card (highlight and note). */
+  cardFooter?(paragraph: number, sentence: number): ReactNode;
 }) {
   const [open, setOpen] = useState<Open>();
   const [hovered, setHovered] = useState<string>();
@@ -65,6 +71,7 @@ export function CitedSummaryBody({
                     <span
                       className="reader-sentence"
                       data-active={isOpen || hovered === id || undefined}
+                      data-highlighted={highlighted?.has(id) || undefined}
                     >
                       {sentence.text}
                     </span>
@@ -78,6 +85,7 @@ export function CitedSummaryBody({
                           }
                         }}
                         type="button"
+                        id={`cite-${paragraphIndex}-${sentenceIndex}`}
                         className="reader-cite"
                         aria-expanded={isOpen}
                         aria-controls={isOpen ? cardId : undefined}
@@ -158,6 +166,7 @@ export function CitedSummaryBody({
                     );
                   })}
                 </ol>
+                {cardFooter?.(paragraphIndex, open?.sentence ?? 0)}
               </section>
             )}
           </div>

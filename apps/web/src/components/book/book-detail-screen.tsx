@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth0 } from "@auth0/auth0-react";
 import { ArrowLeft, Download, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -7,6 +8,8 @@ import type { ReactNode } from "react";
 
 import { formatDate } from "../../lib/format";
 import { readerMessages } from "../../lib/i18n/messages/reader";
+import { highlightMessages } from "../../lib/i18n/messages/highlights";
+import { loadHighlights } from "../../lib/highlights-api";
 import { downloadMarkdown, summaryMarkdown } from "../../lib/summary-markdown";
 import { effectiveStatus, type BookStatusSource } from "../../lib/book-status";
 import { useLocale } from "../../lib/i18n/locale";
@@ -49,6 +52,7 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
   const router = useRouter();
   const t = useMessages(bookMessages);
   const locale = useLocale();
+  const { getAccessTokenSilently } = useAuth0();
   const books = library.state.kind === "ready" ? library.state.books : undefined;
   const listed = books?.find((candidate) => candidate.id === bookId);
   // The detail poll knows the run state even when the library list does not.
@@ -101,8 +105,10 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
                   type="button"
                   aria-label={t.exportMarkdownLabel}
                   title={t.exportMarkdownLabel}
-                  onClick={() => {
+                  onClick={async () => {
                     const title = book?.title || t.fallbackTitle;
+                    // Highlights are optional in the file; export without them if they fail to load.
+                    const highlights = await loadHighlights(getAccessTokenSilently, bookId).catch(() => []);
                     downloadMarkdown(
                       title,
                       summaryMarkdown({
@@ -111,6 +117,8 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
                         summary: state.summary.summary,
                         labelFor: (location) => locationLabel(location, locale),
                         sourcesHeading: readerMessages[locale].sourcesTitle,
+                        highlights,
+                        highlightsHeading: highlightMessages[locale].exportHeading,
                       }),
                     );
                   }}

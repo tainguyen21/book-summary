@@ -11,6 +11,9 @@ import { textLanguage } from "../../lib/text-language";
 import { AskPanel } from "../ask/ask-panel";
 import { BookFlashcardsPanel } from "../flashcards/book-flashcards-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
+import { HighlightControls } from "./highlight-controls";
+import { HighlightsPanel } from "./highlights-panel";
+import { sentenceKey, useHighlights } from "./use-highlights";
 import { PassageDialog } from "./passage-dialog";
 
 /** Location keys in priority order: the first one present names the citation. */
@@ -56,6 +59,7 @@ export function BookSummaryReader({
   const locale = useLocale();
   const t = useMessages(readerMessages);
   const labelFor = (location: Record<string, unknown>) => locationLabel(location, locale);
+  const highlights = useHighlights(bookId, summary.id);
 
   return (
     <>
@@ -69,6 +73,29 @@ export function BookSummaryReader({
             triggerRef.current = opener as HTMLButtonElement;
             setOpen({ spanId, label });
           }}
+          highlighted={new Set(highlights.current.keys())}
+          cardFooter={(paragraph, sentence) => {
+            const highlight = highlights.current.get(sentenceKey(paragraph, sentence));
+            return (
+              // Interface text, not book text.
+              <div lang={locale}>
+                <HighlightControls
+                  key={sentenceKey(paragraph, sentence)}
+                  highlight={highlight}
+                  onToggle={async () => {
+                    if (highlight) {
+                      await highlights.remove(highlight.id);
+                    } else {
+                      await highlights.save(paragraph, sentence);
+                    }
+                  }}
+                  onSaveNote={async (note) => {
+                    await highlights.save(paragraph, sentence, note);
+                  }}
+                />
+              </div>
+            );
+          }}
         />
       ) : (
         <div className="reader-body">
@@ -78,6 +105,24 @@ export function BookSummaryReader({
         </div>
       )}
       </div>
+
+      {summary.paragraphs.length > 0 && (
+        <HighlightsPanel
+          highlights={highlights.highlights}
+          summaryId={summary.id}
+          onShow={(highlight) => {
+            const marker = document.getElementById(`cite-${highlight.paragraph}-${highlight.sentence}`);
+            if (marker) {
+              if (marker.getAttribute("aria-expanded") !== "true") {
+                marker.click();
+              }
+              marker.scrollIntoView({ block: "center" });
+              marker.focus();
+            }
+          }}
+          onRemove={(highlight) => highlights.remove(highlight.id)}
+        />
+      )}
 
       <AskPanel
         askPath={`/v1/books/${bookId}/ask`}

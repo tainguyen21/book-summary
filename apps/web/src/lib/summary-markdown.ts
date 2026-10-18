@@ -11,12 +11,17 @@ export function summaryMarkdown({
   summary,
   labelFor,
   sourcesHeading,
+  highlights = [],
+  highlightsHeading = "Highlights",
 }: {
   title: string;
   filename: string;
   summary: PublishedSummary;
   labelFor(location: Record<string, unknown>): string;
   sourcesHeading: string;
+  /** The reader's highlights and notes, appended as their own section. */
+  highlights?: { text: string; note: string | null }[];
+  highlightsHeading?: string;
 }): string {
   const lines = [
     "---",
@@ -40,7 +45,7 @@ export function summaryMarkdown({
       }
       lines.push("");
     }
-    return lines.join("\n");
+    return withHighlights(lines, highlights, highlightsHeading).join("\n");
   }
 
   const notes: string[] = [];
@@ -66,7 +71,26 @@ export function summaryMarkdown({
   }
   notes.forEach((note, index) => lines.push(`[^${index + 1}]: ${note}`));
   lines.push("");
-  return lines.join("\n");
+  return withHighlights(lines, highlights, highlightsHeading).join("\n");
+}
+
+/** Highlighted sentences as quotes, each followed by the reader's note. */
+function withHighlights(
+  lines: string[],
+  highlights: { text: string; note: string | null }[],
+  heading: string,
+): string[] {
+  if (highlights.length === 0) {
+    return lines;
+  }
+  lines.push(`## ${heading}`, "");
+  for (const highlight of highlights) {
+    lines.push(`> ${highlight.text}`, "");
+    if (highlight.note) {
+      lines.push(...highlight.note.split("\n").map((line) => line.trimEnd()), "");
+    }
+  }
+  return lines;
 }
 
 /** Downloads text as a file named after the book. */
