@@ -150,6 +150,15 @@ apps such as Obsidian. The file has front matter, the summary, and one
 footnote per cited sentence with its verified quotes and locations. There are
 no public share links. The file ends with the reader's highlights and notes.
 
+## Live status
+
+Open library and book pages receive status changes as server-sent events from
+`GET /v1/live/books`. A trigger on `data.processing_events` (migration `020`)
+sends `NOTIFY bookwise_book_status`. Each API process `LISTEN`s on one
+dedicated connection and re-reads the owner's status before pushing. Streams
+close after 50 s (under the load balancer's 60 s limit) and reconnect.
+Polling every 30 s remains as a fallback.
+
 ## Highlights and notes
 
 The quote card of a summary sentence can highlight it and hold a note
