@@ -148,7 +148,15 @@ stored in `app.flashcards` and `app.flashcard_reviews` (migration `018`).
 "Export Markdown" on a summary downloads it in the browser, ready for notes
 apps such as Obsidian. The file has front matter, the summary, and one
 footnote per cited sentence with its verified quotes and locations. There are
-no public share links.
+no public share links. The file ends with the reader's highlights and notes.
+
+## Highlights and notes
+
+The quote card of a summary sentence can highlight it and hold a note
+(`PUT /v1/books/:bookId/highlights`, migration `019`). Highlights are tied to
+one summary version, and the API copies the sentence text from the stored
+summary. After a book is summarized again, older highlights stay listed as
+"From an earlier version of this summary".
 
 ## Interface language
 
