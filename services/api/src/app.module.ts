@@ -76,6 +76,13 @@ import {
 import { AskRepository } from "./infrastructure/database/ask.repository";
 import { VertexGenerationClient } from "./infrastructure/model/vertex-generation.client";
 import {
+  FLASHCARDS_USE_CASE,
+  FlashcardsUseCase,
+} from "./application/flashcards/flashcards.use-case";
+import { FLASHCARD_REPOSITORY } from "./domain/flashcards/flashcards";
+import { FlashcardRepository } from "./infrastructure/database/flashcard.repository";
+import { FlashcardsController } from "./interfaces/http/flashcards.controller";
+import {
   AskController,
   LibraryAskController,
 } from "./interfaces/http/ask.controller";
@@ -166,6 +173,20 @@ export function queryEmbedderFromEnvironment(): QueryEmbedder | undefined {
 }
 
 /** Answers use the summary model, which Vertex serves only from the global endpoint. */
+/** Flashcard decks are longer than answers, so they get a larger output cap. */
+function flashcardGeneratorFromEnvironment(): AnswerGenerator | undefined {
+  const answers = answerGeneratorFromEnvironment();
+  return answers
+    ? new VertexGenerationClient({
+        project: process.env.GOOGLE_CLOUD_PROJECT!.trim(),
+        location: process.env.GOOGLE_CLOUD_LOCATION?.trim() || "global",
+        model: answers.model,
+        maxOutputTokens: 4096,
+        timeoutMs: 90_000,
+      })
+    : undefined;
+}
+
 export function answerGeneratorFromEnvironment(): AnswerGenerator | undefined {
   const provider = process.env.BOOKWISE_MODEL_PROVIDER?.trim().toLowerCase();
   const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
@@ -215,6 +236,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     SearchController,
     AskController,
     LibraryAskController,
+    FlashcardsController,
   ],
   providers: [
     {
@@ -325,6 +347,37 @@ function objectStorageFromEnvironment(): ObjectStorage {
     {
       provide: ANSWER_GENERATOR,
       useFactory: answerGeneratorFromEnvironment,
+    },
+    {
+      provide: FLASHCARD_REPOSITORY,
+      useFactory: (pool: Pool) => new FlashcardRepository(pool),
+      inject: [APP_DATABASE_POOL],
+    },
+    {
+      provide: FLASHCARDS_USE_CASE,
+      useFactory: (
+        cards: FlashcardRepository,
+        books: BookReadRepository,
+        ask: AskRepository,
+        usage: AppUsageRecorder,
+        spend: UsageReadRepository,
+      ) =>
+        new FlashcardsUseCase(
+          cards,
+          books,
+          ask,
+          flashcardGeneratorFromEnvironment(),
+          usage,
+          spend,
+          dailyBudgetFromEnvironment(),
+        ),
+      inject: [
+        FLASHCARD_REPOSITORY,
+        BOOK_READ_REPOSITORY,
+        ASK_REPOSITORY,
+        APP_USAGE_RECORDER,
+        USAGE_READ_REPOSITORY,
+      ],
     },
     {
       provide: ASK_USE_CASE,

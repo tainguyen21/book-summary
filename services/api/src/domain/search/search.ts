@@ -149,7 +149,7 @@ export interface AppUsageRecorder {
   record(input: {
     ownerId: string;
     bookId?: string;
-    operation: "query_embedding" | "answer" | "evaluation";
+    operation: "query_embedding" | "answer" | "evaluation" | "flashcards";
     provider: string;
     model: string;
     inputTokens: number;
