@@ -30,6 +30,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          # Full history, so secret scanning covers every commit.
+          fetch-depth: 0
+      # Secret scanning over the whole history; reviewed false positives live
+      # in .gitleaksignore. Findings are redacted in the log.
+      - name: Scan for committed secrets
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1
+          git /repo --redact --no-banner --exit-code 1
+      # Known vulnerabilities with a fix in the lockfiles. CRITICAL blocks;
+      # the weekly security scan reports HIGH as well.
+      - name: Scan dependencies for critical vulnerabilities
+        run: >-
+          docker run --rm -v "$PWD:/repo:ro" aquasec/trivy:0.76.0
+          fs --quiet --scanners vuln --severity CRITICAL --ignore-unfixed
+          --exit-code 1 /repo
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:

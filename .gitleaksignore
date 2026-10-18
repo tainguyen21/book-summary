@@ -1,0 +1,5 @@
+# Reviewed false positives (gitleaks fingerprints). Add an entry only after
+# confirming the value is public; rotate real secrets instead.
+
+# The Auth0 SPA client ID in the setup guide is public (it ships in the browser bundle).
+222cd701062bdef7f30f76d06b93f7f059ebafb6:docs/new-device-setup.md:generic-api-key:82
