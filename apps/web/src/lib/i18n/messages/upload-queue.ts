@@ -1,0 +1,41 @@
+import { defineMessages } from "../messages";
+
+/** Uploading several books at once. */
+export const uploadQueueMessages = defineMessages(
+  {
+    title: (count: number) => `Upload ${count} books`,
+    intro: "Each file becomes its own book. Titles come from the file names; rename books later from the library.",
+    start: (count: number) => `Upload ${count} ${count === 1 ? "book" : "books"}`,
+    waiting: "Waiting",
+    uploading: (percent: number) => `Uploading ${percent}%`,
+    queuing: "Queuing summary…",
+    queued: "Queued for summary",
+    failed: "Didn’t upload",
+    rejected: "Can’t upload",
+    progress: (done: number, total: number) => `${done} of ${total} uploaded`,
+    cancel: "Stop after this file",
+    retryFailed: (count: number) => `Retry ${count} failed`,
+    chooseOthers: "Choose other files",
+    done: "Close",
+    keepOpen: "Keep this window open until every file is uploaded.",
+    removeFile: (name: string) => `Remove ${name} from the queue`,
+  },
+  {
+    title: (count: number) => `Tải lên ${count} cuốn sách`,
+    intro: "Mỗi tệp thành một cuốn sách riêng. Tiêu đề lấy từ tên tệp; bạn có thể đổi tên sau trong thư viện.",
+    start: (count: number) => `Tải lên ${count} cuốn`,
+    waiting: "Đang chờ",
+    uploading: (percent: number) => `Đang tải lên ${percent}%`,
+    queuing: "Đang xếp hàng tóm tắt…",
+    queued: "Đã xếp hàng tóm tắt",
+    failed: "Chưa tải lên được",
+    rejected: "Không thể tải lên",
+    progress: (done: number, total: number) => `Đã tải lên ${done} / ${total}`,
+    cancel: "Dừng sau tệp này",
+    retryFailed: (count: number) => `Thử lại ${count} tệp lỗi`,
+    chooseOthers: "Chọn tệp khác",
+    done: "Đóng",
+    keepOpen: "Hãy giữ cửa sổ này mở cho đến khi mọi tệp được tải lên.",
+    removeFile: (name: string) => `Bỏ ${name} khỏi hàng chờ`,
+  },
+);

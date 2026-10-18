@@ -639,3 +639,86 @@
     flex: 1;
   }
 }
+
+/* Upload queue: several files, one status row each. */
+.up-queue-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(380px, 50dvh);
+  margin: 16px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.up-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.up-queue-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.up-queue-text b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.up-queue-text small {
+  color: var(--color-text-subtle);
+}
+
+.up-queue-item.is-failed small,
+.up-queue-item.is-rejected small {
+  color: var(--color-danger);
+}
+
+.up-queue-bar {
+  height: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  border-radius: 999px;
+}
+
+.up-queue-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.2s ease;
+}
+
+.up-queue-icon {
+  display: inline-flex;
+  color: var(--color-text-subtle);
+}
+
+.up-queue-item.is-queued .up-queue-icon {
+  color: var(--color-accent);
+}
+
+.up-queue-item.is-failed .up-queue-icon,
+.up-queue-item.is-rejected .up-queue-icon {
+  color: var(--color-danger);
+}
+
+.up-queue-progress {
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .up-queue-bar span {
+    transition: none;
+  }
+}

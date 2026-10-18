@@ -23,62 +23,17 @@ import {
   UploadTimeline,
   type UploadStage,
 } from "./upload-dialog-parts";
+import {
+  accept,
+  contentTypeFor,
+  fileProblem,
+  putFile,
+  StorageUploadError,
+  titleFromFilename,
+  UploadCanceledError,
+} from "./upload-files";
+import { UploadQueue } from "./upload-queue";
 import "./upload-dialog.css";
-
-const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
-const uploadFormats = {
-  ".pdf": "application/pdf",
-  ".epub": "application/epub+zip",
-  ".docx":
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ".txt": "text/plain",
-} as const;
-const accept = [...Object.keys(uploadFormats), ...Object.values(uploadFormats)].join(",");
-
-class StorageUploadError extends Error {
-  constructor(readonly status: number) {
-    super("Storage upload failed.");
-    this.name = "StorageUploadError";
-  }
-}
-
-class UploadCanceledError extends Error {
-  constructor() {
-    super("Upload canceled.");
-    this.name = "UploadCanceledError";
-  }
-}
-
-function contentTypeFor(candidate: File): string | undefined {
-  const extension = candidate.name.slice(candidate.name.lastIndexOf(".")).toLowerCase();
-
-  return uploadFormats[extension as keyof typeof uploadFormats];
-}
-
-/** Returns the reason (a message key) the file cannot be uploaded, if any. */
-function fileProblem(candidate: File): UploadErrorKey | undefined {
-  const contentType = contentTypeFor(candidate);
-
-  if (!contentType) {
-    return "unsupported";
-  }
-
-  if (candidate.type && candidate.type.toLowerCase() !== contentType) {
-    return "typeMismatch";
-  }
-
-  if (candidate.size > MAX_UPLOAD_BYTES) {
-    return "tooLarge";
-  }
-
-  return undefined;
-}
-
-function titleFromFilename(filename: string): string {
-  const index = filename.lastIndexOf(".");
-
-  return (index > 0 ? filename.slice(0, index) : filename).replace(/[-_]+/g, " ").trim();
-}
 
 function secondsLeftLabel(t: (typeof uploadMessages)["en"], seconds: number): string {
   if (seconds < 5) {
@@ -121,6 +76,9 @@ export function UploadDialog({
   const [errorIsNotice, setErrorIsNotice] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [uploadedBookId, setUploadedBookId] = useState<string>();
+  /** Several files picked or dropped at once: upload them as a queue. */
+  const [queue, setQueue] = useState<File[]>();
+  const [queueRunning, setQueueRunning] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const requestRef = useRef<XMLHttpRequest | undefined>(undefined);
 
@@ -158,47 +116,25 @@ export function UploadDialog({
   }
 
   function uploadFile(currentFile: File, currentTicket: UploadTicket): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      const startedAt = performance.now();
-
-      requestRef.current = xhr;
-      xhr.open("PUT", currentTicket.uploadUrl);
-      xhr.withCredentials = false;
-      xhr.setRequestHeader("content-type", currentTicket.contentType);
-      xhr.upload.onprogress = (event) => {
-        if (!event.lengthComputable) {
-          return;
-        }
-
-        const elapsedSeconds = (performance.now() - startedAt) / 1000;
-        const rate = event.loaded / Math.max(elapsedSeconds, 0.001);
-        const remaining = (event.total - event.loaded) / Math.max(rate, 1);
+    return putFile(
+      currentTicket.uploadUrl,
+      currentTicket.contentType,
+      currentFile,
+      (loaded, total, elapsedSeconds) => {
+        const rate = loaded / Math.max(elapsedSeconds, 0.001);
+        const remaining = (total - loaded) / Math.max(rate, 1);
 
         setProgress({
-          percent: Math.round((event.loaded / event.total) * 100),
-          loaded: event.loaded,
+          percent: Math.round((loaded / total) * 100),
+          loaded,
           secondsLeft: elapsedSeconds > 0.5 ? remaining : undefined,
         });
-      };
-      xhr.onload = () => {
-        requestRef.current = undefined;
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve();
-          return;
-        }
-
-        reject(new StorageUploadError(xhr.status));
-      };
-      xhr.onerror = () => {
-        requestRef.current = undefined;
-        reject(new StorageUploadError(xhr.status));
-      };
-      xhr.onabort = () => {
-        requestRef.current = undefined;
-        reject(new UploadCanceledError());
-      };
-      xhr.send(currentFile);
+      },
+      (xhr) => {
+        requestRef.current = xhr;
+      },
+    ).finally(() => {
+      requestRef.current = undefined;
     });
   }
 
@@ -315,8 +251,20 @@ export function UploadDialog({
   }
 
   function close(): void {
-    if (!busy) {
+    if (!busy && !queueRunning) {
       onClose();
+    }
+  }
+
+  /** One file opens the single-book form; several open the upload queue. */
+  function selectFiles(list: FileList | null | undefined): void {
+    const picked = Array.from(list ?? []);
+    if (picked.length > 1) {
+      selectFile(undefined);
+      setQueue(picked);
+    } else {
+      setQueue(undefined);
+      selectFile(picked[0]);
     }
   }
 
@@ -342,6 +290,17 @@ export function UploadDialog({
       }}
     >
       <div className="up-layout">
+        {queue ? (
+          <div className="up-main">
+            <UploadQueue
+              files={queue}
+              onChooseOthers={() => setQueue(undefined)}
+              onClose={onClose}
+              onComplete={onComplete}
+              onRunningChange={setQueueRunning}
+            />
+          </div>
+        ) : (
         <form className="up-main" onSubmit={submit} noValidate>
           {stage === "done" && uploadedBookId && file ? (
             <div className="up-done">
@@ -471,7 +430,7 @@ export function UploadDialog({
                   onDrop={(event) => {
                     event.preventDefault();
                     setDragging(false);
-                    selectFile(event.dataTransfer.files[0]);
+                    selectFiles(event.dataTransfer.files);
                   }}
                 >
                   <span className="up-drop-art" aria-hidden="true">
@@ -496,8 +455,9 @@ export function UploadDialog({
                   <input
                     type="file"
                     accept={accept}
+                    multiple
                     aria-label={t.chooseFile}
-                    onChange={(event) => selectFile(event.target.files?.[0])}
+                    onChange={(event) => selectFiles(event.target.files)}
                   />
                 </label>
               )}
@@ -531,6 +491,7 @@ export function UploadDialog({
             </>
           )}
         </form>
+        )}
 
         <UploadTimeline
           stage={stage}
