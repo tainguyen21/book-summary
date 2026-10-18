@@ -115,6 +115,16 @@ then `done` (`answered`, `cached`), or `error` (`budget` or `unavailable`).
   repeated question costs nothing and still works over the budget.
 - New answers record `query_embedding` and `answer` usage with the book id and
   are refused once the daily budget is spent.
+- Each marker's quote card shows the sentence of the cited passage that best
+  matches the claim (verbatim, shared meaningful words), sent as `markerQuotes`
+  in `done`. Without a match, it falls back to the evidence quote.
+
+`/search` also has "Ask your library": `POST /v1/ask` answers from passages
+across every ready book of the owner, at most 3 of 8 sources per book, and
+each source carries `bookId` and `bookTitle`. Library answers are cached in
+`app.library_answers` (migration `016`), keyed by a hash of every ready book's
+current source document, so a new, changed, or deleted book refreshes them.
+Library usage rows have no book id.
 
 ## Book management
 

@@ -30,7 +30,8 @@ Last updated: October 17, 2026
 | October 17, 2026 | Hierarchical summaries | Books with more than `BOOKWISE_SUMMARY_GROUP_RECORDS` (120) evidence records are summarized in groups, then the group summaries are summarized, so each call stays bounded. Group summaries are checkpointed for resume. A two-level run of the evaluation book scored 10.5/12. Deployed in `a270b38`. |
 | October 17, 2026 | Sentence source quotes | Summary sentences carry numbered markers that expand verbatim quotes from the book (excerpts verified against the cited span, migration `013`), with a link to the passage in context. On the evaluation book: 21 of 21 sentences cited, 36 quotes, 0 not found verbatim; about 21% more cost per book. Verified locally in the browser; deployed in `9b21280`. |
 | October 17, 2026 | Hybrid private search | `/search` finds facts and passages across the owner's books by keyword and by meaning (query embeddings from the API, migration `014`), merged by rank fusion, with a keyword-only fallback when the budget is spent or Vertex is unavailable. The API now calls Vertex for interactive requests (user decision) and records that spend in the shared ledger. Deployed in `32ae788`. |
-| October 17, 2026 | Ask a book | A book page answers questions from that book only, streamed with numbered markers that open verified quotes, and says so when the book doesn't cover it. Answers are cached per book and source document (migration `015`), and new answers count toward the daily budget. Verified locally in the browser against live Vertex (first text in about 7 s, cached repeats instant); not yet deployed. |
+| October 18, 2026 | Ask the library and claim-matched quotes | `/search` answers one question across all ready books, naming the book behind each claim (`POST /v1/ask`, cache in migration `016`). Quote cards on answers now show the passage sentence that matches the claim instead of the passage's first evidence quote. Verified locally against live Vertex; not yet deployed. |
+| October 17, 2026 | Ask a book | A book page answers questions from that book only, streamed with numbered markers that open verified quotes, and says so when the book doesn't cover it. Answers are cached per book and source document (migration `015`), and new answers count toward the daily budget. Verified locally in the browser against live Vertex (first text in about 7 s, cached repeats instant). Deployed in `9b047b2`; in production a question on a one-page PDF streamed its first text in about 2.5 s. |
 
 ## In Progress
 
@@ -53,12 +54,11 @@ See [agent handoff](agent-handoff.md) for verification limits and
    confirm summaries, citations, ledger rows, and worker logs.
 2. Use book management to remove the local 76 MB test book and the production
    incomplete upload.
-3. Deploy "Ask a book" (migration `015`), then try it on a production book.
-4. Watch the first long book in production with sentence quotes and hierarchical summaries.
-5. Operational hardening: real readiness checks, uptime and stuck-run alerts,
+3. Watch the first long book in production with sentence quotes and hierarchical summaries.
+4. Operational hardening: real readiness checks, uptime and stuck-run alerts,
    and credential rotation.
-6. Decide whether summary editing belongs in the next publication iteration.
-7. Later upload capabilities: multipart/resumable uploads, OCR, malware
+5. Decide whether summary editing belongs in the next publication iteration.
+6. Later upload capabilities: multipart/resumable uploads, OCR, malware
    scanning, and files larger than 100 MiB.
 
 Roadmap and rationale:
