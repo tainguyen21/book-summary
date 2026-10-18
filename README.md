@@ -134,6 +134,18 @@ settings as the API:
 pnpm --dir services/api eval:ask -- --owner <ownerId> --book <bookId> --set evaluation/the-slow-orchard.questions.json --out plans/reports/eval-ask.md
 ```
 
+## Request tracing
+
+With `BOOKWISE_TRACE_EXPORTER=cloud-trace` (set in the GKE ConfigMap), the API
+and worker send OpenTelemetry spans to Cloud Trace through its OTLP endpoint
+(`telemetry.googleapis.com`), using Application Default Credentials and
+`roles/telemetry.tracesWriter`. The trace covers API requests, Postgres
+queries, and Vertex calls. A queued command carries the request's
+`traceparent` in its payload, so the worker's `command <type>` span, with its
+database and model calls, joins the same trace. Spans never include request
+bodies, questions, prompts, or book text. `BOOKWISE_TRACE_SAMPLE_RATIO`
+(default 1) sets sampling; health probes and idle polling are not traced.
+
 ## Book management
 
 Owners manage books from the library row menu and the book page. All routes
