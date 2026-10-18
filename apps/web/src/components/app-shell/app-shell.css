@@ -57,6 +57,32 @@
   min-height: 40px;
 }
 
+/* English / Tiếng Việt switch above the account block. */
+.shell-language {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+}
+
+.shell-language:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+.shell-language:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* Opens the ⌘K palette; on phones the "Search books" item covers search. */
 .shell-jump {
   display: flex;
@@ -277,6 +303,7 @@
 
   .shell-upload,
   .shell-jump,
+  .shell-language,
   .shell-privacy,
   .shell-account,
   .shell-nav-heading {

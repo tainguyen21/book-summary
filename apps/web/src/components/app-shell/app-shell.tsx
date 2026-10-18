@@ -10,7 +10,8 @@ import {
   type BookCategory,
 } from "../../lib/book-status";
 import type { LibraryBook } from "../../lib/library-types";
-import { AccountMenu, CompactAccountMenu } from "../auth/account-menu";
+import { useDocumentLanguage } from "../../lib/i18n/locale";
+import { AccountMenu, CompactAccountMenu, LanguageSwitch } from "../auth/account-menu";
 import { UploadDialog } from "../library/upload-dialog";
 import { CommandPalette } from "./command-palette";
 import { UploadContext } from "./upload-context";
@@ -48,6 +49,7 @@ export function AppShell({
   onUploaded?(): Promise<void> | void;
   children: ReactNode;
 }) {
+  useDocumentLanguage();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const paletteOpenerRef = useRef<HTMLElement | null>(null);
@@ -125,6 +127,7 @@ export function AppShell({
               >
                 <Upload aria-hidden="true" size={16} />
               </button>
+              <LanguageSwitch compact />
               <CompactAccountMenu />
             </div>
           </div>
@@ -187,6 +190,7 @@ export function AppShell({
             </p>
           </div>
 
+          <LanguageSwitch />
           <AccountMenu />
         </aside>
 
