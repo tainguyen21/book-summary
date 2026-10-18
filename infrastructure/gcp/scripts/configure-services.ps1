@@ -61,6 +61,14 @@ Add-ProjectRole `
 Add-ProjectRole `
     "serviceAccount:bookwise-migrator@$ProjectId.iam.gserviceaccount.com" `
     "roles/cloudsql.client"
+# Optional request tracing (BOOKWISE_TRACE_EXPORTER=cloud-trace) writes spans
+# through the OTLP endpoint, telemetry.googleapis.com.
+Add-ProjectRole `
+    "serviceAccount:bookwise-api@$ProjectId.iam.gserviceaccount.com" `
+    "roles/telemetry.tracesWriter"
+Add-ProjectRole `
+    "serviceAccount:bookwise-worker@$ProjectId.iam.gserviceaccount.com" `
+    "roles/telemetry.tracesWriter"
 
 Invoke-Gcloud iam service-accounts add-iam-policy-binding `
     "bookwise-api@$ProjectId.iam.gserviceaccount.com" `

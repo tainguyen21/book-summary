@@ -1,3 +1,6 @@
+// Must load first: tracing instruments http and pg before they are imported.
+import "./tracing";
+
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {

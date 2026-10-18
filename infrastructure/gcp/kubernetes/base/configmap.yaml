@@ -15,6 +15,9 @@ data:
   BOOKWISE_EMBEDDING_DIMENSIONS: "768"
   # Region for the API's interactive query embeddings (search); same vectors as global.
   BOOKWISE_EMBEDDING_LOCATION: asia-southeast1
+  # Request tracing to Cloud Trace (API and worker); remove to turn it off.
+  BOOKWISE_TRACE_EXPORTER: cloud-trace
+  BOOKWISE_TRACE_SAMPLE_RATIO: "1"
   BOOKWISE_MODEL_TIMEOUT_SECONDS: "120"
   BOOKWISE_MODEL_MAX_OUTPUT_TOKENS: "16384"
   # USD per 1M tokens, used only for estimated spend. List (non-promotional)

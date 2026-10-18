@@ -25,7 +25,9 @@ $services = @(
     "aiplatform.googleapis.com",
     "secretmanager.googleapis.com",
     "iamcredentials.googleapis.com",
-    "sts.googleapis.com"
+    "sts.googleapis.com",
+    "cloudtrace.googleapis.com",
+    "telemetry.googleapis.com"
 )
 & gcloud services enable $services | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Could not enable required Google APIs." }

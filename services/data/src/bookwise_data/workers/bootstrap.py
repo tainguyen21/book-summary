@@ -55,6 +55,7 @@ from bookwise_data.infrastructure.storage.object_storage import (
 )
 from bookwise_data.workers.command_worker import CommandWorker
 from bookwise_data.workers.logging_setup import configure_logging, log_event
+from bookwise_data.workers.tracing_setup import configure_tracing, shutdown_tracing
 
 
 def run_worker() -> None:
@@ -62,6 +63,7 @@ def run_worker() -> None:
 
     logger = configure_logging()
     engine = create_engine(_required_environment("DATA_DATABASE_URL"))
+    configure_tracing(engine)
     stop_requested = Event()
     received_signals: list[str] = []
 
@@ -137,6 +139,7 @@ def run_worker() -> None:
             signal=received_signals[0] if received_signals else None,
         )
     finally:
+        shutdown_tracing()
         engine.dispose()
 
 

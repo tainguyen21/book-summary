@@ -15,6 +15,7 @@ from bookwise_data.workers.logging_setup import (
     log_event,
     worker_logger,
 )
+from bookwise_data.workers.tracing_setup import command_span
 
 CommandHandler = Callable[[ClaimedCommand, Callable[[], bool]], None]
 
@@ -66,10 +67,19 @@ class CommandWorker:
 
             started = time.monotonic()
             try:
-                self._handler(
-                    command,
-                    lambda command=command: self._claim_command.heartbeat(command),
-                )
+                with command_span(
+                    command.command_type,
+                    command.payload,
+                    {
+                        "bookwise.command_id": str(command.id),
+                        "bookwise.book_id": str(command.book_id),
+                        "bookwise.run_id": str(command.run_id),
+                    },
+                ):
+                    self._handler(
+                        command,
+                        lambda command=command: self._claim_command.heartbeat(command),
+                    )
             except DailyBudgetExceeded as error:
                 self._claim_command.fail_retryably(command, error)
                 log_event(
