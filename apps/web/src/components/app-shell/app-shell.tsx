@@ -1,8 +1,8 @@
 "use client";
 
-import { BookOpen, Library, Search, ShieldCheck, Upload } from "lucide-react";
+import { BookOpen, Command, Library, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
   categoryLabels,
@@ -12,6 +12,7 @@ import {
 import type { LibraryBook } from "../../lib/library-types";
 import { AccountMenu, CompactAccountMenu } from "../auth/account-menu";
 import { UploadDialog } from "../library/upload-dialog";
+import { CommandPalette } from "./command-palette";
 import { UploadContext } from "./upload-context";
 import "./app-shell.css";
 
@@ -48,7 +49,34 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const paletteOpenerRef = useRef<HTMLElement | null>(null);
   const navRef = useRef<HTMLElement>(null);
+
+  // ⌘K on Mac, Ctrl+K elsewhere, from anywhere in the signed-in app.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        paletteOpenerRef.current = document.activeElement as HTMLElement | null;
+        setPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    const opener = paletteOpenerRef.current;
+    requestAnimationFrame(() => {
+      // Navigation may have replaced the opener; only refocus it if it is still on the page.
+      if (opener?.isConnected) {
+        opener.focus();
+      }
+    });
+  }, []);
+  const openUpload = useCallback(() => setUploadOpen(true), []);
 
   // On phones the filters scroll sideways; keep the active one in view.
   useEffect(() => {
@@ -110,6 +138,20 @@ export function AppShell({
             Upload book
           </button>
 
+          <button
+            className="shell-jump"
+            type="button"
+            aria-keyshortcuts="Meta+K Control+K"
+            onClick={(event) => {
+              paletteOpenerRef.current = event.currentTarget;
+              setPaletteOpen(true);
+            }}
+          >
+            <Command aria-hidden="true" size={15} />
+            Quick find
+            <kbd>⌘K</kbd>
+          </button>
+
           <nav ref={navRef} className="shell-nav" aria-label="Library">
             <NavItem
               href="/search"
@@ -152,6 +194,8 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      {paletteOpen && <CommandPalette books={books} onClose={closePalette} onUpload={openUpload} />}
 
       {uploadOpen && (
         <UploadDialog

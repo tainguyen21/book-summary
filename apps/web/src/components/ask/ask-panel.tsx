@@ -43,15 +43,18 @@ export function AskPanel({
   heading,
   lede,
   placeholder,
+  initialQuestion = "",
   ...context
 }: {
   askPath: string;
+  /** Prefilled (not sent) question, focused so Enter asks it. */
+  initialQuestion?: string;
   heading: string;
   lede: string;
   placeholder: string;
 } & AnswerContext) {
   const { getAccessTokenSilently } = useAuth0();
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(initialQuestion.slice(0, MAX_QUESTION));
   const [answers, setAnswers] = useState<AnswerItem[]>([]);
   const nextId = useRef(1);
   const busy = answers.some((answer) => answer.status === "streaming");
@@ -121,6 +124,7 @@ export function AskPanel({
           placeholder={placeholder}
           onChange={(event) => setQuestion(event.target.value)}
           onKeyDown={onKeyDown}
+          autoFocus={Boolean(initialQuestion)}
         />
         <button className="button button-ink button-sm" type="submit" disabled={busy || trimmed.length < 3}>
           {busy ? <Spinner size="sm" /> : <Send aria-hidden="true" size={15} />}

@@ -49,9 +49,15 @@ function groupByBook(results: SearchResult[]): { bookId: string; title: string; 
 }
 
 /** Search inside the signed-in owner's books, by keyword and by meaning. */
-export function SearchScreen() {
+export function SearchScreen({
+  initialQuery = "",
+  initialQuestion = "",
+}: {
+  initialQuery?: string;
+  initialQuestion?: string;
+}) {
   const library = useLibraryBooks();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery.slice(0, 200));
   const state = useBookSearch(query);
   const [passage, setPassage] = useState<{ bookId: string; spanId: string; label: string }>();
   const openerRef = useRef<HTMLElement | null>(null);
@@ -80,7 +86,7 @@ export function SearchScreen() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="e.g. why did the first trees die?"
             maxLength={200}
-            autoFocus
+            autoFocus={!initialQuestion}
             autoComplete="off"
           />
           {query && (
@@ -92,6 +98,7 @@ export function SearchScreen() {
 
         <AskPanel
           askPath="/v1/ask"
+          initialQuestion={initialQuestion}
           heading="Ask your library"
           lede="One question, answered from all your books, naming the book behind each claim."
           placeholder="e.g. What do my books say about planting in cold climates?"
