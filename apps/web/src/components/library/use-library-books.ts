@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { isActive } from "../../lib/book-status";
 import { bookwiseApi } from "../../lib/bookwise-api";
+import { subscribeLiveStatus } from "../../lib/live-status";
 import {
   bookProcessingStatusSchema,
   libraryBookSchema,
@@ -14,7 +15,8 @@ import {
 } from "../../lib/library-types";
 
 const libraryBooksSchema = z.array(libraryBookSchema);
-const pollIntervalMs = 5000;
+// Status changes are pushed (live status); polling is only a fallback.
+const pollIntervalMs = 30_000;
 
 export type LibraryState =
   | { kind: "loading" }
@@ -36,8 +38,8 @@ function mergeProcessingStatus(
 }
 
 /**
- * Loads the signed-in user's books and keeps active ones fresh by polling
- * their processing status while the tab is visible.
+ * Loads the signed-in user's books and keeps active ones fresh: status changes
+ * are pushed (live status), with slow polling while the tab is visible as a fallback.
  */
 export function useLibraryBooks() {
   const { getAccessTokenSilently } = useAuth0();
@@ -164,6 +166,24 @@ export function useLibraryBooks() {
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [activeBookIdsKey, getAccessTokenSilently]);
+
+  // Pushed status changes update the matching book in place.
+  useEffect(
+    () =>
+      subscribeLiveStatus(getAccessTokenSilently, (status) => {
+        setState((current) =>
+          current.kind === "ready" && current.books.some((book) => book.id === status.bookId)
+            ? {
+                kind: "ready",
+                books: current.books.map((book) =>
+                  book.id === status.bookId ? mergeProcessingStatus(book, status) : book,
+                ),
+              }
+            : current,
+        );
+      }),
+    [getAccessTokenSilently],
+  );
 
   return { state, reload, refresh };
 }

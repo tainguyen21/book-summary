@@ -11,7 +11,6 @@ import {
 } from "@nestjs/common";
 import { IsString, IsUUID } from "class-validator";
 import type { FastifyReply } from "fastify";
-import type { OutgoingHttpHeaders } from "node:http";
 
 import {
   ASK_USE_CASE,
@@ -24,6 +23,7 @@ import {
   AuthenticatedPrincipalGuard,
   CurrentPrincipal,
 } from "./authenticated-principal";
+import { openEventStream } from "./server-sent-events";
 
 class BookIdParams {
   @IsUUID()
@@ -61,25 +61,8 @@ async function streamAnswer(
     throw new NotFoundException();
   }
 
-  // Keep headers Fastify already prepared (CORS) on the raw streaming response.
-  reply.hijack();
-  const prepared = Object.fromEntries(
-    Object.entries(reply.getHeaders()).filter(
-      ([, value]) => value !== undefined,
-    ),
-  ) as OutgoingHttpHeaders;
-  reply.raw.writeHead(200, {
-    ...prepared,
-    "content-type": "text/event-stream; charset=utf-8",
-    "cache-control": "no-cache, no-transform",
-    connection: "keep-alive",
-    "x-accel-buffering": "no",
-  });
-  const emit = (event: AskEvent) => {
-    reply.raw.write(
-      `event: ${event.event}\ndata: ${JSON.stringify(event.data)}\n\n`,
-    );
-  };
+  const stream = openEventStream(reply);
+  const emit = (event: AskEvent) => stream.send(event.event, event.data);
   try {
     await askUseCase.execute(ownerId, scope, question, emit);
   } catch {
@@ -91,7 +74,7 @@ async function streamAnswer(
       },
     });
   } finally {
-    reply.raw.end();
+    stream.end();
   }
 }
 

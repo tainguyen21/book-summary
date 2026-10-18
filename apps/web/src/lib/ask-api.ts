@@ -1,5 +1,6 @@
 "use client";
 
+import { readEventStream } from "./event-stream";
 import {
   BookwiseConnectionError,
   BookwiseRequestError,
@@ -58,24 +59,5 @@ export async function askQuestion(
     throw new BookwiseRequestError(response.status, message);
   }
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    buffer += decoder.decode(value, { stream: true });
-    let boundary: number;
-    while ((boundary = buffer.indexOf("\n\n")) >= 0) {
-      const block = buffer.slice(0, boundary);
-      buffer = buffer.slice(boundary + 2);
-      const event = /^event: (.+)$/m.exec(block)?.[1];
-      const data = /^data: (.+)$/m.exec(block)?.[1];
-      if (event && data) {
-        onEvent({ event, data: JSON.parse(data) } as AskEvent);
-      }
-    }
-  }
+  await readEventStream(response.body, (event, data) => onEvent({ event, data } as AskEvent));
 }

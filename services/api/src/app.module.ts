@@ -88,6 +88,9 @@ import {
 } from "./application/highlights/highlights.use-case";
 import { HighlightRepository } from "./infrastructure/database/highlight.repository";
 import { HighlightsController } from "./interfaces/http/highlights.controller";
+import { BOOK_STATUS_FEED } from "./domain/live/book-status-feed";
+import { PostgresBookStatusListener } from "./infrastructure/database/book-status.listener";
+import { LiveStatusController } from "./interfaces/http/live-status.controller";
 import {
   AskController,
   LibraryAskController,
@@ -245,6 +248,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     LibraryAskController,
     FlashcardsController,
     HighlightsController,
+    LiveStatusController,
   ],
   providers: [
     {
@@ -355,6 +359,11 @@ function objectStorageFromEnvironment(): ObjectStorage {
     {
       provide: ANSWER_GENERATOR,
       useFactory: answerGeneratorFromEnvironment,
+    },
+    {
+      provide: BOOK_STATUS_FEED,
+      useFactory: () =>
+        new PostgresBookStatusListener(requiredEnvironment("APP_DATABASE_URL")),
     },
     {
       provide: HIGHLIGHTS_USE_CASE,

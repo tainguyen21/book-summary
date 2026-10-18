@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
+
 import { useCallback, useEffect, useState } from "react";
 
 import { bookwiseApi } from "../../lib/bookwise-api";
@@ -10,6 +11,7 @@ import {
   type BookProcessingStatus,
   type BookSummary,
 } from "../../lib/library-types";
+import { subscribeLiveStatus } from "../../lib/live-status";
 
 export type DetailState =
   | { kind: "loading" }
@@ -23,7 +25,7 @@ export type DetailState =
 
 /**
  * Loads a book's processing state and, once complete, its accepted summary.
- * Polls every 5s only while processing; incomplete uploads stop polling.
+ * Reloads on pushed status changes, and polls every 30 s as a fallback while processing; incomplete uploads stop polling.
  * A failed first request is retried once before the error is shown, so a
  * momentary sign-in rejection on page load does not need a manual retry.
  */
@@ -109,7 +111,8 @@ export function useBookDetail(bookId: string) {
         setState(nextState);
         uploadIncomplete = nextState.kind === "upload-incomplete";
         if (nextState.kind === "processing" && interval === undefined) {
-          interval = window.setInterval(poll, 5000);
+          // Status changes are pushed (live status); polling is only a fallback.
+          interval = window.setInterval(poll, 30_000);
         }
         if (nextState.kind !== "processing" && interval !== undefined) {
           window.clearInterval(interval);
@@ -126,6 +129,12 @@ export function useBookDetail(bookId: string) {
 
     poll();
     document.addEventListener("visibilitychange", onVisibilityChange);
+    // A pushed change for this book reloads it right away.
+    const unsubscribe = subscribeLiveStatus(getAccessTokenSilently, (status) => {
+      if (status.bookId === bookId) {
+        poll();
+      }
+    });
 
     return () => {
       active = false;
@@ -134,8 +143,9 @@ export function useBookDetail(bookId: string) {
         window.clearInterval(interval);
       }
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      unsubscribe();
     };
-  }, [requestDetail, reloadKey]);
+  }, [bookId, getAccessTokenSilently, requestDetail, reloadKey]);
 
   const reload = useCallback(() => {
     setState({ kind: "loading" });
