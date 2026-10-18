@@ -150,6 +150,14 @@ apps such as Obsidian. The file has front matter, the summary, and one
 footnote per cited sentence with its verified quotes and locations. There are
 no public share links. The file ends with the reader's highlights and notes.
 
+## Reading settings
+
+"Reading settings" in a summary's header picks the theme (system, light,
+dark), text size, and line width. Choices are stored per device
+(`bookwise.reading` in localStorage). An inline script in the root layout
+applies them before first paint, through `data-theme`, `data-reading-size`,
+and `data-reading-width` on `<html>`.
+
 ## Live status
 
 Open library and book pages receive status changes as server-sent events from
