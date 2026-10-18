@@ -1,15 +1,21 @@
+"use client";
+
 import { BookOpen } from "lucide-react";
 
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { Skeleton } from "../ui/loading";
 import "../app-shell/app-shell.css";
 import "./library.css";
 
 /** Library dashboard placeholder in its final layout (shell + stats + rows). */
 export function LibraryDashboardSkeleton() {
+  const t = useMessages(libraryMessages);
+
   return (
     <div className="shell-content" aria-busy="true">
       <span className="visually-hidden" role="status">
-        Loading your library…
+        {t.loading}
       </span>
       <div className="lib-heading">
         <div>

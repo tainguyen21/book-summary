@@ -1,16 +1,24 @@
+"use client";
+
 import Link from "next/link";
 
 import {
   isActive,
   pipelineIndex,
-  pipelineSteps,
+  pipelineStepLabels,
 } from "../../lib/book-status";
 import { formatRelative } from "../../lib/format";
 import type { LibraryBook } from "../../lib/library-types";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { BookCover, fileFormat } from "./book-cover";
 
 /** Live pipeline for every queued or summarizing book. Hidden when idle. */
 export function ProcessingNowPanel({ books }: { books: LibraryBook[] }) {
+  const locale = useLocale();
+  const t = useMessages(libraryMessages);
+  const pipelineSteps = pipelineStepLabels[locale];
   const active = books.filter(isActive);
 
   if (active.length === 0) {
@@ -21,10 +29,10 @@ export function ProcessingNowPanel({ books }: { books: LibraryBook[] }) {
     <section className="panel lib-processing" aria-labelledby="processing-title">
       <div className="panel-header">
         <h2 id="processing-title">
-          Processing now
-          <span className="badge tone-info">{active.length} active</span>
+          {t.processingNow}
+          <span className="badge tone-info">{t.activeCount(active.length)}</span>
         </h2>
-        <span>Refreshes every few seconds</span>
+        <span>{t.refreshes}</span>
       </div>
       <ul className="lib-jobs">
         {active.map((book) => {
@@ -38,11 +46,11 @@ export function ProcessingNowPanel({ books }: { books: LibraryBook[] }) {
                 <small>
                   {fileFormat(book.filename)} ·{" "}
                   {book.latestEventAt
-                    ? `updated ${formatRelative(book.latestEventAt)}`
-                    : `added ${formatRelative(book.createdAt)}`}
+                    ? t.updatedAgo(formatRelative(book.latestEventAt, locale))
+                    : t.addedAgo(formatRelative(book.createdAt, locale))}
                 </small>
               </div>
-              <ol className="lib-pipeline" aria-label={`Progress: ${pipelineSteps[current]}`}>
+              <ol className="lib-pipeline" aria-label={t.progressStep(pipelineSteps[current])}>
                 {pipelineSteps.map((step, index) => (
                   <li
                     key={step}
@@ -54,7 +62,7 @@ export function ProcessingNowPanel({ books }: { books: LibraryBook[] }) {
                 ))}
               </ol>
               <Link className="button button-line button-sm" href={`/books/${book.id}`}>
-                View
+                {t.view}
               </Link>
             </li>
           );

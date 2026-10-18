@@ -5,6 +5,8 @@ import { Eraser } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { clearIncompleteUploads } from "../../lib/book-management";
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { ConfirmDialog } from "./book-management-dialogs";
 import "./book-management.css";
 
@@ -17,6 +19,7 @@ export function ClearIncompleteButton({
   onCleared(): void;
 }) {
   const { getAccessTokenSilently } = useAuth0();
+  const t = useMessages(libraryMessages);
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState("");
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -38,19 +41,19 @@ export function ClearIncompleteButton({
         onClick={() => setConfirming(true)}
       >
         <Eraser aria-hidden="true" size={15} />
-        Clear incomplete uploads ({count})
+        {t.clearButton(count)}
       </button>
       <span className="visually-hidden" role="status" aria-live="polite">
         {notice}
       </span>
       {confirming && (
         <ConfirmDialog
-          title={`Clear ${count} incomplete upload${count === 1 ? "" : "s"}?`}
-          body="These files never finished uploading, so they have no summary. This can’t be undone."
-          confirmLabel="Clear uploads"
+          title={t.clearTitle(count)}
+          body={t.clearBody}
+          confirmLabel={t.clearConfirm}
           onConfirm={async () => {
             const deleted = await clearIncompleteUploads(getAccessTokenSilently);
-            setNotice(`Cleared ${deleted} incomplete upload${deleted === 1 ? "" : "s"}.`);
+            setNotice(t.cleared(deleted));
             onCleared();
           }}
           onClose={() => {

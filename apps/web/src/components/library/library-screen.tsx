@@ -5,9 +5,14 @@ import { RefreshCw, Search, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { categoryLabels, isActive, presentStatus } from "../../lib/book-status";
+import { categoryLabelsByLocale, isActive, presentStatus } from "../../lib/book-status";
 import { greeting } from "../../lib/format";
 import type { LibraryBook } from "../../lib/library-types";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { commonMessages } from "../../lib/i18n/messages/common";
+import { libraryMessages } from "../../lib/i18n/messages/library";
+import { shellMessages } from "../../lib/i18n/messages/shell";
 import { AppShell, libraryViewHref, type LibraryView } from "../app-shell/app-shell";
 import { useUpload } from "../app-shell/upload-context";
 import { StateCallout } from "../layout/state-callout";
@@ -23,6 +28,8 @@ import "./library.css";
 
 export function LibraryScreen({ view }: { view: LibraryView }) {
   const { state, reload, refresh } = useLibraryBooks();
+  const t = useMessages(libraryMessages);
+  const common = useMessages(commonMessages);
 
   return (
     <AppShell
@@ -36,12 +43,12 @@ export function LibraryScreen({ view }: { view: LibraryView }) {
         <div className="shell-content">
           <StateCallout
             tone="danger"
-            title="We couldn’t load your library"
-            body="Check your connection, then try again."
+            title={t.loadErrorTitle}
+            body={t.loadErrorBody}
             action={
               <button className="button button-line button-sm" type="button" onClick={reload}>
                 <RefreshCw aria-hidden="true" size={15} />
-                Try again
+                {common.tryAgain}
               </button>
             }
           />
@@ -68,6 +75,9 @@ function LibraryDashboard({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const usage = useDailyUsage();
+  const locale = useLocale();
+  const t = useMessages(libraryMessages);
+  const shell = useMessages(shellMessages);
   const activeCount = books.filter(isActive).length;
   const firstName =
     user?.given_name ||
@@ -87,7 +97,7 @@ function LibraryDashboard({
       <header className="lib-heading">
         <div>
           <h1>
-            {greeting()}
+            {greeting(undefined, locale)}
             {firstName ? (
               <>
                 , <span className="display-italic">{firstName}</span>
@@ -96,15 +106,14 @@ function LibraryDashboard({
           </h1>
           <p>
             {books.length === 0
-              ? "Your private library is ready for its first book."
-              : "Here’s what’s happening in your library."}
+              ? t.introEmpty
+              : t.intro}
           </p>
         </div>
         {activeCount > 0 && (
           <span className="lib-live" role="status">
             <span className="lib-live-dot" aria-hidden="true" />
-            {activeCount} {activeCount === 1 ? "book" : "books"} processing ·
-            updates live
+            {t.liveProcessing(activeCount)}
           </span>
         )}
       </header>
@@ -124,11 +133,11 @@ function LibraryDashboard({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by title or file name"
-                aria-label="Search books"
+                placeholder={t.searchPlaceholder}
+                aria-label={t.searchLabel}
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
+                <button type="button" onClick={() => setQuery("")} aria-label={t.clearSearch}>
                   <X aria-hidden="true" size={14} />
                 </button>
               )}
@@ -140,7 +149,7 @@ function LibraryDashboard({
           </div>
 
           <BookCollection
-            title={view === "all" ? "All books" : categoryLabels[view]}
+            title={view === "all" ? shell.allBooks : categoryLabelsByLocale[locale][view]}
             books={visibleBooks}
             totalCount={books.length}
             onClearFilters={() => {
@@ -157,6 +166,7 @@ function LibraryDashboard({
 
 function EmptyLibrary() {
   const { openUpload } = useUpload();
+  const t = useMessages(libraryMessages);
 
   return (
     <section className="lib-empty" aria-labelledby="empty-title">
@@ -165,22 +175,19 @@ function EmptyLibrary() {
         <span className="book-cover cover-1" />
         <span className="book-cover cover-3" />
       </div>
-      <h2 id="empty-title">Add your first book</h2>
-      <p>
-        Upload a book and Bookwise will read it privately and write a summary
-        with sources you can check.
-      </p>
+      <h2 id="empty-title">{t.emptyTitle}</h2>
+      <p>{t.emptyBody}</p>
       <button className="button button-ink button-lg" type="button" onClick={openUpload}>
         <Upload aria-hidden="true" size={18} />
-        Upload a book
+        {t.emptyUpload}
       </button>
-      <ul className="lib-empty-formats" aria-label="Supported formats">
+      <ul className="lib-empty-formats" aria-label={t.supportedFormats}>
         <li>PDF</li>
         <li>EPUB</li>
         <li>DOCX</li>
         <li>TXT</li>
       </ul>
-      <small>Up to 100 MB per file</small>
+      <small>{t.sizeLimit}</small>
     </section>
   );
 }

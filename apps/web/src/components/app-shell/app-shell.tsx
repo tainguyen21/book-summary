@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
-  categoryLabels,
+  categoryLabelsByLocale,
   presentStatus,
   type BookCategory,
 } from "../../lib/book-status";
 import type { LibraryBook } from "../../lib/library-types";
-import { useDocumentLanguage } from "../../lib/i18n/locale";
+import { useDocumentLanguage, useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { shellMessages } from "../../lib/i18n/messages/shell";
 import { AccountMenu, CompactAccountMenu, LanguageSwitch } from "../auth/account-menu";
 import { UploadDialog } from "../library/upload-dialog";
 import { CommandPalette } from "./command-palette";
@@ -50,6 +52,9 @@ export function AppShell({
   children: ReactNode;
 }) {
   useDocumentLanguage();
+  const locale = useLocale();
+  const t = useMessages(shellMessages);
+  const categoryLabels = categoryLabelsByLocale[locale];
   const [uploadOpen, setUploadOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const paletteOpenerRef = useRef<HTMLElement | null>(null);
@@ -123,7 +128,7 @@ export function AppShell({
                 className="button button-ink icon-button button-sm"
                 type="button"
                 onClick={() => setUploadOpen(true)}
-                aria-label="Upload book"
+                aria-label={t.uploadBook}
               >
                 <Upload aria-hidden="true" size={16} />
               </button>
@@ -138,7 +143,7 @@ export function AppShell({
             onClick={() => setUploadOpen(true)}
           >
             <Upload aria-hidden="true" size={16} />
-            Upload book
+            {t.uploadBook}
           </button>
 
           <button
@@ -151,24 +156,24 @@ export function AppShell({
             }}
           >
             <Command aria-hidden="true" size={15} />
-            Quick find
+            {t.quickFind}
             <kbd>⌘K</kbd>
           </button>
 
-          <nav ref={navRef} className="shell-nav" aria-label="Library">
+          <nav ref={navRef} className="shell-nav" aria-label={t.navLabel}>
             <NavItem
               href="/search"
               active={searchActive}
               icon={<Search aria-hidden="true" size={16} />}
-              label="Search books"
+              label={t.searchBooks}
             />
-            <p className="shell-nav-heading">Library</p>
+            <p className="shell-nav-heading">{t.libraryHeading}</p>
             <NavItem
               href={libraryViewHref("all")}
               active={activeView === "all"}
               count={books ? counts.all : undefined}
               icon={<Library aria-hidden="true" size={16} />}
-              label="All books"
+              label={t.allBooks}
             />
             {views.map(({ view, dot }) => (
               <NavItem
@@ -185,8 +190,8 @@ export function AppShell({
           <div className="shell-privacy">
             <ShieldCheck aria-hidden="true" size={16} />
             <p>
-              <b>Private library</b>
-              Only your account can see these books.
+              <b>{t.privateLibrary}</b>
+              {t.privateLibraryBody}
             </p>
           </div>
 

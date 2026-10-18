@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { deleteBook, renameBook, retryBook } from "../../lib/book-management";
 import type { LibraryBook } from "../../lib/library-types";
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { ConfirmDialog, RenameDialog } from "./book-management-dialogs";
 import "./book-management.css";
 
@@ -34,6 +36,7 @@ export function BookActionsMenu({
   onDeleted?(): void;
 }) {
   const { getAccessTokenSilently } = useAuth0();
+  const t = useMessages(libraryMessages);
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<OpenDialog>();
   const [notice, setNotice] = useState("");
@@ -61,11 +64,11 @@ export function BookActionsMenu({
     if (next === "retry") {
       void retryBook(getAccessTokenSilently, book.id)
         .then(() => {
-          setNotice("Retry requested. The summary is back in the queue.");
+          setNotice(t.retryRequested);
           onChanged();
         })
         .catch((error: unknown) =>
-          setNotice(error instanceof Error ? error.message : "Retry failed."),
+          setNotice(error instanceof Error ? error.message : t.retryFailed),
         );
       return;
     }
@@ -95,22 +98,22 @@ export function BookActionsMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`More actions for ${book.title}`}
+        aria-label={t.moreActions(book.title)}
         onClick={() => setOpen((value) => !value)}
       >
         <MoreHorizontal aria-hidden="true" size={16} />
       </button>
 
       {open && (
-        <div className="bm-menu-list" role="menu" aria-label={`Actions for ${book.title}`}>
+        <div className="bm-menu-list" role="menu" aria-label={t.actionsFor(book.title)}>
           <button type="button" role="menuitem" onClick={() => choose("rename")}>
             <Pencil aria-hidden="true" size={14} />
-            Rename
+            {t.rename}
           </button>
           {canRetry(book) && (
             <button type="button" role="menuitem" onClick={() => choose("retry")}>
               <RotateCcw aria-hidden="true" size={14} />
-              Retry summary
+              {t.retrySummary}
             </button>
           )}
           <button
@@ -118,11 +121,11 @@ export function BookActionsMenu({
             role="menuitem"
             className="bm-danger"
             disabled={summarizing}
-            title={summarizing ? "Available after summarizing finishes" : undefined}
+            title={summarizing ? t.deleteUnavailable : undefined}
             onClick={() => choose("delete")}
           >
             <Trash2 aria-hidden="true" size={14} />
-            Delete
+            {t.delete}
           </button>
         </div>
       )}
@@ -143,9 +146,9 @@ export function BookActionsMenu({
       )}
       {dialog === "delete" && (
         <ConfirmDialog
-          title={`Delete “${book.title}”?`}
-          body="This removes the file and its summary. It can’t be undone."
-          confirmLabel="Delete book"
+          title={t.deleteTitle(book.title)}
+          body={t.deleteBody}
+          confirmLabel={t.deleteConfirm}
           onConfirm={async () => {
             await deleteBook(getAccessTokenSilently, book.id);
             (onDeleted ?? onChanged)();

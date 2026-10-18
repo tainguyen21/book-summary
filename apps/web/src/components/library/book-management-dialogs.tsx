@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { MAX_TITLE_LENGTH } from "../../lib/book-management";
+import { useMessages } from "../../lib/i18n/messages";
+import { commonMessages } from "../../lib/i18n/messages/common";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { Spinner } from "../ui/loading";
 
 /**
@@ -67,6 +70,7 @@ export function ConfirmDialog({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const common = useMessages(commonMessages);
 
   async function confirm() {
     setBusy(true);
@@ -75,7 +79,7 @@ export function ConfirmDialog({
       await onConfirm();
       onClose();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Something went wrong.");
+      setError(failure instanceof Error ? failure.message : common.somethingWentWrong);
       setBusy(false);
     }
   }
@@ -92,7 +96,7 @@ export function ConfirmDialog({
         )}
         <div className="bm-actions">
           <button className="button button-line button-sm" type="button" onClick={onClose} disabled={busy} autoFocus>
-            Cancel
+            {common.cancel}
           </button>
           <button className="button button-danger button-sm" type="button" onClick={confirm} disabled={busy}>
             {busy && <Spinner size="sm" />}
@@ -119,11 +123,13 @@ export function RenameDialog({
   const [error, setError] = useState<string>();
   const trimmed = title.trim();
   const invalid = !trimmed || trimmed.length > MAX_TITLE_LENGTH;
+  const t = useMessages(libraryMessages);
+  const common = useMessages(commonMessages);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (invalid) {
-      setError(`Enter a title of 1–${MAX_TITLE_LENGTH} characters.`);
+      setError(t.titleLength(MAX_TITLE_LENGTH));
       return;
     }
     setBusy(true);
@@ -132,7 +138,7 @@ export function RenameDialog({
       await onRename(trimmed);
       onClose();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Something went wrong.");
+      setError(failure instanceof Error ? failure.message : common.somethingWentWrong);
       setBusy(false);
     }
   }
@@ -140,9 +146,9 @@ export function RenameDialog({
   return (
     <ModalDialog labelledBy="bm-rename-title" onClose={onClose} busy={busy}>
       <form className="bm-body" onSubmit={submit} noValidate>
-        <h2 id="bm-rename-title">Rename book</h2>
+        <h2 id="bm-rename-title">{t.renameTitle}</h2>
         <label className="bm-field">
-          <span>Title</span>
+          <span>{t.titleLabel}</span>
           <input
             value={title}
             maxLength={MAX_TITLE_LENGTH}
@@ -160,11 +166,11 @@ export function RenameDialog({
         )}
         <div className="bm-actions">
           <button className="button button-line button-sm" type="button" onClick={onClose} disabled={busy}>
-            Cancel
+            {common.cancel}
           </button>
           <button className="button button-ink button-sm" type="submit" disabled={busy || trimmed === currentTitle}>
             {busy && <Spinner size="sm" />}
-            Save
+            {common.save}
           </button>
         </div>
       </form>

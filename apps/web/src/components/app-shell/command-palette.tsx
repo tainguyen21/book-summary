@@ -4,15 +4,19 @@ import { BookOpen, CornerDownLeft, Library, MessageCircleQuestion, Search, Uploa
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
-import { categoryLabels, presentStatus, type BookCategory } from "../../lib/book-status";
+import { categoryLabelsByLocale, presentStatus, type BookCategory } from "../../lib/book-status";
 import type { LibraryBook } from "../../lib/library-types";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { paletteMessages } from "../../lib/i18n/messages/palette";
+import { shellMessages } from "../../lib/i18n/messages/shell";
 import "./command-palette.css";
 
 const MAX_BOOKS = 8;
 
 interface Command {
   id: string;
-  group: "Books" | "Actions" | "Go to";
+  group: "books" | "actions" | "goTo";
   label: string;
   hint?: string;
   icon: ReactNode;
@@ -56,6 +60,9 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const listId = useId();
+  const locale = useLocale();
+  const t = useMessages(paletteMessages);
+  const shell = useMessages(shellMessages);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -76,16 +83,16 @@ export function CommandPalette({
       list.push(
         {
           id: "search",
-          group: "Actions",
-          label: `Search inside books for “${trimmed}”`,
+          group: "actions",
+          label: t.searchInside(trimmed),
           icon: <Search aria-hidden="true" size={16} />,
           run: go(`/search?q=${encodeURIComponent(trimmed)}`),
         },
         {
           id: "ask",
-          group: "Actions",
-          label: `Ask your library “${trimmed}”`,
-          hint: "Opens the question, ready to send",
+          group: "actions",
+          label: t.askLibrary(trimmed),
+          hint: t.askHint,
           icon: <MessageCircleQuestion aria-hidden="true" size={16} />,
           run: go(`/search?ask=${encodeURIComponent(trimmed)}`),
         },
@@ -97,34 +104,35 @@ export function CommandPalette({
       .slice(0, MAX_BOOKS)) {
       list.push({
         id: `book-${book.id}`,
-        group: "Books",
+        group: "books",
         label: book.title || book.filename,
-        hint: presentStatus(book).label,
+        hint: presentStatus(book, locale).label,
         icon: <BookOpen aria-hidden="true" size={16} />,
         run: go(`/books/${book.id}`),
       });
     }
 
+    const categoryLabels = categoryLabelsByLocale[locale];
     const destinations: { id: string; label: string; href: string; icon: ReactNode }[] = [
-      { id: "all", label: "All books", href: "/library", icon: <Library aria-hidden="true" size={16} /> },
+      { id: "all", label: shell.allBooks, href: "/library", icon: <Library aria-hidden="true" size={16} /> },
       ...(Object.keys(categoryLabels) as BookCategory[]).map((view) => ({
         id: view,
         label: categoryLabels[view],
         href: `/library?view=${view}`,
         icon: <Library aria-hidden="true" size={16} />,
       })),
-      { id: "search-page", label: "Search books", href: "/search", icon: <Search aria-hidden="true" size={16} /> },
+      { id: "search-page", label: shell.searchBooks, href: "/search", icon: <Search aria-hidden="true" size={16} /> },
     ];
     for (const destination of destinations) {
       if (!trimmed || matches(destination.label, trimmed)) {
-        list.push({ ...destination, id: `go-${destination.id}`, group: "Go to", run: go(destination.href) });
+        list.push({ ...destination, id: `go-${destination.id}`, group: "goTo", run: go(destination.href) });
       }
     }
-    if (!trimmed || matches("Upload book", trimmed)) {
+    if (!trimmed || matches(shell.uploadBook, trimmed)) {
       list.push({
         id: "upload",
-        group: "Go to",
-        label: "Upload book",
+        group: "goTo",
+        label: shell.uploadBook,
         icon: <Upload aria-hidden="true" size={16} />,
         run: () => {
           onClose();
@@ -133,7 +141,7 @@ export function CommandPalette({
       });
     }
     return list;
-  }, [books, onClose, onUpload, query, router]);
+  }, [books, locale, onClose, onUpload, query, router, shell, t]);
 
   const activeIndex = Math.min(active, Math.max(commands.length - 1, 0));
   const activeCommand = commands[activeIndex];
@@ -164,7 +172,7 @@ export function CommandPalette({
     <dialog
       ref={dialogRef}
       className="dialog palette"
-      aria-label="Quick find"
+      aria-label={shell.quickFind}
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -184,8 +192,8 @@ export function CommandPalette({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={activeCommand ? `${listId}-${activeCommand.id}` : undefined}
-          aria-label="Find a book, page, or action"
-          placeholder="Find a book, search inside books, or ask…"
+          aria-label={t.inputLabel}
+          placeholder={t.placeholder}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -199,7 +207,7 @@ export function CommandPalette({
         <kbd className="palette-kbd">Esc</kbd>
       </div>
 
-      <ul ref={listRef} id={listId} role="listbox" className="palette-list" aria-label="Results">
+      <ul ref={listRef} id={listId} role="listbox" className="palette-list" aria-label={t.results}>
         {commands.map((command, index) => {
           const heading = command.group !== lastGroup ? command.group : undefined;
           lastGroup = command.group;
@@ -207,7 +215,7 @@ export function CommandPalette({
             <li key={command.id} role="presentation">
               {heading && (
                 <p className="palette-group" aria-hidden="true">
-                  {heading}
+                  {t.groups[heading]}
                 </p>
               )}
               <div
@@ -230,12 +238,12 @@ export function CommandPalette({
       </ul>
       {commands.length === 0 && (
         <p className="palette-empty" role="status">
-          Nothing matches. Type at least 2 characters to search inside your books.
+          {t.empty}
         </p>
       )}
       <p className="palette-footer" aria-hidden="true">
         <kbd>↑</kbd>
-        <kbd>↓</kbd> to move · <kbd>Enter</kbd> to open
+        <kbd>↓</kbd> {t.toMove} · <kbd>Enter</kbd> {t.toOpen}
       </p>
     </dialog>
   );

@@ -1,23 +1,39 @@
+"use client";
+
 import { Gauge } from "lucide-react";
 
 import type { DailyUsage } from "../../lib/library-types";
+import { useLocale, type Locale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { intlLocales } from "../../lib/i18n/messages/common";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+/** US-dollar amounts written the way each interface language writes numbers. */
+const usdByLocale = Object.fromEntries(
+  Object.entries(intlLocales).map(([locale, tag]) => [
+    locale,
+    new Intl.NumberFormat(tag, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+  ]),
+) as Record<Locale, Intl.NumberFormat>;
 
 /** Slim strip under the stats: today's shared AI spend against the daily cap. */
 export function DailyBudgetCard({ usage }: { usage: DailyUsage }) {
+  const locale = useLocale();
+  const t = useMessages(libraryMessages);
+
   // A cap of 0 means budgeting is off; there is nothing to show.
   if (usage.capUsd <= 0) {
     return null;
   }
 
   const percent = Math.min(100, (usage.spentUsd / usage.capUsd) * 100);
-  const resets = new Date(usage.resetsAt).toLocaleTimeString([], {
+  const usd = usdByLocale[locale];
+  const resets = new Date(usage.resetsAt).toLocaleTimeString(intlLocales[locale], {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -26,7 +42,7 @@ export function DailyBudgetCard({ usage }: { usage: DailyUsage }) {
     <section
       className="lib-budget"
       data-paused={usage.paused || undefined}
-      aria-label="Today’s AI spend"
+      aria-label={t.budgetLabel}
     >
       <span
         className={`lib-stat-icon tone-${usage.paused ? "warning" : "info"}`}
@@ -34,8 +50,8 @@ export function DailyBudgetCard({ usage }: { usage: DailyUsage }) {
         <Gauge aria-hidden="true" size={15} />
       </span>
       <p className="lib-budget-text">
-        <strong>Today’s AI spend:</strong> {usd.format(usage.spentUsd)} of{" "}
-        {usd.format(usage.capUsd)}
+        <strong>{t.budgetHeading}</strong>{" "}
+        {t.spentOf(usd.format(usage.spentUsd), usd.format(usage.capUsd))}
       </p>
       <div
         className="lib-budget-bar"
@@ -43,14 +59,14 @@ export function DailyBudgetCard({ usage }: { usage: DailyUsage }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(percent)}
-        aria-label="Share of today’s AI budget used"
+        aria-label={t.budgetUsed}
       >
         <span style={{ width: `${percent}%` }} />
       </div>
       <p className="lib-budget-detail">
         {usage.paused
-          ? `Budget reached · summaries resume at ${resets}`
-          : `Resets at ${resets}`}
+          ? t.budgetReached(resets)
+          : t.resetsAt(resets)}
       </p>
     </section>
   );

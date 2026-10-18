@@ -7,6 +7,10 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { bookwiseApi } from "../../lib/bookwise-api";
 import { formatFileSize } from "../../lib/format";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { commonMessages } from "../../lib/i18n/messages/common";
+import { uploadMessages, type UploadErrorKey } from "../../lib/i18n/messages/upload";
 import {
   finalizedUploadSchema,
   type UploadTicket,
@@ -51,20 +55,20 @@ function contentTypeFor(candidate: File): string | undefined {
   return uploadFormats[extension as keyof typeof uploadFormats];
 }
 
-/** Returns a user-facing reason the file cannot be uploaded, if any. */
-function fileProblem(candidate: File): string | undefined {
+/** Returns the reason (a message key) the file cannot be uploaded, if any. */
+function fileProblem(candidate: File): UploadErrorKey | undefined {
   const contentType = contentTypeFor(candidate);
 
   if (!contentType) {
-    return "This file type isn’t supported. Choose a PDF, EPUB, DOCX, or TXT file.";
+    return "unsupported";
   }
 
   if (candidate.type && candidate.type.toLowerCase() !== contentType) {
-    return "This file’s type doesn’t match its extension. Re-save it and try again.";
+    return "typeMismatch";
   }
 
   if (candidate.size > MAX_UPLOAD_BYTES) {
-    return "This file is larger than 100 MB. Choose a smaller file.";
+    return "tooLarge";
   }
 
   return undefined;
@@ -76,15 +80,24 @@ function titleFromFilename(filename: string): string {
   return (index > 0 ? filename.slice(0, index) : filename).replace(/[-_]+/g, " ").trim();
 }
 
-function secondsLeftLabel(seconds: number): string {
+function secondsLeftLabel(t: (typeof uploadMessages)["en"], seconds: number): string {
   if (seconds < 5) {
-    return "Almost done";
+    return t.almostDone;
   }
 
   return seconds < 60
-    ? `About ${Math.ceil(seconds / 5) * 5} seconds left`
-    : `About ${Math.ceil(seconds / 60)} min left`;
+    ? t.secondsLeft(Math.ceil(seconds / 5) * 5)
+    : t.minutesLeft(Math.ceil(seconds / 60));
 }
+
+/** Upload progress; `secondsLeft` stays unset until the rate estimate settles. */
+interface UploadProgress {
+  percent: number;
+  loaded: number;
+  secondsLeft?: number;
+}
+
+const noProgress: UploadProgress = { percent: 0, loaded: 0 };
 
 export function UploadDialog({
   onClose,
@@ -94,13 +107,16 @@ export function UploadDialog({
   onComplete(): Promise<void>;
 }) {
   const { getAccessTokenSilently } = useAuth0();
+  const locale = useLocale();
+  const t = useMessages(uploadMessages);
+  const common = useMessages(commonMessages);
   const [file, setFile] = useState<File>();
   const [title, setTitle] = useState("");
   const [stage, setStage] = useState<UploadStage>("idle");
   const [ticket, setTicket] = useState<UploadTicket>();
   const [storageUploaded, setStorageUploaded] = useState(false);
-  const [progress, setProgress] = useState({ percent: 0, loaded: 0, eta: "" });
-  const [error, setError] = useState<string>();
+  const [progress, setProgress] = useState<UploadProgress>(noProgress);
+  const [error, setError] = useState<UploadErrorKey>();
   /** A cancel the user chose is a neutral notice, not an error. */
   const [errorIsNotice, setErrorIsNotice] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -129,7 +145,7 @@ export function UploadDialog({
     setFile(candidate);
     setTicket(undefined);
     setStorageUploaded(false);
-    setProgress({ percent: 0, loaded: 0, eta: "" });
+    setProgress(noProgress);
     setError(candidate ? fileProblem(candidate) : undefined);
     setErrorIsNotice(false);
     setTitle(candidate ? titleFromFilename(candidate.name) : "");
@@ -162,7 +178,7 @@ export function UploadDialog({
         setProgress({
           percent: Math.round((event.loaded / event.total) * 100),
           loaded: event.loaded,
-          eta: elapsedSeconds > 0.5 ? secondsLeftLabel(remaining) : "",
+          secondsLeft: elapsedSeconds > 0.5 ? remaining : undefined,
         });
       };
       xhr.onload = () => {
@@ -262,7 +278,7 @@ export function UploadDialog({
       setStage("idle");
       setTicket(canReuseTicket ? currentTicket : undefined);
       setStorageUploaded(canReuseTicket ? uploaded : false);
-      setProgress({ percent: 0, loaded: 0, eta: "" });
+      setProgress(noProgress);
       setErrorIsNotice(canceled);
 
       if (!canceled) {
@@ -286,14 +302,14 @@ export function UploadDialog({
 
       setError(
         canceled
-          ? "Upload canceled. Your file is still selected — upload again when you’re ready."
+          ? "canceled"
           : phase === "creating" && !currentTicket
-            ? "Bookwise couldn’t start the upload. Check your connection and try again."
+            ? "startFailed"
             : !canReuseTicket
-              ? "The upload link expired. Upload again to get a fresh one."
+              ? "linkExpired"
               : phase === "uploading"
-                ? "The upload didn’t finish, so processing hasn’t started. Retry to continue."
-                : "The file uploaded, but the summary wasn’t queued yet. Retry to queue it.",
+                ? "uploadIncomplete"
+                : "queueFailed",
       );
     }
   }
@@ -305,10 +321,10 @@ export function UploadDialog({
   }
 
   const submitLabel = storageUploaded
-    ? "Retry queuing summary"
+    ? t.retryQueue
     : error && ticket
-      ? "Retry upload"
-      : "Upload & summarize";
+      ? t.retryUpload
+      : t.uploadAndSummarize;
 
   return (
     <dialog
@@ -329,30 +345,27 @@ export function UploadDialog({
         <form className="up-main" onSubmit={submit} noValidate>
           {stage === "done" && uploadedBookId && file ? (
             <div className="up-done">
-              <button className="button button-ghost icon-button button-sm up-close" type="button" onClick={onClose} aria-label="Close">
+              <button className="button button-ghost icon-button button-sm up-close" type="button" onClick={onClose} aria-label={common.close}>
                 <X aria-hidden="true" size={18} />
               </button>
               <span className="up-done-check" aria-hidden="true">
                 <Check size={30} strokeWidth={3} />
               </span>
-              <h2 id="upload-title">Uploaded — summary on its way</h2>
-              <p>
-                Bookwise is reading your book now. It usually takes a few
-                minutes, and you can leave this page.
-              </p>
+              <h2 id="upload-title">{t.doneTitle}</h2>
+              <p>{t.doneBody}</p>
               <div className="up-done-file">
                 <FileTypeIcon filename={file.name} small />
                 <div>
                   <b>{title.trim() || file.name}</b>
-                  <small>Queued · {formatFileSize(file.size)}</small>
+                  <small>{t.queuedSize(formatFileSize(file.size, locale))}</small>
                 </div>
               </div>
               <div className="up-actions up-actions-center">
                 <button className="button button-line" type="button" onClick={reset}>
-                  Upload another
+                  {t.uploadAnother}
                 </button>
                 <Link className="button button-ink" href={`/books/${uploadedBookId}`} onClick={onClose}>
-                  View progress
+                  {t.viewProgress}
                   <ArrowRight aria-hidden="true" size={16} />
                 </Link>
               </div>
@@ -361,8 +374,8 @@ export function UploadDialog({
             <>
               <header className="up-header">
                 <div>
-                  <h2 id="upload-title">Uploading…</h2>
-                  <p>Keep this window open until the upload finishes.</p>
+                  <h2 id="upload-title">{t.uploadingTitle}</h2>
+                  <p>{t.keepOpen}</p>
                 </div>
               </header>
               <div className="up-progress">
@@ -372,16 +385,18 @@ export function UploadDialog({
                   {file.name}
                 </p>
                 <p className="up-progress-eta" aria-live="polite">
-                  {progress.eta || "Starting…"}
+                  {progress.secondsLeft === undefined
+                    ? t.starting
+                    : secondsLeftLabel(t, progress.secondsLeft)}
                 </p>
               </div>
               <div className="up-footer">
                 <small className="up-hint up-hint-info">
                   <Spinner size="sm" />
-                  Sending securely
+                  {t.sendingSecurely}
                 </small>
                 <button className="button button-line" type="button" onClick={() => requestRef.current?.abort()}>
-                  Cancel upload
+                  {t.cancelUpload}
                 </button>
               </div>
             </>
@@ -389,14 +404,14 @@ export function UploadDialog({
             <>
               <header className="up-header">
                 <div>
-                  <h2 id="upload-title">Upload a book</h2>
-                  <p>We’ll read it privately and write a cited summary.</p>
+                  <h2 id="upload-title">{t.title}</h2>
+                  <p>{t.intro}</p>
                 </div>
                 <button
                   className="button button-ghost icon-button button-sm"
                   type="button"
                   onClick={close}
-                  aria-label="Close"
+                  aria-label={common.close}
                   disabled={busy}
                 >
                   <X aria-hidden="true" size={18} />
@@ -409,27 +424,27 @@ export function UploadDialog({
                     <FileTypeIcon filename={file.name} />
                     <div>
                       <b title={file.name}>{file.name}</b>
-                      <small>{formatFileSize(file.size)}</small>
+                      <small>{formatFileSize(file.size, locale)}</small>
                     </div>
                     <button className="button button-ghost button-sm" type="button" onClick={() => selectFile(undefined)} disabled={busy}>
-                      Replace
+                      {t.replace}
                     </button>
                   </div>
                   {!problem && (
-                    <ul className="up-checks" aria-label="File checks">
+                    <ul className="up-checks" aria-label={t.fileChecks}>
                       <li>
                         <Check aria-hidden="true" size={14} strokeWidth={2.6} />
-                        Supported format
+                        {t.supportedFormat}
                       </li>
                       <li>
                         <Check aria-hidden="true" size={14} strokeWidth={2.6} />
-                        Under 100 MB
+                        {t.underLimit}
                       </li>
                     </ul>
                   )}
                   <div className="up-field">
                     <label htmlFor="upload-book-title">
-                      Title <span>· optional</span>
+                      {t.titleLabel} <span>{t.optional}</span>
                     </label>
                     <input
                       id="upload-book-title"
@@ -441,7 +456,7 @@ export function UploadDialog({
                       aria-describedby="upload-book-title-hint"
                     />
                     <small id="upload-book-title-hint">
-                      Suggested from the file name — edit it if you like.
+                      {t.titleHint}
                     </small>
                   </div>
                 </>
@@ -467,9 +482,9 @@ export function UploadDialog({
                       <Upload size={16} strokeWidth={2.4} />
                     </span>
                   </span>
-                  <strong>{dragging ? "Drop to upload" : "Drag your book here"}</strong>
+                  <strong>{dragging ? t.dropToUpload : t.dragHere}</strong>
                   <span className="up-drop-browse">
-                    or <u>browse your files</u>
+                    {t.or} <u>{t.browse}</u>
                   </span>
                   <span className="up-drop-formats" aria-hidden="true">
                     <i>PDF</i>
@@ -477,11 +492,11 @@ export function UploadDialog({
                     <i>DOCX</i>
                     <i>TXT</i>
                   </span>
-                  <span className="up-drop-limit">One book at a time · up to 100 MB</span>
+                  <span className="up-drop-limit">{t.limit}</span>
                   <input
                     type="file"
                     accept={accept}
-                    aria-label="Choose a book file"
+                    aria-label={t.chooseFile}
                     onChange={(event) => selectFile(event.target.files?.[0])}
                   />
                 </label>
@@ -490,7 +505,7 @@ export function UploadDialog({
               {error && (
                 <p className={errorIsNotice ? "up-error is-notice" : "up-error"} role="alert">
                   <CircleAlert aria-hidden="true" size={16} />
-                  {error}
+                  {t.errors[error]}
                 </p>
               )}
 
@@ -498,18 +513,18 @@ export function UploadDialog({
                 <small className="up-hint">
                   {busy ? <Spinner size="sm" /> : <Lock aria-hidden="true" size={13} />}
                   {stage === "creating"
-                    ? "Preparing a secure upload…"
+                    ? t.preparing
                     : stage === "finalizing"
-                      ? "Queuing your summary…"
-                      : "Private to your account"}
+                      ? t.queuing
+                      : t.privateHint}
                 </small>
                 <div className="up-actions">
                   <button className="button button-line" type="button" onClick={close} disabled={busy}>
-                    Cancel
+                    {common.cancel}
                   </button>
                   <button className="button button-ink" type="submit" disabled={!file || busy || Boolean(problem)}>
                     {busy ? <Spinner /> : <Upload aria-hidden="true" size={16} />}
-                    {busy ? "Working…" : submitLabel}
+                    {busy ? t.working : submitLabel}
                   </button>
                 </div>
               </div>
@@ -520,7 +535,7 @@ export function UploadDialog({
         <UploadTimeline
           stage={stage}
           progress={progress.percent}
-          sizeLabel={file && !problem ? formatFileSize(file.size) : undefined}
+          sizeLabel={file && !problem ? formatFileSize(file.size, locale) : undefined}
         />
       </div>
     </dialog>

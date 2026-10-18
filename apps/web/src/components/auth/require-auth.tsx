@@ -5,6 +5,8 @@ import { BookOpen, CircleAlert, LogIn } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { useMessages } from "../../lib/i18n/messages";
+import { authMessages } from "../../lib/i18n/messages/auth";
 import "../app-shell/app-shell.css";
 
 /**
@@ -19,6 +21,7 @@ export function RequireAuth({
   children: ReactNode;
 }) {
   const { error, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  const t = useMessages(authMessages);
 
   if (isLoading) {
     return skeleton;
@@ -37,12 +40,12 @@ export function RequireAuth({
           </span>
           Bookwise
         </Link>
-        <h1>Sign in to your library</h1>
-        <p>Your books and summaries are private to your account.</p>
+        <h1>{t.signInTitle}</h1>
+        <p>{t.signInBody}</p>
         {error && (
           <p className="auth-gate-error" role="alert">
             <CircleAlert aria-hidden="true" size={16} />
-            Sign-in couldn’t be completed. Please try again.
+            {t.signInError}
           </p>
         )}
         <button
@@ -57,10 +60,10 @@ export function RequireAuth({
           }
         >
           <LogIn aria-hidden="true" size={18} />
-          Sign in
+          {t.signIn}
         </button>
         <Link className="auth-gate-back" href="/">
-          Learn about Bookwise
+          {t.learnMore}
         </Link>
       </div>
     </main>

@@ -5,6 +5,8 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { bookwiseApi } from "../../lib/bookwise-api";
+import { useMessages } from "../../lib/i18n/messages";
+import { passageMessages } from "../../lib/i18n/messages/passage";
 import { sourcePassageSchema, type SourcePassage } from "../../lib/library-types";
 import { Skeleton } from "../ui/loading";
 
@@ -32,6 +34,7 @@ export function PassageDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const citedRef = useRef<HTMLParagraphElement>(null);
   const [state, setState] = useState<PassageState>({ kind: "loading" });
+  const t = useMessages(passageMessages);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -78,10 +81,10 @@ export function PassageDialog({
     >
       <header className="passage-header">
         <div>
-          <p className="passage-eyebrow">Cited passage</p>
+          <p className="passage-eyebrow">{t.eyebrow}</p>
           <h2 id="passage-title">{label}</h2>
         </div>
-        <button className="button button-ghost icon-button button-sm" type="button" onClick={onClose} aria-label="Close">
+        <button className="button button-ghost icon-button button-sm" type="button" onClick={onClose} aria-label={t.close}>
           <X aria-hidden="true" size={18} />
         </button>
       </header>
@@ -95,7 +98,7 @@ export function PassageDialog({
         )}
         {state.kind === "error" && (
           <p className="passage-error" role="alert">
-            We couldn’t load this passage. Close and try again.
+            {t.error}
           </p>
         )}
         {state.kind === "ready" &&
@@ -105,7 +108,7 @@ export function PassageDialog({
               ref={span.cited ? citedRef : undefined}
               className={span.cited ? "passage-cited" : "passage-context"}
             >
-              {span.cited && <span className="visually-hidden">Cited text: </span>}
+              {span.cited && <span className="visually-hidden">{t.citedText}</span>}
               {span.content}
             </p>
           ))}

@@ -7,6 +7,9 @@ import { useState } from "react";
 import { presentStatus } from "../../lib/book-status";
 import { formatDay, formatTime } from "../../lib/format";
 import type { LibraryBook } from "../../lib/library-types";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { useUpload } from "../app-shell/upload-context";
 import { BookActionsMenu } from "./book-actions-menu";
 import { BookCover, fileFormat } from "./book-cover";
@@ -17,11 +20,7 @@ type SortOrder = "newest" | "oldest" | "title";
 
 const layoutStorageKey = "bookwise.library.layout";
 
-const sortLabels: Record<SortOrder, string> = {
-  newest: "Newest first",
-  oldest: "Oldest first",
-  title: "Title A–Z",
-};
+const sortOrders: SortOrder[] = ["newest", "oldest", "title"];
 
 function sortBooks(books: LibraryBook[], order: SortOrder): LibraryBook[] {
   return [...books].sort((a, b) =>
@@ -45,13 +44,14 @@ function readSavedLayout(): Layout {
 /** Per-row primary action that matches what the user can do next. */
 function BookAction({ book }: { book: LibraryBook }) {
   const { openUpload } = useUpload();
+  const t = useMessages(libraryMessages);
   const { category } = presentStatus(book);
   const href = `/books/${book.id}`;
 
   if (category === "ready") {
     return (
       <Link className="button button-ink button-sm" href={href}>
-        Read summary
+        {t.readSummary}
       </Link>
     );
   }
@@ -59,14 +59,14 @@ function BookAction({ book }: { book: LibraryBook }) {
   if (book.bookStatus === "pending_upload") {
     return (
       <button className="button button-line button-sm" type="button" onClick={openUpload}>
-        Upload again
+        {t.uploadAgain}
       </button>
     );
   }
 
   return (
     <Link className="button button-line button-sm" href={href}>
-      {category === "attention" ? "View details" : "View progress"}
+      {category === "attention" ? t.viewDetails : t.viewProgress}
     </Link>
   );
 }
@@ -89,6 +89,8 @@ export function BookCollection({
   // Rendered only on the client (after sign-in), so storage is safe to read.
   const [layout, setLayout] = useState<Layout>(readSavedLayout);
   const [order, setOrder] = useState<SortOrder>("newest");
+  const locale = useLocale();
+  const t = useMessages(libraryMessages);
   const sorted = sortBooks(books, order);
 
   function chooseLayout(next: Layout) {
@@ -109,21 +111,21 @@ export function BookCollection({
         </h2>
         <div className="lib-tools">
           <label className="lib-sort">
-            <span className="visually-hidden">Sort books</span>
+            <span className="visually-hidden">{t.sortLabel}</span>
             <select value={order} onChange={(event) => setOrder(event.target.value as SortOrder)}>
-              {Object.entries(sortLabels).map(([value, label]) => (
+              {sortOrders.map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t.sort[value]}
                 </option>
               ))}
             </select>
             <ChevronDown aria-hidden="true" size={14} />
           </label>
-          <div className="lib-segment" role="group" aria-label="Layout">
+          <div className="lib-segment" role="group" aria-label={t.layoutLabel}>
             <button
               type="button"
               aria-pressed={layout === "list"}
-              aria-label="List view"
+              aria-label={t.listView}
               onClick={() => chooseLayout("list")}
             >
               <List aria-hidden="true" size={15} />
@@ -131,7 +133,7 @@ export function BookCollection({
             <button
               type="button"
               aria-pressed={layout === "grid"}
-              aria-label="Grid view"
+              aria-label={t.gridView}
               onClick={() => chooseLayout("grid")}
             >
               <LayoutGrid aria-hidden="true" size={15} />
@@ -144,11 +146,11 @@ export function BookCollection({
         <div className="lib-no-results">
           <SearchX aria-hidden="true" size={22} />
           <p>
-            <b>No books match</b>
-            {totalCount > 0 ? "Try a different search or filter." : ""}
+            <b>{t.noMatch}</b>
+            {totalCount > 0 ? t.tryDifferent : ""}
           </p>
           <button className="button button-line button-sm" type="button" onClick={onClearFilters}>
-            Show all books
+            {t.showAll}
           </button>
         </div>
       ) : layout === "list" ? (
@@ -156,12 +158,12 @@ export function BookCollection({
           <table className="lib-table">
             <thead>
               <tr>
-                <th scope="col">Book</th>
-                <th scope="col" className="lib-col-format">Format</th>
-                <th scope="col" className="lib-col-added">Added</th>
-                <th scope="col">Status</th>
+                <th scope="col">{t.columns.book}</th>
+                <th scope="col" className="lib-col-format">{t.columns.format}</th>
+                <th scope="col" className="lib-col-added">{t.columns.added}</th>
+                <th scope="col">{t.columns.status}</th>
                 <th scope="col" className="lib-col-action">
-                  <span className="visually-hidden">Action</span>
+                  <span className="visually-hidden">{t.columns.action}</span>
                 </th>
               </tr>
             </thead>
@@ -190,8 +192,8 @@ export function BookCollection({
                   </td>
                   <td className="lib-col-added">
                     <span className="lib-when">
-                      {formatDay(book.createdAt)}
-                      <small>{formatTime(book.createdAt)}</small>
+                      {formatDay(book.createdAt, locale)}
+                      <small>{formatTime(book.createdAt, locale)}</small>
                     </span>
                   </td>
                   <td>
@@ -222,7 +224,7 @@ export function BookCollection({
                 />
                 <b>{book.title}</b>
                 <span className="lib-grid-meta">
-                  {formatDay(book.createdAt)}
+                  {formatDay(book.createdAt, locale)}
                   <BookStatusBadge source={book} />
                 </span>
               </Link>

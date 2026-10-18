@@ -7,6 +7,9 @@ import type { ReactNode } from "react";
 
 import { formatDate } from "../../lib/format";
 import { effectiveStatus, type BookStatusSource } from "../../lib/book-status";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { bookMessages } from "../../lib/i18n/messages/book";
 import type { LibraryBook } from "../../lib/library-types";
 import { AppShell } from "../app-shell/app-shell";
 import { useUpload } from "../app-shell/upload-context";
@@ -42,6 +45,8 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
   const library = useLibraryBooks();
   const { state, reload } = useBookDetail(bookId);
   const router = useRouter();
+  const t = useMessages(bookMessages);
+  const locale = useLocale();
   const books = library.state.kind === "ready" ? library.state.books : undefined;
   const listed = books?.find((candidate) => candidate.id === bookId);
   // The detail poll knows the run state even when the library list does not.
@@ -59,7 +64,7 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
       <div className="shell-content">
         <Link className="reader-back" href="/library">
           <ArrowLeft aria-hidden="true" size={16} />
-          Library
+          {t.library}
         </Link>
 
         <div className="reader-layout">
@@ -74,24 +79,21 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
 
           <article className="reader-main" aria-labelledby="book-title">
             <p className="reader-eyebrow">
-              {state.kind === "ready" ? "Summary" : "Book"}
+              {state.kind === "ready" ? t.eyebrowSummary : t.eyebrowBook}
             </p>
             <h1 id="book-title">
               {book?.title ??
                 (library.state.kind === "loading" ? (
                   <Skeleton width="60%" height={40} />
                 ) : (
-                  "Book summary"
+                  t.fallbackTitle
                 ))}
             </h1>
             {state.kind === "ready" && (
               <p className="reader-meta">
-                <span>{readingMinutes(state.summary.summary.body)} min read</span>
-                <span>
-                  {state.summary.summary.citations.length}{" "}
-                  {state.summary.summary.citations.length === 1 ? "source" : "sources"}
-                </span>
-                <span>Generated {formatDate(state.summary.summary.createdAt)}</span>
+                <span>{t.minutesRead(readingMinutes(state.summary.summary.body))}</span>
+                <span>{t.sourceCount(state.summary.summary.citations.length)}</span>
+                <span>{t.generated(formatDate(state.summary.summary.createdAt, locale))}</span>
               </p>
             )}
 
@@ -119,6 +121,8 @@ function BookAside({
   onDeleted(): void;
 }) {
   const statusSource = statusSourceFor(state);
+  const t = useMessages(bookMessages);
+  const locale = useLocale();
 
   return (
     <aside className="reader-aside">
@@ -137,30 +141,30 @@ function BookAside({
       )}
       <dl className="reader-facts">
         <div>
-          <dt>Status</dt>
+          <dt>{t.factStatus}</dt>
           <dd>{statusSource ? <BookStatusBadge source={statusSource} /> : <Skeleton width={70} height={22} radius={999} />}</dd>
         </div>
         {book && (
           <>
             <div>
-              <dt>File</dt>
+              <dt>{t.factFile}</dt>
               <dd title={book.filename}>{book.filename}</dd>
             </div>
             <div>
-              <dt>Added</dt>
-              <dd>{formatDate(book.createdAt)}</dd>
+              <dt>{t.factAdded}</dt>
+              <dd>{formatDate(book.createdAt, locale)}</dd>
             </div>
           </>
         )}
         {state.kind === "ready" && (
           <div>
-            <dt>Reading time</dt>
-            <dd>{readingMinutes(state.summary.summary.body)} min</dd>
+            <dt>{t.factReadingTime}</dt>
+            <dd>{t.minutes(readingMinutes(state.summary.summary.body))}</dd>
           </div>
         )}
         {book && (
           <div>
-            <dt>Actions</dt>
+            <dt>{t.factActions}</dt>
             <dd>
               <BookActionsMenu book={book} onChanged={onChanged} onDeleted={onDeleted} />
             </dd>
@@ -183,10 +187,11 @@ function DetailBody({
   onRetried(): void;
 }) {
   const { openUpload } = useUpload();
+  const t = useMessages(bookMessages);
   const retryButton: ReactNode = (
     <button className="button button-line button-sm" type="button" onClick={reload}>
       <RefreshCw aria-hidden="true" size={15} />
-      Try again
+      {t.tryAgain}
     </button>
   );
 
@@ -195,7 +200,7 @@ function DetailBody({
       return (
         <div className="reader-skeleton" aria-busy="true">
           <span className="visually-hidden" role="status">
-            Loading book…
+            {t.loading}
           </span>
           <Skeleton width="92%" height={16} />
           <Skeleton width="86%" height={16} />
@@ -208,34 +213,31 @@ function DetailBody({
     case "processing":
       return (
         <section className="panel reader-panel" aria-labelledby="processing-title">
-          <h2 id="processing-title">Your summary is on its way</h2>
+          <h2 id="processing-title">{t.processingTitle}</h2>
           <p className="reader-panel-lede">
             {effectiveStatus(state.status) === "budget_paused"
-              ? "Paused until today’s AI budget resets at midnight; no action needed."
-              : "Usually a few minutes, depending on the book’s length."}
+              ? t.processingPaused
+              : t.processingLede}
           </p>
           <BookProcessingSteps status={state.status} />
           <p className="reader-panel-foot" role="status">
             <span className="reader-live-dot" aria-hidden="true" />
-            Updates automatically — you can leave this page.
+            {t.processingLive}
           </p>
         </section>
       );
     case "failed":
       return (
         <section className="panel reader-panel" aria-labelledby="failed-title">
-          <h2 id="failed-title">We couldn’t summarize this book</h2>
-          <p className="reader-panel-lede">
-            Something went wrong while reading the file. Scanned, image-only
-            PDFs and protected EPUBs often can’t be read.
-          </p>
+          <h2 id="failed-title">{t.failedTitle}</h2>
+          <p className="reader-panel-lede">{t.failedBody}</p>
           <BookProcessingSteps status={state.status} failed />
           <div className="callout-actions">
             {state.status.runStatus === "permanent_failed" && (
               <RetrySummaryButton bookId={bookId} onRetried={onRetried} />
             )}
             <button className="button button-line button-sm" type="button" onClick={openUpload}>
-              Upload another file
+              {t.uploadAnother}
             </button>
           </div>
         </section>
@@ -244,11 +246,11 @@ function DetailBody({
       return (
         <StateCallout
           tone="warning"
-          title="This upload didn’t finish"
-          body="The file never fully reached Bookwise, so processing hasn’t started. Upload it again to continue."
+          title={t.uploadIncompleteTitle}
+          body={t.uploadIncompleteBody}
           action={
             <button className="button button-ink button-sm" type="button" onClick={openUpload}>
-              Upload again
+              {t.uploadAgain}
             </button>
           }
         />
@@ -257,16 +259,16 @@ function DetailBody({
       return (
         <StateCallout
           tone="warning"
-          title="This summary needs a review"
-          body="Bookwise wasn’t confident enough in the result to publish it automatically. It will appear here once it passes review."
+          title={t.needsReviewTitle}
+          body={t.needsReviewBody}
         />
       );
     case "unavailable":
       return (
         <StateCallout
           tone="warning"
-          title="Almost there"
-          body="Processing finished, but the summary isn’t available yet. Check again in a moment."
+          title={t.unavailableTitle}
+          body={t.unavailableBody}
           action={retryButton}
         />
       );
@@ -274,13 +276,13 @@ function DetailBody({
       return (
         <StateCallout
           tone="danger"
-          title="We couldn’t load this book"
-          body="It may have been removed, or the connection dropped. Try again, or go back to your library."
+          title={t.errorTitle}
+          body={t.errorBody}
           action={
             <>
               {retryButton}
               <Link className="button button-ghost button-sm" href="/library">
-                Back to library
+                {t.backToLibrary}
               </Link>
             </>
           }

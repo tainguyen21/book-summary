@@ -3,26 +3,27 @@
 import { Quote } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { useLocale, type Locale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { readerMessages } from "../../lib/i18n/messages/reader";
 import type { PublishedSummary } from "../../lib/library-types";
 import { textLanguage } from "../../lib/text-language";
 import { AskPanel } from "../ask/ask-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
 
-const locationLabels: Record<string, string> = {
-  page_number: "Page",
-  spine_index: "Chapter",
-  paragraph_number: "Paragraph",
-  line_start: "Line",
-};
+/** Location keys in priority order: the first one present names the citation. */
+const locationKeys = ["page_number", "spine_index", "paragraph_number", "line_start"] as const;
 
-/** Turns a raw citation location into a short label such as "Page 12". */
-export function locationLabel(location: Record<string, unknown>): string {
-  for (const [key, label] of Object.entries(locationLabels)) {
+/** Turns a raw citation location into a short label such as "Page 12" ("Trang 12" in Vietnamese). */
+export function locationLabel(location: Record<string, unknown>, locale: Locale = "en"): string {
+  const messages = readerMessages[locale];
+
+  for (const key of locationKeys) {
     const value = location[key];
 
     if (typeof value === "number" || typeof value === "string") {
-      return `${label} ${value}`;
+      return `${messages.locations[key]} ${value}`;
     }
   }
 
@@ -30,7 +31,7 @@ export function locationLabel(location: Record<string, unknown>): string {
     .filter(([, value]) => ["string", "number"].includes(typeof value))
     .map(([key, value]) => `${key.replaceAll("_", " ")} ${String(value)}`);
 
-  return fallback[0] ?? "Source passage";
+  return fallback[0] ?? messages.sourcePassage;
 }
 
 export function summaryParagraphs(body: string): string[] {
@@ -51,6 +52,9 @@ export function BookSummaryReader({
 }) {
   const [open, setOpen] = useState<{ spanId: string; label: string }>();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const locale = useLocale();
+  const t = useMessages(readerMessages);
+  const labelFor = (location: Record<string, unknown>) => locationLabel(location, locale);
 
   return (
     <>
@@ -59,7 +63,7 @@ export function BookSummaryReader({
       {summary.paragraphs.length > 0 ? (
         <CitedSummaryBody
           paragraphs={summary.paragraphs}
-          labelFor={locationLabel}
+          labelFor={labelFor}
           onViewInContext={(spanId, label, opener) => {
             triggerRef.current = opener as HTMLButtonElement;
             setOpen({ spanId, label });
@@ -76,12 +80,12 @@ export function BookSummaryReader({
 
       <AskPanel
         askPath={`/v1/books/${bookId}/ask`}
-        heading="Ask this book"
-        lede="Answers come only from this book, with the sentence behind each claim."
-        placeholder="e.g. Why did the first trees die?"
+        heading={t.askHeading}
+        lede={t.askLede}
+        placeholder={t.askPlaceholder}
         defaultBookId={bookId}
         showBookTitles={false}
-        labelFor={locationLabel}
+        labelFor={labelFor}
         onViewInContext={(_bookId, spanId, label, opener) => {
           triggerRef.current = opener as HTMLButtonElement;
           setOpen({ spanId, label });
@@ -91,14 +95,14 @@ export function BookSummaryReader({
       <section className="reader-sources" aria-labelledby="sources-title">
         <h2 id="sources-title">
           <Quote aria-hidden="true" size={16} />
-          Where this comes from
+          {t.sourcesTitle}
         </h2>
         {summary.citations.length > 0 ? (
           <>
-            <p>The summary is grounded in these parts of the book. Select one to read it.</p>
+            <p>{t.sourcesLede}</p>
             <ol className="reader-chips">
               {summary.citations.map((citation) => {
-                const label = locationLabel(citation.location);
+                const label = labelFor(citation.location);
                 return (
                   <li key={citation.sourceSpanId}>
                     <button
@@ -117,7 +121,7 @@ export function BookSummaryReader({
             </ol>
           </>
         ) : (
-          <p>No source locations are available for this summary.</p>
+          <p>{t.noSources}</p>
         )}
       </section>
 

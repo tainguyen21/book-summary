@@ -3,6 +3,8 @@
 import { BookOpenText, Quote, X } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 
+import { useMessages } from "../../lib/i18n/messages";
+import { readerMessages } from "../../lib/i18n/messages/reader";
 import type { SummarySentence } from "../../lib/library-types";
 
 type Open = { paragraph: number; sentence: number };
@@ -25,6 +27,7 @@ export function CitedSummaryBody({
   const [open, setOpen] = useState<Open>();
   const [hovered, setHovered] = useState<string>();
   const markerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const t = useMessages(readerMessages);
 
   const key = (paragraph: number, sentence: number) => `${paragraph}:${sentence}`;
 
@@ -78,9 +81,12 @@ export function CitedSummaryBody({
                         className="reader-cite"
                         aria-expanded={isOpen}
                         aria-controls={isOpen ? cardId : undefined}
-                        aria-label={`Show source quote${sentence.citations.length > 1 ? "s" : ""}: ${sentence.citations
-                          .map((citation) => `source ${citation.order}, ${labelFor(citation.location)}`)
-                          .join("; ")}`}
+                        aria-label={t.showSourceQuotes(
+                          sentence.citations.length,
+                          sentence.citations
+                            .map((citation) => t.sourceItem(citation.order, labelFor(citation.location)))
+                            .join("; "),
+                        )}
                         onClick={() =>
                           isOpen
                             ? close(false)
@@ -104,17 +110,17 @@ export function CitedSummaryBody({
                 className="quote-card"
                 id={cardId}
                 role="region"
-                aria-label="Source quotes for this sentence"
+                aria-label={t.quoteCardLabel}
               >
                 <header className="quote-card-header">
                   <span>
                     <Quote aria-hidden="true" size={14} />
-                    From the book
+                    {t.fromTheBook}
                   </span>
                   <button
                     type="button"
                     className="button button-ghost icon-button button-sm"
-                    aria-label="Close source quotes"
+                    aria-label={t.closeQuotes}
                     onClick={() => close(true)}
                   >
                     <X aria-hidden="true" size={16} />
@@ -132,7 +138,7 @@ export function CitedSummaryBody({
                           {citation.quote ? (
                             <blockquote>“{citation.quote}”</blockquote>
                           ) : (
-                            <p className="quote-card-empty">No short quote was recorded for this source.</p>
+                            <p className="quote-card-empty">{t.noQuote}</p>
                           )}
                           <div className="quote-card-meta">
                             <span>{label}</span>
@@ -144,7 +150,7 @@ export function CitedSummaryBody({
                               }
                             >
                               <BookOpenText aria-hidden="true" size={14} />
-                              View in context
+                              {t.viewInContext}
                             </button>
                           </div>
                         </div>

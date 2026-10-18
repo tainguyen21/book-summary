@@ -4,6 +4,9 @@ import { BookOpenText, Search, SearchX, X } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, type ReactNode } from "react";
 
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { searchMessages } from "../../lib/i18n/messages/search";
 import {
   HIGHLIGHT_END,
   HIGHLIGHT_START,
@@ -61,6 +64,9 @@ export function SearchScreen({
   const state = useBookSearch(query);
   const [passage, setPassage] = useState<{ bookId: string; spanId: string; label: string }>();
   const openerRef = useRef<HTMLElement | null>(null);
+  const locale = useLocale();
+  const t = useMessages(searchMessages);
+  const labelFor = (location: Record<string, unknown>) => locationLabel(location, locale);
 
   return (
     <AppShell
@@ -70,27 +76,27 @@ export function SearchScreen({
     >
       <div className="shell-content search-page">
         <header className="search-heading">
-          <h1>Search your books</h1>
-          <p>Find a fact, quote, or idea across every book you’ve uploaded, even in different words.</p>
+          <h1>{t.title}</h1>
+          <p>{t.lede}</p>
         </header>
 
         <form className="search-field" role="search" onSubmit={(event) => event.preventDefault()}>
           <Search aria-hidden="true" size={18} />
           <label className="visually-hidden" htmlFor="book-search">
-            Search inside your books
+            {t.fieldLabel}
           </label>
           <input
             id="book-search"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="e.g. why did the first trees die?"
+            placeholder={t.placeholder}
             maxLength={200}
             autoFocus={!initialQuestion}
             autoComplete="off"
           />
           {query && (
-            <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
+            <button type="button" onClick={() => setQuery("")} aria-label={t.clear}>
               <X aria-hidden="true" size={16} />
             </button>
           )}
@@ -99,11 +105,11 @@ export function SearchScreen({
         <AskPanel
           askPath="/v1/ask"
           initialQuestion={initialQuestion}
-          heading="Ask your library"
-          lede="One question, answered from all your books, naming the book behind each claim."
-          placeholder="e.g. What do my books say about planting in cold climates?"
+          heading={t.askHeading}
+          lede={t.askLede}
+          placeholder={t.askPlaceholder}
           showBookTitles
-          labelFor={locationLabel}
+          labelFor={labelFor}
           onViewInContext={(bookId, spanId, label, opener) => {
             openerRef.current = opener;
             setPassage({ bookId, spanId, label });
@@ -113,38 +119,31 @@ export function SearchScreen({
         <div aria-live="polite" aria-busy={state.kind === "loading"}>
           {state.kind === "idle" && (
             <p className="search-hint">
-              Type at least {MIN_QUERY_LENGTH} characters. Results come from your books only.
+              {t.hint(MIN_QUERY_LENGTH)}
             </p>
           )}
           {state.kind === "loading" && (
             <div className="search-skeleton">
-              <span className="visually-hidden" role="status">Searching…</span>
+              <span className="visually-hidden" role="status">{t.searching}</span>
               <Skeleton width="40%" height={16} />
               <Skeleton width="92%" height={14} />
               <Skeleton width="86%" height={14} />
             </div>
           )}
           {state.kind === "error" && (
-            <StateCallout tone="danger" title="Search isn’t available right now" body="Check your connection and try again." />
+            <StateCallout tone="danger" title={t.errorTitle} body={t.errorBody} />
           )}
           {state.kind === "ready" && (
             <>
               <p className="search-summary" role="status">
-                {state.response.results.length === 0
-                  ? "No matches"
-                  : `${state.response.results.length} result${state.response.results.length === 1 ? "" : "s"}`}
-                {" for “"}
-                {state.query}
-                {"”"}
+                {t.summary(state.response.results.length, state.query)}
                 {state.response.mode === "keyword" &&
-                  (state.response.keywordReason === "budget"
-                    ? " · keyword matches only: today’s AI budget is used up"
-                    : " · keyword matches only: meaning search is unavailable right now")}
+                  (state.response.keywordReason === "budget" ? t.keywordBudget : t.keywordUnavailable)}
               </p>
               {state.response.results.length === 0 ? (
                 <div className="search-empty">
                   <SearchX aria-hidden="true" size={22} />
-                  <p>Try other words, or describe the idea instead of an exact phrase.</p>
+                  <p>{t.empty}</p>
                 </div>
               ) : (
                 groupByBook(state.response.results).map((group) => (
@@ -154,11 +153,11 @@ export function SearchScreen({
                     </h2>
                     <ol className="search-hits">
                       {group.hits.map((hit) => {
-                        const label = locationLabel(hit.location);
+                        const label = labelFor(hit.location);
                         return (
                           <li key={hit.sourceSpanId}>
                             <span className={`search-kind kind-${hit.kind}`}>
-                              {hit.kind === "evidence" ? "Fact" : "Passage"}
+                              {hit.kind === "evidence" ? t.kindFact : t.kindPassage}
                             </span>
                             <p className="search-text">{highlighted(hit.text)}</p>
                             {hit.quote && <blockquote>“{hit.quote}”</blockquote>}
@@ -173,7 +172,7 @@ export function SearchScreen({
                                 }}
                               >
                                 <BookOpenText aria-hidden="true" size={14} />
-                                View passage
+                                {t.viewPassage}
                               </button>
                             </div>
                           </li>

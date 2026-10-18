@@ -8,6 +8,9 @@ import {
   syncBookwiseIdentity,
   type BookwisePrincipal,
 } from "../../lib/bookwise-api";
+import { useMessages } from "../../lib/i18n/messages";
+import { authMessages } from "../../lib/i18n/messages/auth";
+import { commonMessages } from "../../lib/i18n/messages/common";
 import { Spinner } from "../ui/loading";
 
 type ConnectionState =
@@ -21,6 +24,8 @@ type ConnectionState =
  */
 export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
   const { getAccessTokenSilently } = useAuth0();
+  const t = useMessages(authMessages);
+  const common = useMessages(commonMessages);
   const [state, setState] = useState<ConnectionState>({
     kind: "connecting",
   });
@@ -53,7 +58,7 @@ export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
     return (
       <small className="sync-status">
         <Spinner size="sm" />
-        Connecting…
+        {t.connecting}
       </small>
     );
   }
@@ -68,7 +73,7 @@ export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
 
   return (
     <small className="sync-status sync-status-error" role="alert">
-      Not connected.
+      {t.notConnected}
       <button
         type="button"
         onClick={() => {
@@ -77,7 +82,7 @@ export function SessionSyncStatus({ identityKey }: { identityKey: string }) {
         }}
       >
         <RefreshCw aria-hidden="true" size={12} />
-        Retry
+        {common.retry}
       </button>
     </small>
   );

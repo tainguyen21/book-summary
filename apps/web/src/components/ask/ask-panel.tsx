@@ -5,6 +5,9 @@ import { BookOpenText, MessageCircleQuestion, Quote, Send, X } from "lucide-reac
 import { useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 
 import { askQuestion, type AnswerSource } from "../../lib/ask-api";
+import { BookwiseConnectionError, BookwiseRequestError } from "../../lib/bookwise-api";
+import { useMessages } from "../../lib/i18n/messages";
+import { askMessages, type AskFailure } from "../../lib/i18n/messages/ask";
 import { Spinner } from "../ui/loading";
 import "../book/reader.css";
 
@@ -18,7 +21,8 @@ interface AnswerItem {
   cached?: boolean;
   /** Supporting sentence per rendered marker, in text order (after `done`). */
   markerQuotes?: (string | null)[];
-  error?: string;
+  /** Why it failed; the text is chosen at render so it follows the interface language. */
+  failure?: AskFailure;
 }
 
 /** Where a quote card's "View in context" leads. */
@@ -33,6 +37,22 @@ interface AnswerContext {
 }
 
 const MAX_QUESTION = 500;
+
+/** Classifies a rejected ask request (before streaming started). */
+function failureOf(error: unknown): AskFailure {
+  if (error instanceof BookwiseConnectionError) {
+    return "connection";
+  }
+  if (error instanceof BookwiseRequestError) {
+    if (error.status === 422) {
+      return "invalid";
+    }
+    if (error.status === 404) {
+      return "notFound";
+    }
+  }
+  return "generic";
+}
 
 /**
  * Ask a question of one book or the whole library: the answer streams in from
@@ -54,6 +74,7 @@ export function AskPanel({
   placeholder: string;
 } & AnswerContext) {
   const { getAccessTokenSilently } = useAuth0();
+  const t = useMessages(askMessages);
   const [question, setQuestion] = useState(initialQuestion.slice(0, MAX_QUESTION));
   const [answers, setAnswers] = useState<AnswerItem[]>([]);
   const nextId = useRef(1);
@@ -85,7 +106,7 @@ export function AskPanel({
         } else if (streamed.event === "done") {
           update(id, (answer) => ({ ...answer, status: "done", ...streamed.data }));
         } else {
-          update(id, (answer) => ({ ...answer, status: "error", error: streamed.data.message }));
+          update(id, (answer) => ({ ...answer, status: "error", failure: streamed.data.code }));
         }
       });
       update(id, (answer) => (answer.status === "streaming" ? { ...answer, status: "done" } : answer));
@@ -93,7 +114,7 @@ export function AskPanel({
       update(id, (answer) => ({
         ...answer,
         status: "error",
-        error: failure instanceof Error ? failure.message : "Something went wrong.",
+        failure: failureOf(failure),
       }));
     }
   }
@@ -128,7 +149,7 @@ export function AskPanel({
         />
         <button className="button button-ink button-sm" type="submit" disabled={busy || trimmed.length < 3}>
           {busy ? <Spinner size="sm" /> : <Send aria-hidden="true" size={15} />}
-          Ask
+          {t.ask}
         </button>
       </form>
 
@@ -154,6 +175,7 @@ function AnswerBody({
   // The open marker is tracked by its position, since one source can be cited twice.
   const [openMarker, setOpenMarker] = useState<{ key: string; n: number; ordinal: number }>();
   const markerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const t = useMessages(askMessages);
   const byNumber = new Map(answer.sources.map((source) => [source.n, source]));
   const source = openMarker ? byNumber.get(openMarker.n) : undefined;
   // The sentence matched to this claim, else the passage's evidence quote.
@@ -174,14 +196,14 @@ function AnswerBody({
   if (answer.status === "error") {
     return (
       <p className="ask-error" role="alert">
-        {answer.error}
+        {t.failures[answer.failure ?? "generic"] ?? t.failures.generic}
       </p>
     );
   }
   if (answer.status === "done" && answer.answered === false) {
     return (
       <p className="ask-not-found" role="status">
-        This book doesn’t seem to answer that. Try asking about something it covers.
+        {showBookTitles ? t.notFoundLibrary : t.notFound}
       </p>
     );
   }
@@ -209,7 +231,7 @@ function AnswerBody({
           type="button"
           className="reader-cite"
           aria-expanded={openMarker?.key === key}
-          aria-label={`Show source ${n}: ${sourceLabel(cited)}`}
+          aria-label={t.showSource(n, sourceLabel(cited))}
           onClick={() =>
             setOpenMarker(openMarker?.key === key ? undefined : { key, n, ordinal: markerOrdinal })
           }
@@ -237,29 +259,29 @@ function AnswerBody({
         <p className="ask-text">{parts}</p>
       ) : (
         <p className="ask-thinking">
-          <Spinner size="sm" /> Reading the book…
+          <Spinner size="sm" /> {t.thinking}
         </p>
       )}
       {answer.status === "done" && (
         <p className="ask-meta" role="status">
-          {answer.cached ? "Answered earlier · instant" : "Answer ready"}
+          {answer.cached ? t.answeredEarlier : t.answerReady}
         </p>
       )}
       {source && (
-        <section className="quote-card" role="region" aria-label={`Source ${source.n}`}>
+        <section className="quote-card" role="region" aria-label={t.source(source.n)}>
           <header className="quote-card-header">
             <span>
               <Quote aria-hidden="true" size={14} />
-              Source {source.n}
+              {t.source(source.n)}
             </span>
-            <button type="button" className="button button-ghost icon-button button-sm" aria-label="Close source" onClick={close}>
+            <button type="button" className="button button-ghost icon-button button-sm" aria-label={t.closeSource} onClick={close}>
               <X aria-hidden="true" size={16} />
             </button>
           </header>
           {quote ? (
             <blockquote>“{quote}”</blockquote>
           ) : (
-            <p className="quote-card-empty">No short quote was recorded for this passage.</p>
+            <p className="quote-card-empty">{t.noQuote}</p>
           )}
           <div className="quote-card-meta">
             <span>{sourceLabel(source)}</span>
@@ -274,7 +296,7 @@ function AnswerBody({
               }}
             >
               <BookOpenText aria-hidden="true" size={14} />
-              View in context
+              {t.viewInContext}
             </button>
           </div>
         </section>

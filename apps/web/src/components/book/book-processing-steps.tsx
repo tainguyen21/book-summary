@@ -1,5 +1,9 @@
+"use client";
+
 import { Check, X } from "lucide-react";
 
+import { useMessages } from "../../lib/i18n/messages";
+import { bookMessages } from "../../lib/i18n/messages/book";
 import type { BookProcessingStatus } from "../../lib/library-types";
 import { Spinner } from "../ui/loading";
 
@@ -16,7 +20,11 @@ interface Step {
  * No run yet means the command is still queued; a run means the worker is
  * reading and summarizing the book.
  */
-function stepsFor(status: BookProcessingStatus, failed: boolean): Step[] {
+function stepsFor(
+  status: BookProcessingStatus,
+  failed: boolean,
+  t: (typeof bookMessages)["en"]["steps"],
+): Step[] {
   const run = status.runStatus;
   const started = run !== undefined;
   const paused =
@@ -25,31 +33,31 @@ function stepsFor(status: BookProcessingStatus, failed: boolean): Step[] {
 
   return [
     {
-      title: "Upload received",
-      detail: "Your file is stored privately.",
+      title: t.uploadTitle,
+      detail: t.uploadDetail,
       state: "done",
     },
     {
-      title: "Waiting in queue",
-      detail: started ? "Picked up for processing." : "Starts automatically, usually within a minute.",
+      title: t.queueTitle,
+      detail: started ? t.queueStarted : t.queueWaiting,
       state: started || failed ? "done" : "active",
     },
     {
-      title: "Reading and summarizing",
+      title: t.readingTitle,
       detail: failed
-        ? "Processing stopped before a summary was written."
+        ? t.readingFailed
         : paused
-          ? "Paused because today’s AI budget was reached. It resumes automatically after midnight."
+          ? t.readingPaused
           : retrying
-          ? "Hit a temporary problem — retrying automatically."
+          ? t.readingRetrying
           : started
-            ? "Extracting text and writing a cited summary."
-            : "Bookwise reads every chapter and cites its sources.",
+            ? t.readingStarted
+            : t.readingPending,
       state: failed ? "failed" : paused ? "pending" : started ? "active" : "pending",
     },
     {
-      title: "Summary ready",
-      detail: "You’ll be able to read it right here.",
+      title: t.readyTitle,
+      detail: t.readyDetail,
       state: "pending",
     },
   ];
@@ -62,9 +70,11 @@ export function BookProcessingSteps({
   status: BookProcessingStatus;
   failed?: boolean;
 }) {
+  const t = useMessages(bookMessages);
+
   return (
     <ol className="progress-steps">
-      {stepsFor(status, failed).map((step) => (
+      {stepsFor(status, failed, t.steps).map((step) => (
         <li className="progress-step" data-state={step.state} key={step.title}>
           <span className="progress-step-marker" aria-hidden="true">
             {step.state === "done" && <Check size={12} strokeWidth={3.5} />}
@@ -74,7 +84,7 @@ export function BookProcessingSteps({
           <span className="progress-step-text">
             <strong>
               {step.title}
-              <span className="visually-hidden"> ({step.state})</span>
+              <span className="visually-hidden"> ({t.stepStates[step.state]})</span>
             </strong>
             <span>{step.detail}</span>
           </span>

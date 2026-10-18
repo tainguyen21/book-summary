@@ -1,12 +1,19 @@
+"use client";
+
 import { Activity, CircleAlert, Clock3 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { presentStatus } from "../../lib/book-status";
+import { categoryLabelsByLocale, presentStatus } from "../../lib/book-status";
 import type { LibraryBook } from "../../lib/library-types";
+import { useLocale } from "../../lib/i18n/locale";
+import { useMessages } from "../../lib/i18n/messages";
+import { libraryMessages } from "../../lib/i18n/messages/library";
 import { Spinner } from "../ui/loading";
 
 /** Four summary cards; the first shows the status mix as a donut chart. */
 export function LibraryStats({ books }: { books: LibraryBook[] }) {
+  const t = useMessages(libraryMessages);
+  const categoryLabels = categoryLabelsByLocale[useLocale()];
   const counts = { ready: 0, processing: 0, queued: 0, attention: 0 };
   let incompleteUploads = 0;
 
@@ -26,25 +33,25 @@ export function LibraryStats({ books }: { books: LibraryBook[] }) {
   const failed = counts.attention - incompleteUploads;
 
   return (
-    <section className="lib-stats" aria-label="Library overview">
+    <section className="lib-stats" aria-label={t.overview}>
       <div className="lib-stat lib-stat-chart">
         <div>
-          <h2>Summaries ready</h2>
+          <h2>{t.summariesReady}</h2>
           <p className="lib-stat-number">
-            {counts.ready} <span>of {total}</span>
+            {counts.ready} <span>{t.ofTotal(total)}</span>
           </p>
           <ul className="lib-legend">
-            <li><i style={{ background: "var(--color-accent)" }} />Ready</li>
-            <li><i style={{ background: "var(--color-info)" }} />In progress</li>
-            <li><i style={{ background: "var(--color-chart-queued)" }} />Queued</li>
-            <li><i style={{ background: "var(--color-chart-attention)" }} />Attention</li>
+            <li><i style={{ background: "var(--color-accent)" }} />{t.legend.ready}</li>
+            <li><i style={{ background: "var(--color-info)" }} />{t.legend.processing}</li>
+            <li><i style={{ background: "var(--color-chart-queued)" }} />{t.legend.queued}</li>
+            <li><i style={{ background: "var(--color-chart-attention)" }} />{t.legend.attention}</li>
           </ul>
         </div>
         <div
           className="lib-donut"
           style={{ background: donut }}
           role="img"
-          aria-label={`${Math.round(readyEnd)}% of books have a summary ready`}
+          aria-label={t.readyShare(Math.round(readyEnd))}
         >
           <span>{Math.round(readyEnd)}%</span>
         </div>
@@ -59,40 +66,44 @@ export function LibraryStats({ books }: { books: LibraryBook[] }) {
             <Activity aria-hidden="true" size={15} />
           )
         }
-        title="In progress"
+        title={categoryLabels.processing}
         value={counts.processing}
-        detail={counts.processing ? "Usually a few minutes" : "Nothing running"}
+        detail={counts.processing ? t.usuallyMinutes : t.nothingRunning}
       />
       <StatCard
         tone="neutral"
         icon={<Clock3 aria-hidden="true" size={15} />}
-        title="Queued"
+        title={categoryLabels.queued}
         value={counts.queued}
-        detail={counts.queued ? "Starts automatically" : "Queue is clear"}
+        detail={counts.queued ? t.startsAutomatically : t.queueClear}
       />
       <StatCard
         tone="danger"
         icon={<CircleAlert aria-hidden="true" size={15} />}
-        title="Needs attention"
+        title={categoryLabels.attention}
         value={counts.attention}
-        detail={attentionDetail(incompleteUploads, failed)}
+        detail={attentionDetail(t, incompleteUploads, failed)}
       />
     </section>
   );
 }
 
-function attentionDetail(incompleteUploads: number, failed: number): string {
+function attentionDetail(
+  t: (typeof libraryMessages)["en"],
+  incompleteUploads: number,
+  failed: number,
+): string {
   const parts: string[] = [];
 
   if (incompleteUploads) {
-    parts.push(`${incompleteUploads} upload${incompleteUploads > 1 ? "s" : ""} didn’t finish`);
+    parts.push(t.uploadsUnfinished(incompleteUploads));
   }
 
   if (failed) {
-    parts.push(`${failed} couldn’t be summarized`);
+    parts.push(t.couldNotSummarize(failed));
   }
 
-  return parts.join(" · ") || "All good";
+  return parts.join(" · ") || t.allGood;
 }
 
 function StatCard({
