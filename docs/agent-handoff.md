@@ -1,10 +1,22 @@
 # Agent Handoff
 
-Prepared October 14, 2026. Read `AGENTS.md` first and use
+Prepared October 14, 2026; updated October 18, 2026. Read `AGENTS.md` first and use
 `new-device-setup.md` for installation. This is a source-grounded handoff,
 not a guarantee that live configuration will remain unchanged.
 
 ## Current Git And Verification Snapshot
+
+October 18, 2026 update:
+
+- `9d3bc4e` is deployed. Deploy run `39100987827` passed, migrations `016`–`018`
+  ran, and `/v1/ready` reported the database and storage ready.
+- Production request spans reached Cloud Trace after
+  `roles/telemetry.tracesWriter` was granted to `bookwise-api` and
+  `bookwise-worker`.
+- No real upload has gone through production since the October 17 worker
+  changes. The owner plans one combined smoke test.
+
+October 14 baseline:
 
 - Baseline application commit: `e8bbcba`, on `master` and `origin/master`.
 - Its Deploy to GKE run from October 11, 2026 completed successfully.
@@ -31,6 +43,9 @@ flowchart LR
   Worker -->|runs / events / source / generated artifacts| DataDB
   Worker --> Storage
   Worker --> Vertex[Vertex AI or configured model provider]
+  API -->|search embeddings, answers, flashcards| Vertex
+  API -. OTLP spans .-> Trace[Cloud Trace]
+  Worker -. OTLP spans .-> Trace
 ```
 
 | Area | Start reading | Responsibility |
@@ -46,6 +61,11 @@ flowchart LR
 | Claims | `services/data/src/bookwise_data/infrastructure/database/command_repository.py` | Advisory locks, leases, heartbeats |
 | Database | `infrastructure/database/migrations/`, `roles/` | Ordered migrations and ownership boundaries |
 | Production | `.github/workflows/deploy-gcp.yml`, `infrastructure/gcp/` | Reusable verification, images, migration gate, rollouts |
+| Search and Ask | `services/api/src/application/search/`, `application/ask/` | Hybrid retrieval, streamed cited answers (one book or library), answer caches |
+| Flashcards | `services/api/src/application/flashcards/`, `apps/web/src/components/flashcards/` | Decks from summaries, FSRS reviews (`ts-fsrs`), `/review` |
+| Interface language | `apps/web/src/lib/i18n/` | English/Vietnamese switch, typed per-area dictionaries |
+| Tracing and probes | `services/api/src/tracing.ts`, `interfaces/http/readiness.controller.ts`, `services/data/.../workers/tracing_setup.py`, `workers/liveness.py` | OTLP to Cloud Trace, `/v1/ready`, worker heartbeat |
+| Answer evaluation | `services/api/src/evaluation/`, `services/api/evaluation/*.json` | On-demand golden-question grading (`eval:ask`) |
 
 Redis/Celery dependencies exist, but the current worker entry point polls
 PostgreSQL directly. Do not infer a Celery queue deployment from dependencies
@@ -149,12 +169,35 @@ already-running process does not reread env-from secrets.
   worker is silent after `worker_started`, so quiet logs still do not prove a
   healthy pipeline. Inspect durable commands/runs/events with read-only,
   owner-scoped diagnostics; never dump whole user tables.
-- API health checks prove process availability, not DB/model/storage readiness.
+- Probes: `/v1/health` is liveness and the load balancer check, and only proves
+  the process is up. `/v1/ready` is the readiness probe: Postgres and object
+  storage, 3 s each. It does not probe the model (that would cost money).
+- The worker's liveness probe fails when `/tmp/bookwise-worker-alive` is
+  untouched for 10 minutes. The worker touches it on every poll and lease
+  heartbeat.
+- The API calls Vertex for interactive work: search embeddings, answers,
+  flashcards, and evaluation judging. Every call is recorded in
+  `data.model_usage` through `data.record_app_model_usage` and counts toward
+  the daily budget.
+- Tracing is on in GKE (`BOOKWISE_TRACE_EXPORTER=cloud-trace`). Spans carry
+  ids, routes, status codes, and timings, never prompts or book text. A
+  queued command carries the request's `traceparent` in its `payload`. The
+  Node Cloud Trace exporter is archived after 2026-10-30, so both services use
+  OTLP to `telemetry.googleapis.com`.
+- Interface text lives in `apps/web/src/lib/i18n/messages/`. A new string
+  needs both `en` and `vi` (typecheck enforces it). The landing page and
+  route metadata stay English. The Vietnamese wording has not had a native
+  review.
 - A browser Network entry stuck Pending is different from a returned
   `pending_upload` JSON status. The earlier hanging-request report was not
   reproduced end to end with the user's authenticated browser.
-- Upload resume across browser restarts, private search, cited question
-  answering, and operational observability remain future work.
+- Remaining work:
+  - Upload resume across browser restarts.
+  - Running `infrastructure/gcp/scripts/create-alerts.ps1` (written, not yet
+    run).
+  - Credential rotation.
+  - Items deferred by decision: worker scale-to-zero, audio summaries, chapter
+    summaries, PWA, and public share links (export only).
 - Older specs/plans are historical and may contain superseded locking or auth
   designs. Source, migrations, current deployment docs, and live inspection
   take precedence. Confirm new documentation scope with the user.
