@@ -150,6 +150,15 @@ apps such as Obsidian. The file has front matter, the summary, and one
 footnote per cited sentence with its verified quotes and locations. There are
 no public share links. The file ends with the reader's highlights and notes.
 
+## Activity
+
+`/activity` lists the signed-in owner's recent processing runs, with stage,
+duration, and a readable error, plus a retry button for permanent failures.
+It also shows how many of their jobs wait (and how many are ahead) and today's
+AI spend by operation. `GET /v1/activity` reads the owner-filtered views
+`data.book_processing_runs` and `data.app_model_usage` (migration `021`). It
+is owner-scoped: Bookwise has no admin role.
+
 ## Reading settings
 
 "Reading settings" in a summary's header picks the theme (system, light,
