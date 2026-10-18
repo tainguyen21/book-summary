@@ -44,7 +44,9 @@ _EVIDENCE_INSTRUCTIONS = (
     "as written, including qualifiers such as 'about' or 'estimated'. Cite "
     "the narrowest supplied source_span_id values that support each item, "
     "and copy into source_excerpt a short exact quote (at most 25 words) from "
-    "the cited text that supports it, character for character."
+    "the cited text that supports it, character for character. Write each "
+    "statement in the language of the source text (for example, Vietnamese "
+    "for a Vietnamese book), never translated."
 )
 # Saved evidence checkpoints are reused only while the instructions match.
 EVIDENCE_PROMPT_VERSION = hashlib.sha256(
@@ -60,7 +62,9 @@ _SUMMARY_INSTRUCTIONS = (
     "paragraphs of sentences. For each sentence, list in its source_span_ids "
     "the source_span_id values of the evidence records it states; use an "
     "empty list only for a pure transition. Write plain prose for readers: "
-    "never put ids, brackets, or citation markers in sentence text."
+    "never put ids, brackets, or citation markers in sentence text. Write the "
+    "summary in the language of the evidence statements, which is the book's "
+    "language; do not translate it."
 )
 # Saved section summaries are reused only while the summary instructions match.
 SUMMARY_PROMPT_VERSION = hashlib.sha256(

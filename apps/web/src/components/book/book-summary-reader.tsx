@@ -4,6 +4,7 @@ import { Quote } from "lucide-react";
 import { useRef, useState } from "react";
 
 import type { PublishedSummary } from "../../lib/library-types";
+import { textLanguage } from "../../lib/text-language";
 import { AskPanel } from "../ask/ask-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
@@ -53,6 +54,8 @@ export function BookSummaryReader({
 
   return (
     <>
+      {/* The summary is in the book's language; mark it for screen readers. */}
+      <div lang={textLanguage(summary.body)} style={{ display: "contents" }}>
       {summary.paragraphs.length > 0 ? (
         <CitedSummaryBody
           paragraphs={summary.paragraphs}
@@ -69,6 +72,7 @@ export function BookSummaryReader({
           ))}
         </div>
       )}
+      </div>
 
       <AskPanel
         askPath={`/v1/books/${bookId}/ask`}
