@@ -134,6 +134,31 @@ settings as the API:
 pnpm --dir services/api eval:ask -- --owner <ownerId> --book <bookId> --set evaluation/the-slow-orchard.questions.json --out plans/reports/eval-ask.md
 ```
 
+## Flashcards and review
+
+A ready book page can make 8–15 flashcards from its summary
+(`POST /v1/books/:bookId/flashcards`, Vertex, recorded as `flashcards` usage
+under the daily budget). Each card cites the summary sentences' sources.
+`/review` shows due cards one at a time: Space reveals, keys 1–4 rate them
+(Again, Hard, Good, Easy). Reviews are scheduled with FSRS (`ts-fsrs`) and
+stored in `app.flashcards` and `app.flashcard_reviews` (migration `018`).
+
+## Export
+
+"Export Markdown" on a summary downloads it in the browser, ready for notes
+apps such as Obsidian. The file has front matter, the summary, and one
+footnote per cited sentence with its verified quotes and locations. There are
+no public share links.
+
+## Interface language
+
+The signed-in app switches between English and Vietnamese ("Tiếng Việt" /
+"English" in the sidebar). The choice is stored per device and falls back to
+the browser language. Interface text lives in typed dictionaries under
+`apps/web/src/lib/i18n/messages/`. Book text (summaries, quotes, answers,
+cards) keeps its own language and is marked with `lang`. Summaries are written
+in the book's language.
+
 ## Request tracing
 
 With `BOOKWISE_TRACE_EXPORTER=cloud-trace` (set in the GKE ConfigMap), the API
