@@ -67,10 +67,7 @@ import { AppUsageRecorder } from "./infrastructure/database/app-usage.recorder";
 import { SearchRepository } from "./infrastructure/database/search.repository";
 import { VertexEmbeddingClient } from "./infrastructure/model/vertex-embedding.client";
 import { SearchController } from "./interfaces/http/search.controller";
-import {
-  ASK_BOOK_USE_CASE,
-  AskBookUseCase,
-} from "./application/ask/ask-book.use-case";
+import { ASK_USE_CASE, AskUseCase } from "./application/ask/ask.use-case";
 import {
   ANSWER_GENERATOR,
   ASK_REPOSITORY,
@@ -78,7 +75,10 @@ import {
 } from "./domain/ask/ask";
 import { AskRepository } from "./infrastructure/database/ask.repository";
 import { VertexGenerationClient } from "./infrastructure/model/vertex-generation.client";
-import { AskController } from "./interfaces/http/ask.controller";
+import {
+  AskController,
+  LibraryAskController,
+} from "./interfaces/http/ask.controller";
 import { AppUserRepository } from "./infrastructure/database/app-user.repository";
 import { BookManagementRepository } from "./infrastructure/database/book-management.repository";
 import { BookReadRepository } from "./infrastructure/database/book-read.repository";
@@ -214,6 +214,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
     BookManagementController,
     SearchController,
     AskController,
+    LibraryAskController,
   ],
   providers: [
     {
@@ -326,7 +327,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
       useFactory: answerGeneratorFromEnvironment,
     },
     {
-      provide: ASK_BOOK_USE_CASE,
+      provide: ASK_USE_CASE,
       useFactory: (
         ask: AskRepository,
         search: SearchRepository,
@@ -335,7 +336,7 @@ function objectStorageFromEnvironment(): ObjectStorage {
         usage: AppUsageRecorder,
         spend: UsageReadRepository,
       ) =>
-        new AskBookUseCase(
+        new AskUseCase(
           ask,
           search,
           embedder,

@@ -8,6 +8,9 @@ import {
 
 export interface AnswerSource {
   n: number;
+  /** Absent only in answers cached before library answers existed. */
+  bookId?: string;
+  bookTitle?: string;
   sourceSpanId: string;
   location: Record<string, unknown>;
   quote?: string;
@@ -16,16 +19,16 @@ export interface AnswerSource {
 export type AskEvent =
   | { event: "sources"; data: { sources: AnswerSource[] } }
   | { event: "delta"; data: { text: string } }
-  | { event: "done"; data: { answered: boolean; cached: boolean } }
+  | { event: "done"; data: { answered: boolean; cached: boolean; markerQuotes: (string | null)[] } }
   | { event: "error"; data: { code: "budget" | "unavailable"; message: string } };
 
 /**
- * Streams an answer from `POST /v1/books/:bookId/ask` (server-sent events),
- * calling `onEvent` for each event as it arrives.
+ * Streams an answer from an ask endpoint (`/v1/books/:bookId/ask` or
+ * `/v1/ask`) as server-sent events, calling `onEvent` for each as it arrives.
  */
-export async function askBook(
+export async function askQuestion(
   getAccessTokenSilently: GetAccessTokenSilently,
-  bookId: string,
+  askPath: string,
   question: string,
   onEvent: (event: AskEvent) => void,
   signal?: AbortSignal,
@@ -35,7 +38,7 @@ export async function askBook(
 
   let response: Response;
   try {
-    response = await fetch(new URL(`/v1/books/${bookId}/ask`, publicConfig.NEXT_PUBLIC_API_URL), {
+    response = await fetch(new URL(askPath, publicConfig.NEXT_PUBLIC_API_URL), {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({ question }),

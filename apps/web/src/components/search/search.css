@@ -171,3 +171,8 @@
   color: var(--color-text-subtle);
   font-size: 12.5px;
 }
+
+/* "Ask your library" sits between the search field and the results. */
+.search-page .ask-panel {
+  margin: 4px 0 28px;
+}

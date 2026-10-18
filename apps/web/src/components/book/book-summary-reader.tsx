@@ -4,7 +4,7 @@ import { Quote } from "lucide-react";
 import { useRef, useState } from "react";
 
 import type { PublishedSummary } from "../../lib/library-types";
-import { AskBookPanel } from "./ask-book-panel";
+import { AskPanel } from "../ask/ask-panel";
 import { CitedSummaryBody } from "./cited-summary-body";
 import { PassageDialog } from "./passage-dialog";
 
@@ -70,10 +70,15 @@ export function BookSummaryReader({
         </div>
       )}
 
-      <AskBookPanel
-        bookId={bookId}
+      <AskPanel
+        askPath={`/v1/books/${bookId}/ask`}
+        heading="Ask this book"
+        lede="Answers come only from this book, with the sentence behind each claim."
+        placeholder="e.g. Why did the first trees die?"
+        defaultBookId={bookId}
+        showBookTitles={false}
         labelFor={locationLabel}
-        onViewInContext={(spanId, label, opener) => {
+        onViewInContext={(_bookId, spanId, label, opener) => {
           triggerRef.current = opener as HTMLButtonElement;
           setOpen({ spanId, label });
         }}

@@ -4,8 +4,9 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { BookOpenText, MessageCircleQuestion, Quote, Send, X } from "lucide-react";
 import { useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 
-import { askBook, type AnswerSource } from "../../lib/ask-api";
+import { askQuestion, type AnswerSource } from "../../lib/ask-api";
 import { Spinner } from "../ui/loading";
+import "../book/reader.css";
 
 interface AnswerItem {
   id: number;
@@ -15,24 +16,40 @@ interface AnswerItem {
   sources: AnswerSource[];
   answered?: boolean;
   cached?: boolean;
+  /** Supporting sentence per rendered marker, in text order (after `done`). */
+  markerQuotes?: (string | null)[];
   error?: string;
+}
+
+/** Where a quote card's "View in context" leads. */
+export type ViewInContext = (bookId: string, spanId: string, label: string, opener: HTMLElement) => void;
+
+interface AnswerContext {
+  /** Book of the page, for answers cached before sources named their book. */
+  defaultBookId?: string;
+  showBookTitles: boolean;
+  labelFor(location: Record<string, unknown>): string;
+  onViewInContext: ViewInContext;
 }
 
 const MAX_QUESTION = 500;
 
 /**
- * "Ask this book": answers stream in from the book's own passages, with [n]
- * markers that open the verbatim quote behind each claim.
+ * Ask a question of one book or the whole library: the answer streams in from
+ * retrieved passages, with [n] markers that open the sentence behind each claim.
  */
-export function AskBookPanel({
-  bookId,
-  labelFor,
-  onViewInContext,
+export function AskPanel({
+  askPath,
+  heading,
+  lede,
+  placeholder,
+  ...context
 }: {
-  bookId: string;
-  labelFor(location: Record<string, unknown>): string;
-  onViewInContext(spanId: string, label: string, opener: HTMLElement): void;
-}) {
+  askPath: string;
+  heading: string;
+  lede: string;
+  placeholder: string;
+} & AnswerContext) {
   const { getAccessTokenSilently } = useAuth0();
   const [question, setQuestion] = useState("");
   const [answers, setAnswers] = useState<AnswerItem[]>([]);
@@ -57,7 +74,7 @@ export function AskBookPanel({
     setQuestion("");
 
     try {
-      await askBook(getAccessTokenSilently, bookId, trimmed, (streamed) => {
+      await askQuestion(getAccessTokenSilently, askPath, trimmed, (streamed) => {
         if (streamed.event === "sources") {
           update(id, (answer) => ({ ...answer, sources: streamed.data.sources }));
         } else if (streamed.event === "delta") {
@@ -89,19 +106,19 @@ export function AskBookPanel({
     <section className="ask-panel" aria-labelledby="ask-title">
       <h2 id="ask-title">
         <MessageCircleQuestion aria-hidden="true" size={17} />
-        Ask this book
+        {heading}
       </h2>
-      <p className="ask-lede">Answers come only from this book, with the quotes they rely on.</p>
+      <p className="ask-lede">{lede}</p>
       <form className="ask-form" onSubmit={submit}>
         <label className="visually-hidden" htmlFor="ask-question">
-          Your question about this book
+          {heading}
         </label>
         <textarea
           id="ask-question"
           rows={2}
           value={question}
           maxLength={MAX_QUESTION}
-          placeholder="e.g. Why did the first trees die?"
+          placeholder={placeholder}
           onChange={(event) => setQuestion(event.target.value)}
           onKeyDown={onKeyDown}
         />
@@ -115,7 +132,7 @@ export function AskBookPanel({
         {answers.map((answer) => (
           <li key={answer.id} className="ask-answer">
             <p className="ask-question">{answer.question}</p>
-            <AnswerBody answer={answer} labelFor={labelFor} onViewInContext={onViewInContext} />
+            <AnswerBody answer={answer} {...context} />
           </li>
         ))}
       </ol>
@@ -125,18 +142,22 @@ export function AskBookPanel({
 
 function AnswerBody({
   answer,
+  defaultBookId,
+  showBookTitles,
   labelFor,
   onViewInContext,
-}: {
-  answer: AnswerItem;
-  labelFor(location: Record<string, unknown>): string;
-  onViewInContext(spanId: string, label: string, opener: HTMLElement): void;
-}) {
+}: { answer: AnswerItem } & AnswerContext) {
   // The open marker is tracked by its position, since one source can be cited twice.
-  const [openMarker, setOpenMarker] = useState<{ key: string; n: number }>();
+  const [openMarker, setOpenMarker] = useState<{ key: string; n: number; ordinal: number }>();
   const markerRefs = useRef(new Map<string, HTMLButtonElement>());
   const byNumber = new Map(answer.sources.map((source) => [source.n, source]));
   const source = openMarker ? byNumber.get(openMarker.n) : undefined;
+  // The sentence matched to this claim, else the passage's evidence quote.
+  const quote = openMarker ? (answer.markerQuotes?.[openMarker.ordinal] ?? source?.quote) : undefined;
+  const sourceLabel = (cited: AnswerSource) =>
+    showBookTitles && cited.bookTitle
+      ? `${cited.bookTitle} · ${labelFor(cited.location)}`
+      : labelFor(cited.location);
 
   function close() {
     const key = openMarker?.key;
@@ -165,12 +186,14 @@ function AnswerBody({
   const parts: ReactNode[] = [];
   const pattern = /\[(\d+)\]/g;
   let last = 0;
+  let ordinal = 0;
   for (const match of answer.text.matchAll(pattern)) {
     parts.push(answer.text.slice(last, match.index));
     const n = Number(match[1]);
     const cited = byNumber.get(n);
     if (cited) {
       const key = `${match.index}-${n}`;
+      const markerOrdinal = ordinal++;
       parts.push(
         <button
           key={key}
@@ -182,8 +205,10 @@ function AnswerBody({
           type="button"
           className="reader-cite"
           aria-expanded={openMarker?.key === key}
-          aria-label={`Show source ${n}: ${labelFor(cited.location)}`}
-          onClick={() => setOpenMarker(openMarker?.key === key ? undefined : { key, n })}
+          aria-label={`Show source ${n}: ${sourceLabel(cited)}`}
+          onClick={() =>
+            setOpenMarker(openMarker?.key === key ? undefined : { key, n, ordinal: markerOrdinal })
+          }
         >
           {n}
         </button>,
@@ -227,17 +252,22 @@ function AnswerBody({
               <X aria-hidden="true" size={16} />
             </button>
           </header>
-          {source.quote ? (
-            <blockquote>“{source.quote}”</blockquote>
+          {quote ? (
+            <blockquote>“{quote}”</blockquote>
           ) : (
             <p className="quote-card-empty">No short quote was recorded for this passage.</p>
           )}
           <div className="quote-card-meta">
-            <span>{labelFor(source.location)}</span>
+            <span>{sourceLabel(source)}</span>
             <button
               type="button"
               className="button button-line button-sm"
-              onClick={(event) => onViewInContext(source.sourceSpanId, labelFor(source.location), event.currentTarget)}
+              onClick={(event) => {
+                const bookId = source.bookId ?? defaultBookId;
+                if (bookId) {
+                  onViewInContext(bookId, source.sourceSpanId, sourceLabel(source), event.currentTarget);
+                }
+              }}
             >
               <BookOpenText aria-hidden="true" size={14} />
               View in context

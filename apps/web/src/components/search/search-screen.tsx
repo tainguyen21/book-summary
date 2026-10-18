@@ -11,6 +11,7 @@ import {
 } from "../../lib/search-types";
 import { AppShell } from "../app-shell/app-shell";
 import { locationLabel } from "../book/book-summary-reader";
+import { AskPanel } from "../ask/ask-panel";
 import { PassageDialog } from "../book/passage-dialog";
 import { StateCallout } from "../layout/state-callout";
 import { useLibraryBooks } from "../library/use-library-books";
@@ -88,6 +89,19 @@ export function SearchScreen() {
             </button>
           )}
         </form>
+
+        <AskPanel
+          askPath="/v1/ask"
+          heading="Ask your library"
+          lede="One question, answered from all your books, naming the book behind each claim."
+          placeholder="e.g. What do my books say about planting in cold climates?"
+          showBookTitles
+          labelFor={locationLabel}
+          onViewInContext={(bookId, spanId, label, opener) => {
+            openerRef.current = opener;
+            setPassage({ bookId, spanId, label });
+          }}
+        />
 
         <div aria-live="polite" aria-busy={state.kind === "loading"}>
           {state.kind === "idle" && (
