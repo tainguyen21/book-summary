@@ -79,8 +79,10 @@
   --backdrop: rgb(10 10 10 / 45%);
 }
 
+/* Dark theme: follows the system unless the reader picked light, and always
+   applies when the reader picked dark (reading settings, data-theme). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
 
     --color-bg: #0c0d0d;
@@ -119,6 +121,56 @@
     --backdrop: rgb(0 0 0 / 65%);
   }
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0c0d0d;
+  --color-bg-sidebar: #101211;
+  --color-surface: #151716;
+  --color-surface-subtle: #181a19;
+  --color-surface-muted: #1f2221;
+  --color-skeleton: #222624;
+  --color-border: #26292a;
+  --color-border-strong: #34383a;
+  --color-text: #f4f4f5;
+  --color-text-muted: #b4b4bb;
+  --color-text-subtle: #9a9aa3;
+  --color-text-faint: #6f6f78;
+
+  --color-ink: #f4f4f5;
+  --color-on-ink: #0a0a0a;
+
+  --color-accent: #34d399;
+  --color-accent-strong: #6ee7b7;
+  --color-accent-soft: #0f2a20;
+  --color-info: #7aa7ff;
+  --color-info-soft: #14203a;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #2b2110;
+  --color-danger: #f87171;
+  --color-danger-soft: #2c1414;
+  --color-danger-border: #4c1d1d;
+  --color-chart-queued: #3f3f46;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 24px -12px rgb(0 0 0 / 60%);
+  --shadow-lg: 0 30px 80px -20px rgb(0 0 0 / 70%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-ink: none;
+  --focus-ring: 0 0 0 3px rgb(52 211 153 / 40%);
+  --backdrop: rgb(0 0 0 / 65%);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Reading settings: summary text size and line width (data attributes on <html>). */
+:root[data-reading-size="s"] { --reading-size: 17px; }
+:root[data-reading-size="l"] { --reading-size: 21px; }
+:root[data-reading-size="xl"] { --reading-size: 23px; }
+:root[data-reading-width="narrow"] { --reading-width: 600px; }
+:root[data-reading-width="wide"] { --reading-width: 840px; }
 
 /* ---------- Base ---------- */
 

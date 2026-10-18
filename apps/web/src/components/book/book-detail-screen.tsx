@@ -26,6 +26,7 @@ import { useLibraryBooks } from "../library/use-library-books";
 import { Skeleton } from "../ui/loading";
 import { BookProcessingSteps } from "./book-processing-steps";
 import { BookSummaryReader, locationLabel, readingMinutes } from "./book-summary-reader";
+import { ReadingSettingsMenu } from "./reading-settings-menu";
 import { RetrySummaryButton } from "./retry-summary-button";
 import { useBookDetail, type DetailState } from "./use-book-detail";
 import "./reader.css";
@@ -96,7 +97,7 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
                 ))}
             </h1>
             {state.kind === "ready" && (
-              <p className="reader-meta">
+              <div className="reader-meta">
                 <span>{t.minutesRead(readingMinutes(state.summary.summary.body))}</span>
                 <span>{t.sourceCount(state.summary.summary.citations.length)}</span>
                 <span>{t.generated(formatDate(state.summary.summary.createdAt, locale))}</span>
@@ -126,7 +127,8 @@ export function BookDetailScreen({ bookId }: { bookId: string }) {
                   <Download aria-hidden="true" size={13} />
                   {t.exportMarkdown}
                 </button>
-              </p>
+                <ReadingSettingsMenu />
+              </div>
             )}
 
             <DetailBody bookId={bookId} state={state} reload={reload} onRetried={refreshAll} />

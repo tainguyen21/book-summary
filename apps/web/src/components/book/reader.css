@@ -69,7 +69,7 @@
 }
 
 .reader-main {
-  max-width: 700px;
+  max-width: var(--reading-width, 700px);
   min-width: 0;
 }
 
@@ -135,7 +135,7 @@
 .reader-body {
   color: var(--color-text);
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: var(--reading-size, 19px);
   line-height: 1.8;
 }
 
@@ -687,7 +687,8 @@
 
 @media (max-width: 560px) {
   .reader-body {
-    font-size: 17.5px;
+    /* Slightly smaller on phones, still following the reading setting. */
+    font-size: calc(var(--reading-size, 19px) - 1.5px);
   }
 
   .reader-panel {
@@ -825,4 +826,104 @@
 .highlights-stale {
   color: var(--color-text-subtle);
   font-size: 12.5px;
+}
+
+/* Reading settings disclosure in the summary header. */
+.reading-settings {
+  position: relative;
+}
+
+.reading-settings summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+.reading-settings summary::-webkit-details-marker {
+  display: none;
+}
+
+.reading-settings summary:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.reading-settings summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.reading-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 14px;
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px;
+  color: var(--color-text);
+  font-size: 13.5px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.reading-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reading-group legend {
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+.reading-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reading-option {
+  position: relative;
+}
+
+.reading-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+}
+
+.reading-option span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.reading-option input:checked + span {
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.reading-option input:focus-visible + span {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.reading-note {
+  color: var(--color-text-subtle);
+  font-size: 12px;
 }

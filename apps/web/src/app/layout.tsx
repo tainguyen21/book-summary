@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
 import { BookwiseAuth0Provider } from "../components/auth/auth0-provider";
 import { siteDescription, siteName, siteUrl } from "../lib/site";
+import { READING_SETTINGS_BOOT_SCRIPT } from "../lib/reading-settings-boot";
 import "./globals.css";
 
 // Inter for UI, Instrument Serif for display accents, Source Serif for reading.
@@ -62,7 +63,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${instrumentSerif.variable} ${sourceSerif.variable}`}
+      // The boot script sets reading-setting attributes before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: READING_SETTINGS_BOOT_SCRIPT }} />
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
