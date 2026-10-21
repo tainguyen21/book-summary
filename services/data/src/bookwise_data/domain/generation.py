@@ -408,17 +408,23 @@ def accepted_evidence_from_output(
     provider: str,
     model: str,
 ) -> tuple[GeneratedEvidence, ...]:
-    """Validate provider evidence citations and create immutable records."""
+    """Validate provider evidence citations and create immutable records.
+
+    Span IDs outside the chunk are dropped, and an item left with no citation
+    is dropped too: one miscopied ID should not fail a whole book. The chunk
+    fails only when no item cites a span inside it.
+    """
 
     span_content = {span.id: span.content for span in chunk.spans}
     records: list[GeneratedEvidence] = []
     for index, item in enumerate(output.items, start=1):
-        cited = tuple(dict.fromkeys(item.source_span_ids))
-        if not cited or any(span_id not in span_content for span_id in cited):
-            raise InvalidGenerationOutput(
-                "invalid_evidence_citation",
-                "Generated evidence cited a source span outside its chunk.",
-            )
+        cited = tuple(
+            span_id
+            for span_id in dict.fromkeys(item.source_span_ids)
+            if span_id in span_content
+        )
+        if not cited:
+            continue
 
         excerpt = verified_excerpt(
             item.source_excerpt, [span_content[span_id] for span_id in cited]
@@ -465,6 +471,11 @@ def accepted_evidence_from_output(
             )
         )
 
+    if not records:
+        raise InvalidGenerationOutput(
+            "invalid_evidence_citation",
+            "No generated evidence cited a source span inside its chunk.",
+        )
     return tuple(records)
 
 
@@ -505,18 +516,26 @@ def accepted_summary_from_output(
     model: str,
     supersedes_id: UUID | None = None,
 ) -> GeneratedSummary:
-    """Validate summary citations against accepted evidence."""
+    """Validate summary citations against accepted evidence.
+
+    Span IDs without accepted evidence are dropped; the summary fails only
+    when none of its citations remain.
+    """
 
     allowed_span_ids = {
         UUID(str(citation["source_span_id"]))
         for item in evidence
         for citation in item.citation_data
     }
-    cited = tuple(dict.fromkeys(output.source_span_ids))
-    if not cited or any(span_id not in allowed_span_ids for span_id in cited):
+    cited = tuple(
+        span_id
+        for span_id in dict.fromkeys(output.source_span_ids)
+        if span_id in allowed_span_ids
+    )
+    if not cited:
         raise InvalidGenerationOutput(
             "invalid_summary_citation",
-            "Generated summary cited a source span without accepted evidence.",
+            "No generated summary citation had accepted evidence.",
         )
 
     input_hash = summary_input_hash(source.document.id, source_node_id, evidence)

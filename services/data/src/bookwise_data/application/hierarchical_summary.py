@@ -86,14 +86,21 @@ def section_citations(
     group: Sequence[SummaryRecord],
     draft: SummaryDraft,
 ) -> list[str]:
-    """The group summary's citations; any span outside the group is rejected."""
+    """The group summary's citations; spans outside the group are dropped.
+
+    The draft is rejected only when none of its citations are in the group.
+    """
 
     allowed = {span for record in group for span in record["source_span_ids"]}
-    cited = [str(span_id) for span_id in dict.fromkeys(draft.source_span_ids)]
-    if not cited or any(span_id not in allowed for span_id in cited):
+    cited = [
+        span_id
+        for span_id in map(str, dict.fromkeys(draft.source_span_ids))
+        if span_id in allowed
+    ]
+    if not cited:
         raise InvalidGenerationOutput(
             "invalid_section_summary_citation",
-            "A section summary cited a source span outside its section.",
+            "No section summary citation was inside its section.",
         )
     return cited
 
