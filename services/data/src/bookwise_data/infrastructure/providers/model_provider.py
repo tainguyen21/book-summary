@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ from bookwise_data.infrastructure.providers.usage_extraction import (
     vertex_embedding_counts,
     vertex_generation_counts,
 )
+from bookwise_data.workers.logging_setup import log_event, worker_logger
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -318,6 +320,7 @@ class OpenAICompatibleProvider:
         try:
             return schema.model_validate_json(content)
         except ValidationError as error:
+            _log_invalid_output(schema, _openai_finish_reason(response), error)
             raise ProviderOutputError(
                 "invalid_structured_provider_output",
                 "The model provider returned invalid structured output.",
@@ -527,6 +530,7 @@ class VertexAIProvider:
 
         content = response.text
         if not isinstance(content, str) or not content.strip():
+            _log_invalid_output(schema, _vertex_finish_reason(response), None)
             raise ProviderOutputError(
                 "missing_structured_provider_output",
                 "Vertex AI returned no structured output.",
@@ -535,6 +539,7 @@ class VertexAIProvider:
         try:
             return schema.model_validate_json(content)
         except ValidationError as error:
+            _log_invalid_output(schema, _vertex_finish_reason(response), error)
             raise ProviderOutputError(
                 "invalid_structured_provider_output",
                 "Vertex AI returned invalid structured output.",
@@ -706,6 +711,49 @@ def _schema_name(schema: type[BaseModel]) -> str:
         character.lower() for character in schema.__name__ if character.isalnum()
     )
     return normalized[:64] or "structured_output"
+
+
+def _log_invalid_output(
+    schema: type[BaseModel],
+    finish_reason: str | None,
+    error: ValidationError | None,
+) -> None:
+    """Log why structured output was rejected: field paths and error types only.
+
+    Validation inputs and messages are omitted because they hold model output.
+    """
+
+    validation_errors = (
+        None
+        if error is None
+        else [
+            f"{'.'.join(map(str, detail['loc'])) or '<root>'}:{detail['type']}"
+            for detail in error.errors(include_input=False)[:5]
+        ]
+    )
+    log_event(
+        worker_logger(),
+        logging.WARNING,
+        "provider_output_invalid",
+        "The model provider returned output that failed its schema.",
+        output_schema=schema.__name__,
+        finish_reason=finish_reason,
+        validation_errors=validation_errors,
+    )
+
+
+def _vertex_finish_reason(response: Any) -> str | None:
+    candidates = getattr(response, "candidates", None) or ()
+    reason = getattr(candidates[0], "finish_reason", None) if candidates else None
+    return None if reason is None else str(getattr(reason, "name", reason))
+
+
+def _openai_finish_reason(response: dict[str, Any]) -> str | None:
+    try:
+        reason = response["choices"][0].get("finish_reason")
+    except (KeyError, IndexError, TypeError, AttributeError):
+        return None
+    return None if reason is None else str(reason)
 
 
 def _raise_vertex_error(error: genai_errors.APIError) -> NoReturn:

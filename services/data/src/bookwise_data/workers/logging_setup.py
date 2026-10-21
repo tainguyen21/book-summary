@@ -43,6 +43,10 @@ _ALLOWED_CONTEXT_KEYS = frozenset(
         "cap_usd",
         "budget_timezone",
         "retry",
+        "output_schema",
+        "finish_reason",
+        "validation_errors",
+        "sqlstate",
     }
 )
 
