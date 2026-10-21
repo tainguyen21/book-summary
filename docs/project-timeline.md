@@ -72,7 +72,7 @@ See [agent handoff](agent-handoff.md) for verification limits and
    (operator task).
 5. Decide whether summary editing belongs in the next publication iteration.
 6. Later upload capabilities: multipart/resumable uploads, OCR, malware
-   scanning, and files larger than 100 MiB.
+   scanning, and files larger than 256 MiB.
 
 Roadmap and rationale:
 [feature roadmap](../plans/reports/brainstorm-261016-2157-feature-roadmap.md) and

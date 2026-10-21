@@ -23,7 +23,7 @@ export const faqs = [
   },
   {
     question: "Which file formats are supported?",
-    answer: "PDF, EPUB, DOCX, and plain text files, up to 100 MB each.",
+    answer: "PDF, EPUB, DOCX, and plain text files, up to 256 MB each.",
   },
   {
     question: "How long does a summary take?",

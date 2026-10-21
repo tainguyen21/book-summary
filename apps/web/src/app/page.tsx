@@ -181,7 +181,7 @@ export default function LandingPage() {
               </article>
               <article className="lp-card lp-reveal">
                 <h3>Bring any format</h3>
-                <p>Up to 100 MB per file.</p>
+                <p>Up to 256 MB per file.</p>
                 <ul className="lp-formats">
                   <li><i style={{ background: "#ef4444" }} />PDF</li>
                   <li><i style={{ background: "#8b5cf6" }} />EPUB</li>

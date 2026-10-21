@@ -13,7 +13,7 @@ from uuid import UUID, uuid5
 from bookwise_data.domain.commands import ClaimedCommand
 
 _SOURCE_NAMESPACE = UUID("d62bb1b3-9013-4fda-91a0-23a8a8b0b673")
-MAX_SOURCE_BYTES = 100 * 1024 * 1024
+MAX_SOURCE_BYTES = 256 * 1024 * 1024
 
 
 class SourceFormat(StrEnum):

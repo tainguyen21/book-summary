@@ -2,7 +2,7 @@ import type { UploadErrorKey } from "../../lib/i18n/messages/upload";
 
 /** File checks and the storage PUT shared by the single upload and the upload queue. */
 
-export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 256 * 1024 * 1024;
 export const uploadFormats = {
   ".pdf": "application/pdf",
   ".epub": "application/epub+zip",

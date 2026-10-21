@@ -23,7 +23,7 @@ export const libraryMessages = defineMessages(
       "Upload a book and Bookwise will read it privately and write a summary with sources you can check.",
     emptyUpload: "Upload a book",
     supportedFormats: "Supported formats",
-    sizeLimit: "Up to 100 MB per file",
+    sizeLimit: "Up to 256 MB per file",
 
     // Stats cards
     overview: "Library overview",
@@ -115,7 +115,7 @@ export const libraryMessages = defineMessages(
       "Tải sách lên, Bookwise sẽ đọc riêng tư và viết bản tóm tắt kèm nguồn để bạn kiểm chứng.",
     emptyUpload: "Tải một cuốn sách lên",
     supportedFormats: "Định dạng được hỗ trợ",
-    sizeLimit: "Tối đa 100 MB mỗi tệp",
+    sizeLimit: "Tối đa 256 MB mỗi tệp",
 
     overview: "Tổng quan thư viện",
     summariesReady: "Bản tóm tắt sẵn sàng",
