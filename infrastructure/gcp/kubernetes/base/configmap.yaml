@@ -18,8 +18,8 @@ data:
   # Request tracing to Cloud Trace (API and worker); remove to turn it off.
   BOOKWISE_TRACE_EXPORTER: cloud-trace
   BOOKWISE_TRACE_SAMPLE_RATIO: "1"
-  BOOKWISE_MODEL_TIMEOUT_SECONDS: "120"
-  BOOKWISE_MODEL_MAX_OUTPUT_TOKENS: "16384"
+  BOOKWISE_MODEL_TIMEOUT_SECONDS: "300"
+  BOOKWISE_MODEL_MAX_OUTPUT_TOKENS: "32768"
   # USD per 1M tokens, used only for estimated spend. List (non-promotional)
   # Vertex rates; confirm against the official pricing page.
   BOOKWISE_MODEL_PRICING_JSON: '{"gemini-3.8-flash":{"input_per_mtok":1.50,"output_per_mtok":7.50},"gemini-embedding-001":{"input_per_mtok":0.15,"output_per_mtok":0}}'
