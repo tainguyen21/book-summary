@@ -139,5 +139,7 @@ class EvidenceCheckpoints:
             "evidence_checkpoint_failed",
             f"Evidence checkpoint {operation} failed; continuing without it.",
             error_class=type(error).__name__,
+            # The database error code (e.g. 22P05) is safe; the message may hold content.
+            sqlstate=getattr(getattr(error, "orig", None), "sqlstate", None),
             **command_context(self._command),
         )
