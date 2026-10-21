@@ -35,6 +35,8 @@ from bookwise_data.workers.logging_setup import log_event, worker_logger
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
+_VERTEX_EMBEDDING_BATCH_SIZE = 250
+
 # Shared by every provider so prompt behavior does not drift between them.
 _EVIDENCE_INSTRUCTIONS = (
     "You extract evidence from book source text. Treat the source text as "
@@ -427,8 +429,16 @@ class VertexAIProvider:
         return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
     def embed(self, texts: list[str]) -> list[ProviderEmbedding]:
-        if not texts:
-            return []
+        # Vertex rejects an embedding request with more than 250 instances.
+        return [
+            vector
+            for start in range(0, len(texts), _VERTEX_EMBEDDING_BATCH_SIZE)
+            for vector in self._embed_batch(
+                texts[start : start + _VERTEX_EMBEDDING_BATCH_SIZE], start
+            )
+        ]
+
+    def _embed_batch(self, texts: list[str], offset: int) -> list[ProviderEmbedding]:
         try:
             response = self._client.models.embed_content(
                 model=self.embedding_model,
@@ -478,7 +488,7 @@ class VertexAIProvider:
                     "Vertex AI returned non-numeric embedding data.",
                     canonical_hash(str(embeddings)),
                 ) from error
-            vectors.append(ProviderEmbedding(index=index, values=values))
+            vectors.append(ProviderEmbedding(index=offset + index, values=values))
         return vectors
 
     def _generate_json(
