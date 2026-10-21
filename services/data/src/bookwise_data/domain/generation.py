@@ -7,10 +7,10 @@ import json
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID, uuid5
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
 
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.source import PermanentProcessingError
@@ -109,12 +109,33 @@ class SummaryIdentityConflictError(InvalidGenerationOutput):
     """The same immutable summary input already resolved to another output."""
 
 
+def _parseable_uuids(values: Any) -> Any:
+    """Drop span IDs that are not UUIDs; one garbled ID should not reject the output.
+
+    Citation checks later drop IDs outside the allowed spans the same way.
+    """
+
+    if not isinstance(values, list):
+        return values
+    kept: list[UUID] = []
+    for value in values:
+        try:
+            kept.append(UUID(str(value)))
+        except ValueError:
+            continue
+    return kept
+
+
+SpanIds = Annotated[list[UUID], BeforeValidator(_parseable_uuids)]
+
+
 class EvidenceDraft(BaseModel):
     """Structured evidence returned by a model provider before validation."""
 
     evidence_type: EvidenceType
     statement: str = Field(min_length=1, max_length=2000)
-    source_span_ids: list[UUID] = Field(min_length=1)
+    # minItems guides the model; an item left with no valid ID is dropped later.
+    source_span_ids: SpanIds = Field(json_schema_extra={"minItems": 1})
     source_excerpt: str | None = Field(default=None, max_length=500)
     confidence: float = Field(ge=0, le=1)
 
@@ -129,7 +150,7 @@ class SummarySentence(BaseModel):
     """One summary sentence and the source spans of the evidence it states."""
 
     text: str = Field(min_length=1, max_length=2000)
-    source_span_ids: list[UUID]
+    source_span_ids: SpanIds
 
 
 class SummaryParagraph(BaseModel):
