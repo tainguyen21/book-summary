@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Private, signed-in areas have nothing for crawlers.
-      disallow: ["/library", "/books/"],
+      disallow: ["/library", "/books/", "/review", "/activity", "/search"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };
