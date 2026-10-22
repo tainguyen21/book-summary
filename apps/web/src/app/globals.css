@@ -687,3 +687,38 @@ svg {
     opacity: 0.6;
   }
 }
+
+/* Page for a URL that does not exist */
+.not-found {
+  display: grid;
+  max-width: 520px;
+  min-height: 70vh;
+  margin: 0 auto;
+  padding: 48px 16px;
+  align-content: center;
+  gap: 12px;
+}
+
+.not-found-eyebrow {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.not-found h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.not-found > p:not(.not-found-eyebrow) {
+  color: var(--color-text-muted);
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}

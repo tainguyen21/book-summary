@@ -307,7 +307,7 @@
 
 .lp-fine {
   margin-top: 18px;
-  color: #71717a;
+  color: #8a8a93;
   font-size: 13px;
 }
 
@@ -397,7 +397,7 @@
 
 .lp-window-bar span {
   margin-left: 12px;
-  color: #71717a;
+  color: #8a8a93;
   font-size: 12px;
 }
 
@@ -415,7 +415,7 @@
 
 .lp-app-side > p {
   margin-bottom: 12px;
-  color: #71717a;
+  color: #8a8a93;
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -443,7 +443,7 @@
 }
 
 .lp-demo-book small {
-  color: #71717a;
+  color: #8a8a93;
   font-size: 11.5px;
 }
 
@@ -577,7 +577,7 @@
 
 .lp-demo-meta {
   margin-bottom: 22px;
-  color: #71717a;
+  color: #8a8a93;
   font-size: 12px;
 }
 
@@ -720,7 +720,7 @@
   width: max-content;
   margin: 0;
   padding: 0;
-  color: #71717a;
+  color: #8a8a93;
   font-size: 15px;
   font-weight: 500;
   list-style: none;
