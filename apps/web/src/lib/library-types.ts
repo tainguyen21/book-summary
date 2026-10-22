@@ -81,6 +81,18 @@ export interface PublishedSummary {
   citations: SummaryCitation[];
   /** Empty for summaries generated before sentence quotes existed. */
   paragraphs: SummarySentence[][];
+  /** Part-by-part summaries of a long book in reading order; empty otherwise. */
+  sections: SummarySection[];
+}
+
+/** One part of a long book, with citations numbered within the part. */
+export interface SummarySection {
+  position: number;
+  /** Locations of the first and last source passage the part covers. */
+  locationStart: Record<string, unknown>;
+  locationEnd: Record<string, unknown>;
+  citations: SummaryCitation[];
+  paragraphs: SummarySentence[][];
 }
 
 export interface BookSummary {
@@ -145,6 +157,23 @@ export const dailyUsageSchema: z.ZodType<DailyUsage> = z.object({
   resetsAt: z.string().datetime(),
 });
 
+const summaryCitationSchema = z.object({
+  sourceSpanId: z.string().uuid(),
+  order: z.number().int().positive(),
+  location: z.record(z.string(), z.unknown()),
+});
+
+const summaryParagraphsSchema = z
+  .array(
+    z.array(
+      z.object({
+        text: z.string(),
+        citations: z.array(summaryCitationSchema.extend({ quote: z.string().optional() })),
+      }),
+    ),
+  )
+  .default([]);
+
 export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
   bookId: z.string().uuid(),
   summary: z.object({
@@ -154,28 +183,17 @@ export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
     provider: z.string().min(1),
     model: z.string().min(1),
     createdAt: z.string().datetime(),
-    citations: z.array(
-      z.object({
-        sourceSpanId: z.string().uuid(),
-        order: z.number().int().positive(),
-        location: z.record(z.string(), z.unknown()),
-      }),
-    ),
-    paragraphs: z
+    citations: z.array(summaryCitationSchema),
+    paragraphs: summaryParagraphsSchema,
+    sections: z
       .array(
-        z.array(
-          z.object({
-            text: z.string(),
-            citations: z.array(
-              z.object({
-                sourceSpanId: z.string().uuid(),
-                order: z.number().int().positive(),
-                location: z.record(z.string(), z.unknown()),
-                quote: z.string().optional(),
-              }),
-            ),
-          }),
-        ),
+        z.object({
+          position: z.number().int().positive(),
+          locationStart: z.record(z.string(), z.unknown()),
+          locationEnd: z.record(z.string(), z.unknown()),
+          citations: z.array(summaryCitationSchema),
+          paragraphs: summaryParagraphsSchema,
+        }),
       )
       .default([]),
   }),

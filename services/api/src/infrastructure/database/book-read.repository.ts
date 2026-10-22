@@ -6,6 +6,7 @@ import type {
   BookSummary,
   LibraryBook,
   SummaryCitation,
+  SummarySection,
   SummarySentence,
 } from "../../domain/books/book";
 
@@ -50,6 +51,14 @@ interface SummaryCitationRow {
   source_span_id: string;
   citation_order: number;
   location: unknown;
+}
+
+interface SummarySectionRow {
+  position: number;
+  segments: unknown;
+  citations: unknown;
+  location_start: unknown;
+  location_end: unknown;
 }
 
 export class BookReadRepository implements BookReadRepositoryPort {
@@ -187,11 +196,17 @@ export class BookReadRepository implements BookReadRepositoryPort {
       [ownerId, bookId, summary.id],
     );
 
-    const citations = citationResult.rows.map((citation) => ({
-      sourceSpanId: citation.source_span_id,
-      order: citation.citation_order,
-      location: locationRecord(citation.location),
-    }));
+    const citations = citationResult.rows.map(summaryCitation);
+
+    const sectionResult = await this.pool.query<SummarySectionRow>(
+      `SELECT position, segments, citations, location_start, location_end
+       FROM data.book_current_summary_sections
+       WHERE owner_id = $1
+         AND book_id = $2
+         AND generated_summary_id = $3
+       ORDER BY position`,
+      [ownerId, bookId, summary.id],
+    );
 
     return {
       bookId: summary.book_id,
@@ -204,9 +219,32 @@ export class BookReadRepository implements BookReadRepositoryPort {
         createdAt: summary.created_at.toISOString(),
         citations,
         paragraphs: sentenceParagraphs(summary.segments, citations),
+        sections: sectionResult.rows.map(summarySection),
       },
     };
   }
+}
+
+function summaryCitation(row: SummaryCitationRow): SummaryCitation {
+  return {
+    sourceSpanId: row.source_span_id,
+    order: row.citation_order,
+    location: locationRecord(row.location),
+  };
+}
+
+function summarySection(row: SummarySectionRow): SummarySection {
+  const citations = (
+    Array.isArray(row.citations) ? (row.citations as SummaryCitationRow[]) : []
+  ).map(summaryCitation);
+
+  return {
+    position: row.position,
+    locationStart: locationRecord(row.location_start),
+    locationEnd: locationRecord(row.location_end),
+    citations,
+    paragraphs: sentenceParagraphs(row.segments, citations),
+  };
 }
 
 /**

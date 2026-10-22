@@ -121,6 +121,18 @@ export interface PublishedSummary {
   citations: SummaryCitation[];
   /** Paragraphs of cited sentences; empty for summaries made before quotes existed. */
   paragraphs: SummarySentence[][];
+  /** Part-by-part summaries of a long book in reading order; empty otherwise. */
+  sections: SummarySection[];
+}
+
+/** One part of a long book, with citations numbered within the part. */
+export interface SummarySection {
+  position: number;
+  /** Locations of the first and last source passage the part covers. */
+  locationStart: Record<string, unknown>;
+  locationEnd: Record<string, unknown>;
+  citations: SummaryCitation[];
+  paragraphs: SummarySentence[][];
 }
 
 export interface BookSummary {

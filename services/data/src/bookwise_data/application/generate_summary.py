@@ -18,9 +18,12 @@ from bookwise_data.application.evidence_checkpoints import (
 from bookwise_data.application.hierarchical_summary import (
     DEFAULT_SUMMARY_GROUP_RECORDS,
     SummaryRecord,
+    balanced_groups,
     evidence_records,
+    group_input_hash,
     reduce_records,
     section_citations,
+    summary_sections,
 )
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
@@ -384,7 +387,7 @@ class GenerateSummary:
             checkpoints.log_resumed(len(chunks))
         root_node = min(source.nodes, key=lambda node: node.sequence_number)
         summary_hash = summary_input_hash(source.document.id, root_node.id, evidence)
-        records = self._reduce_for_summary(
+        records, parts = self._reduce_for_summary(
             command, source, root_node.id, evidence, provider, heartbeat
         )
         self._require_lease(heartbeat)
@@ -463,6 +466,7 @@ class GenerateSummary:
             summary=summary,
             evidence=tuple(evidence),
             embeddings=embeddings,
+            sections=summary_sections(summary, source, evidence, parts),
         )
 
     def _record_failure(
@@ -535,13 +539,16 @@ class GenerateSummary:
         evidence: list[GeneratedEvidence],
         provider: GenerationProvider,
         heartbeat: Callable[[], bool],
-    ) -> list[SummaryRecord]:
-        """Summarize evidence in groups when it exceeds one summary call."""
+    ) -> tuple[list[SummaryRecord], list[tuple[list[SummaryRecord], SummaryDraft]]]:
+        """Summarize evidence in groups when it exceeds one summary call.
+
+        Also returns the first-level groups with their drafts: the book's parts.
+        """
 
         records = evidence_records(evidence)
         group_size = self._summary_group_records_factory()
         if len(records) <= group_size:
-            return records
+            return records, []
 
         sections = None
         if self._checkpoint_store is not None:
@@ -555,9 +562,15 @@ class GenerateSummary:
                 + str(getattr(provider, "summary_prompt_version", "unversioned")),
             )
 
+        drafts: dict[str, SummaryDraft] = {}
+
         def summarize_group(
             group: list[SummaryRecord], group_hash: str
         ) -> SummaryDraft:
+            drafts[group_hash] = generate_group(group, group_hash)
+            return drafts[group_hash]
+
+        def generate_group(group: list[SummaryRecord], group_hash: str) -> SummaryDraft:
             saved = sections.get_as(group_hash, SummaryDraft) if sections else None
             if saved is not None:
                 return saved
@@ -582,7 +595,7 @@ class GenerateSummary:
             return draft
 
         try:
-            return reduce_records(records, group_size, summarize_group)
+            reduced = reduce_records(records, group_size, summarize_group)
         except InvalidGenerationOutput as error:
             raise self._failure(
                 error,
@@ -593,6 +606,11 @@ class GenerateSummary:
                 None,
                 provider,
             ) from error
+        parts = [
+            (group, drafts[group_input_hash(group)])
+            for group in balanced_groups(records, group_size)
+        ]
+        return reduced, parts
 
     def _checkpoints(
         self,

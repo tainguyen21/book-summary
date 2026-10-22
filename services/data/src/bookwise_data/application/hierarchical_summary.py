@@ -11,11 +11,16 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Sequence
 from typing import Any
+from uuid import UUID
 
 from bookwise_data.domain.generation import (
     GeneratedEvidence,
+    GeneratedSummary,
+    GeneratedSummarySection,
+    GenerationSourceBook,
     InvalidGenerationOutput,
     SummaryDraft,
+    accepted_summary_section,
     canonical_hash,
 )
 
@@ -103,6 +108,37 @@ def section_citations(
             "No section summary citation was inside its section.",
         )
     return cited
+
+
+def summary_sections(
+    summary: GeneratedSummary,
+    source: GenerationSourceBook,
+    evidence: Sequence[GeneratedEvidence],
+    parts: Sequence[tuple[Sequence[SummaryRecord], SummaryDraft]],
+) -> tuple[GeneratedSummarySection, ...]:
+    """Turn the first-level groups and their drafts into part summaries."""
+
+    evidence_by_id = {str(item.id): item for item in evidence}
+    span_by_id = {str(span.id): span for span in source.spans}
+    sections = []
+    for position, (group, draft) in enumerate(parts, start=1):
+        group_evidence = [evidence_by_id[record["evidence_id"]] for record in group]
+        group_spans = {
+            span_id: span_by_id[span_id]
+            for record in group
+            for span_id in record["source_span_ids"]
+        }
+        sections.append(
+            accepted_summary_section(
+                summary,
+                position,
+                draft,
+                [UUID(span_id) for span_id in section_citations(group, draft)],
+                group_evidence,
+                list(group_spans.values()),
+            )
+        )
+    return tuple(sections)
 
 
 def _section_record(

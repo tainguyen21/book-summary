@@ -13,6 +13,7 @@ from sqlalchemy.engine import Connection, Engine
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
     AcceptedGeneration,
+    GeneratedSummarySection,
     GenerationSourceBook,
     GenerationSourceDocument,
     GenerationSourceSpan,
@@ -239,6 +240,36 @@ _SUPERSEDE_SUMMARY = text(
         AND source_node_id = :source_node_id
         AND id <> :new_summary_id
         AND superseded_by_id IS NULL
+    """
+)
+
+_INSERT_SECTION = text(
+    """
+    INSERT INTO data.generated_summary_sections (
+        id,
+        owner_id,
+        book_id,
+        generated_summary_id,
+        position,
+        body,
+        segments,
+        citations,
+        location_start,
+        location_end
+    )
+    VALUES (
+        :id,
+        :owner_id,
+        :book_id,
+        :generated_summary_id,
+        :position,
+        :body,
+        CAST(:segments AS jsonb),
+        CAST(:citations AS jsonb),
+        CAST(:location_start AS jsonb),
+        CAST(:location_end AS jsonb)
+    )
+    ON CONFLICT (id) DO NOTHING
     """
 )
 
@@ -535,6 +566,35 @@ class SqlAlchemyGeneratedSummaryRepository:
                     "embedding": _vector_literal(item.vector),
                 }
                 for item in generation.embeddings
+            ],
+        )
+        self.insert_sections(transaction, generation.sections)
+
+    def insert_sections(
+        self,
+        transaction: Connection,
+        sections: tuple[GeneratedSummarySection, ...],
+    ) -> None:
+        """Append part summaries of a persisted summary; repeats are ignored."""
+
+        if not sections:
+            return
+        transaction.execute(
+            _INSERT_SECTION,
+            [
+                {
+                    "id": section.id,
+                    "owner_id": section.owner_id,
+                    "book_id": section.book_id,
+                    "generated_summary_id": section.generated_summary_id,
+                    "position": section.position,
+                    "body": section.body,
+                    "segments": json.dumps(list(section.segments)),
+                    "citations": json.dumps(list(section.citations)),
+                    "location_start": json.dumps(dict(section.location_start)),
+                    "location_end": json.dumps(dict(section.location_end)),
+                }
+                for section in sections
             ],
         )
 

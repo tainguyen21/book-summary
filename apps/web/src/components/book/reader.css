@@ -221,6 +221,97 @@
   outline-offset: 2px;
 }
 
+/* Part-by-part summaries of a long book */
+.reader-parts {
+  margin-top: 40px;
+}
+
+.reader-parts h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.reader-parts > p {
+  margin-bottom: 14px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.reader-part-list {
+  border-top: 1px solid var(--color-border);
+}
+
+.reader-part {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reader-part summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 4px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.reader-part summary::-webkit-details-marker {
+  display: none;
+}
+
+.reader-part summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.reader-part-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.reader-part-range {
+  min-width: 0;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.reader-part-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--color-text-subtle);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.reader-part[open] .reader-part-chevron {
+  transform: rotate(180deg);
+}
+
+.reader-part .reader-body {
+  padding: 4px 4px 24px;
+  font-size: calc(var(--reading-size, 19px) - 1px);
+}
+
+/* The drop cap belongs to the overall summary only. */
+.reader-part .reader-body > .reader-paragraph:first-child > p::first-letter {
+  float: none;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-part-chevron {
+    transition: none;
+  }
+}
+
 /* Sentence source markers and quote cards */
 .reader-sentence {
   border-radius: 3px;
