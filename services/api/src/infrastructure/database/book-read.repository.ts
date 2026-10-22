@@ -59,6 +59,7 @@ interface SummarySectionRow {
   citations: unknown;
   location_start: unknown;
   location_end: unknown;
+  title: string | null;
 }
 
 export class BookReadRepository implements BookReadRepositoryPort {
@@ -199,7 +200,7 @@ export class BookReadRepository implements BookReadRepositoryPort {
     const citations = citationResult.rows.map(summaryCitation);
 
     const sectionResult = await this.pool.query<SummarySectionRow>(
-      `SELECT position, segments, citations, location_start, location_end
+      `SELECT position, segments, citations, location_start, location_end, title
        FROM data.book_current_summary_sections
        WHERE owner_id = $1
          AND book_id = $2
@@ -240,6 +241,7 @@ function summarySection(row: SummarySectionRow): SummarySection {
 
   return {
     position: row.position,
+    ...(row.title ? { title: row.title } : {}),
     locationStart: locationRecord(row.location_start),
     locationEnd: locationRecord(row.location_end),
     citations,

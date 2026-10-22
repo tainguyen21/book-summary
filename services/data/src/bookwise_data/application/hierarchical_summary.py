@@ -8,6 +8,7 @@ until one group fits, so every call stays bounded and citations stay grounded.
 
 from __future__ import annotations
 
+import dataclasses
 import math
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -19,6 +20,7 @@ from bookwise_data.domain.generation import (
     GeneratedSummarySection,
     GenerationSourceBook,
     InvalidGenerationOutput,
+    PartTitlesOutput,
     SummaryDraft,
     accepted_summary_section,
     canonical_hash,
@@ -139,6 +141,36 @@ def summary_sections(
             )
         )
     return tuple(sections)
+
+
+MAX_PART_TITLE_CHARS = 200
+
+
+def part_title_inputs(
+    sections: Sequence[GeneratedSummarySection],
+) -> list[dict[str, Any]]:
+    """What the titling prompt receives: each part's summary by position."""
+
+    return [
+        {"position": section.position, "summary": section.body} for section in sections
+    ]
+
+
+def titled_sections(
+    sections: Sequence[GeneratedSummarySection],
+    output: PartTitlesOutput,
+) -> tuple[GeneratedSummarySection, ...]:
+    """Attach returned titles by position; a part without one keeps None."""
+
+    titles: dict[int, str] = {}
+    for item in output.titles:
+        title = " ".join(item.title.split()).strip("\"'“”‘’ ")
+        if title:
+            titles.setdefault(item.position, title[:MAX_PART_TITLE_CHARS])
+    return tuple(
+        dataclasses.replace(section, title=titles.get(section.position))
+        for section in sections
+    )
 
 
 def _section_record(

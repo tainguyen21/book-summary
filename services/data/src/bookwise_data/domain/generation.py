@@ -185,6 +185,19 @@ class SummaryDraft(BaseModel):
         )
 
 
+class PartTitle(BaseModel):
+    """A short title for one part of a long book, keyed by its position."""
+
+    position: int
+    title: str = Field(min_length=1, max_length=200)
+
+
+class PartTitlesOutput(BaseModel):
+    """Provider output naming every part of a long book."""
+
+    titles: list[PartTitle]
+
+
 @dataclass(frozen=True, slots=True)
 class GenerationSourceSpan:
     """A source span loaded from the immutable source tables."""
@@ -299,6 +312,8 @@ class GeneratedSummarySection:
     citations: tuple[dict[str, Any], ...]
     location_start: Mapping[str, Any]
     location_end: Mapping[str, Any]
+    # Model-written; None when titling failed or was skipped.
+    title: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

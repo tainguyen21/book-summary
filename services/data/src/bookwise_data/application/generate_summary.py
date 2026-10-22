@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Protocol
@@ -21,9 +22,11 @@ from bookwise_data.application.hierarchical_summary import (
     balanced_groups,
     evidence_records,
     group_input_hash,
+    part_title_inputs,
     reduce_records,
     section_citations,
     summary_sections,
+    titled_sections,
 )
 from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
@@ -31,9 +34,11 @@ from bookwise_data.domain.generation import (
     EmbeddingTargetType,
     EvidenceExtractionOutput,
     GeneratedEvidence,
+    GeneratedSummarySection,
     GenerationSourceBook,
     GenerationValidationOutcome,
     InvalidGenerationOutput,
+    PartTitlesOutput,
     ProviderRequestError,
     SourceSpanChunkLimitError,
     SummaryDraft,
@@ -48,6 +53,11 @@ from bookwise_data.domain.generation import (
 )
 from bookwise_data.domain.source import PermanentProcessingError
 from bookwise_data.domain.usage import UsageSink
+from bookwise_data.workers.logging_setup import (
+    command_context,
+    log_event,
+    worker_logger,
+)
 
 
 class GeneratedSummaryRepository(Protocol):
@@ -103,6 +113,13 @@ class GenerationProvider(Protocol):
         schema: type[SummaryDraft],
     ) -> SummaryDraft:
         """Generate a structured summary from accepted evidence."""
+
+    def generate_part_titles(
+        self,
+        parts: list[dict[str, object]],
+        schema: type[PartTitlesOutput],
+    ) -> PartTitlesOutput:
+        """Title each part of a long book from its summary."""
 
     def embed(self, texts: list[str]) -> object:
         """Generate ordered embeddings."""
@@ -426,6 +443,13 @@ class GenerateSummary:
                 output_hash=canonical_hash(summary_output.model_dump(mode="json")),
             ) from error
 
+        sections = self._titled_parts(
+            command,
+            summary_sections(summary, source, evidence, parts),
+            provider,
+            heartbeat,
+        )
+
         target_texts = {
             **{
                 (EmbeddingTargetType.EVIDENCE, item.id): item.statement
@@ -466,8 +490,38 @@ class GenerateSummary:
             summary=summary,
             evidence=tuple(evidence),
             embeddings=embeddings,
-            sections=summary_sections(summary, source, evidence, parts),
+            sections=sections,
         )
+
+    def _titled_parts(
+        self,
+        command: ClaimedCommand,
+        sections: tuple[GeneratedSummarySection, ...],
+        provider: GenerationProvider,
+        heartbeat: Callable[[], bool],
+    ) -> tuple[GeneratedSummarySection, ...]:
+        """Title the parts; a failed or unaffordable call leaves them untitled."""
+
+        if not sections:
+            return sections
+        self._require_lease(heartbeat)
+        try:
+            self._require_budget()
+            output = provider.generate_part_titles(
+                part_title_inputs(sections), PartTitlesOutput
+            )
+        except Exception as error:  # noqa: BLE001
+            log_event(
+                worker_logger(),
+                logging.WARNING,
+                "part_titles_skipped",
+                "Saved the book's parts without titles.",
+                error_class=type(error).__name__,
+                error_code=getattr(error, "code", None),
+                **command_context(command),
+            )
+            return sections
+        return titled_sections(sections, output)
 
     def _record_failure(
         self,

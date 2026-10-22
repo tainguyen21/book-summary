@@ -128,6 +128,8 @@ export interface PublishedSummary {
 /** One part of a long book, with citations numbered within the part. */
 export interface SummarySection {
   position: number;
+  /** Short model-written title; absent when titling failed. */
+  title?: string;
   /** Locations of the first and last source passage the part covers. */
   locationStart: Record<string, unknown>;
   locationEnd: Record<string, unknown>;

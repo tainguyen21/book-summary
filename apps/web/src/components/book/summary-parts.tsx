@@ -51,8 +51,24 @@ export function SummaryParts({
         {parts.map((section) => (
           <details className="reader-part" key={section.position}>
             <summary>
-              <span className="reader-part-title">{t.partLabel(section.position)}</span>
-              <span className="reader-part-range">{range(section)}</span>
+              <span className="reader-part-heading">
+                {section.title ? (
+                  <>
+                    <span className="reader-part-meta">
+                      {t.partLabel(section.position)} · {range(section)}
+                    </span>
+                    {/* Titles are in the book's language. */}
+                    <span className="reader-part-title" lang={textLanguage(section.title)}>
+                      {section.title}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="reader-part-meta">{range(section)}</span>
+                    <span className="reader-part-title">{t.partLabel(section.position)}</span>
+                  </>
+                )}
+              </span>
               <ChevronDown aria-hidden="true" size={16} className="reader-part-chevron" />
             </summary>
             {/* Part text is in the book's language; mark it for screen readers. */}

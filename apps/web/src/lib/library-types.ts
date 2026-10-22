@@ -88,6 +88,8 @@ export interface PublishedSummary {
 /** One part of a long book, with citations numbered within the part. */
 export interface SummarySection {
   position: number;
+  /** Short model-written title; absent when titling failed. */
+  title?: string;
   /** Locations of the first and last source passage the part covers. */
   locationStart: Record<string, unknown>;
   locationEnd: Record<string, unknown>;
@@ -189,6 +191,7 @@ export const bookSummarySchema: z.ZodType<BookSummary> = z.object({
       .array(
         z.object({
           position: z.number().int().positive(),
+          title: z.string().optional(),
           locationStart: z.record(z.string(), z.unknown()),
           locationEnd: z.record(z.string(), z.unknown()),
           citations: z.array(summaryCitationSchema),
