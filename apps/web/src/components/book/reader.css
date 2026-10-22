@@ -269,15 +269,22 @@
   outline-offset: 2px;
 }
 
+.reader-part-heading {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reader-part-meta {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
 .reader-part-title {
   font-size: 15px;
   font-weight: 600;
-}
-
-.reader-part-range {
-  min-width: 0;
-  color: var(--color-text-subtle);
-  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .reader-part-chevron {

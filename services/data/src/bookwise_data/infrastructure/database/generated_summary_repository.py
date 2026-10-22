@@ -255,7 +255,8 @@ _INSERT_SECTION = text(
         segments,
         citations,
         location_start,
-        location_end
+        location_end,
+        title
     )
     VALUES (
         :id,
@@ -267,7 +268,8 @@ _INSERT_SECTION = text(
         CAST(:segments AS jsonb),
         CAST(:citations AS jsonb),
         CAST(:location_start AS jsonb),
-        CAST(:location_end AS jsonb)
+        CAST(:location_end AS jsonb),
+        :title
     )
     ON CONFLICT (id) DO NOTHING
     """
@@ -593,6 +595,7 @@ class SqlAlchemyGeneratedSummaryRepository:
                     "citations": json.dumps(list(section.citations)),
                     "location_start": json.dumps(dict(section.location_start)),
                     "location_end": json.dumps(dict(section.location_end)),
+                    "title": section.title,
                 }
                 for section in sections
             ],
