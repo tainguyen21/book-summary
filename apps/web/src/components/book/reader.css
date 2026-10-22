@@ -30,6 +30,8 @@
   position: sticky;
   top: 28px;
   display: grid;
+  /* minmax(0, …) lets a long filename ellipsize instead of widening the aside. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -40,6 +42,7 @@
 
 .reader-facts {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   margin: 0;
   font-size: 13px;
@@ -55,6 +58,7 @@
 }
 
 .reader-facts dt {
+  flex-shrink: 0;
   color: var(--color-text-subtle);
 }
 
@@ -671,7 +675,7 @@
 
   .reader-aside {
     position: static;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 120px minmax(0, 1fr);
     align-items: start;
     gap: 20px;
   }
