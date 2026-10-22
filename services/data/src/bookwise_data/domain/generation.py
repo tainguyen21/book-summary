@@ -284,6 +284,24 @@ class GeneratedSummary:
 
 
 @dataclass(frozen=True, slots=True)
+class GeneratedSummarySection:
+    """One part of a long book's part-by-part summary, in reading order."""
+
+    id: UUID
+    owner_id: UUID
+    book_id: UUID
+    generated_summary_id: UUID
+    position: int
+    body: str
+    # Same shape as GeneratedSummary.segments.
+    segments: tuple[dict[str, Any], ...]
+    # source_span_id, citation_order, and location, numbered within the part.
+    citations: tuple[dict[str, Any], ...]
+    location_start: Mapping[str, Any]
+    location_end: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
 class EmbeddingRecord:
     """A versioned embedding for an accepted generated record."""
 
@@ -332,11 +350,12 @@ class GenerationValidationOutcome:
 
 @dataclass(frozen=True, slots=True)
 class AcceptedGeneration:
-    """The accepted summary, its evidence, and embeddings."""
+    """The accepted summary, its evidence, embeddings, and part summaries."""
 
     summary: GeneratedSummary
     evidence: tuple[GeneratedEvidence, ...]
     embeddings: tuple[EmbeddingRecord, ...]
+    sections: tuple[GeneratedSummarySection, ...] = ()
 
 
 def build_chunks(
@@ -641,6 +660,48 @@ def summary_segments(
             ]
         }
         for paragraph in output.paragraphs
+    )
+
+
+def accepted_summary_section(
+    summary: GeneratedSummary,
+    position: int,
+    draft: SummaryDraft,
+    cited_span_ids: Sequence[UUID],
+    evidence: Sequence[GeneratedEvidence],
+    spans: Sequence[GenerationSourceSpan],
+) -> GeneratedSummarySection:
+    """Build one part summary from its validated group draft.
+
+    ``cited_span_ids`` are the draft's citations already checked against the
+    part's evidence; ``spans`` are the source spans that evidence cites, and
+    set the part's start and end location.
+    """
+
+    allowed = set(cited_span_ids)
+    span_by_id = {span.id: span for span in spans}
+    ordered = sorted(spans, key=lambda span: span.sequence_number)
+    return GeneratedSummarySection(
+        id=uuid5(_GENERATION_NAMESPACE, f"summary-section:{summary.id}:{position}"),
+        owner_id=summary.owner_id,
+        book_id=summary.book_id,
+        generated_summary_id=summary.id,
+        position=position,
+        body=draft.body.strip(),
+        segments=summary_segments(draft, evidence, allowed),
+        citations=tuple(
+            {
+                "source_span_id": str(span_id),
+                "citation_order": order,
+                "location": dict(span_by_id[span_id].location),
+            }
+            for order, span_id in enumerate(
+                (span_id for span_id in draft.source_span_ids if span_id in allowed),
+                start=1,
+            )
+        ),
+        location_start=dict(ordered[0].location),
+        location_end=dict(ordered[-1].location),
     )
 
 

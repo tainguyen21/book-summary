@@ -15,6 +15,7 @@ import { HighlightControls } from "./highlight-controls";
 import { HighlightsPanel } from "./highlights-panel";
 import { sentenceKey, useHighlights } from "./use-highlights";
 import { PassageDialog } from "./passage-dialog";
+import { SummaryParts } from "./summary-parts";
 
 /** Location keys in priority order: the first one present names the citation. */
 const locationKeys = ["page_number", "spine_index", "paragraph_number", "line_start"] as const;
@@ -105,6 +106,15 @@ export function BookSummaryReader({
         </div>
       )}
       </div>
+
+      <SummaryParts
+        sections={summary.sections}
+        labelFor={labelFor}
+        onViewInContext={(spanId, label, opener) => {
+          triggerRef.current = opener as HTMLButtonElement;
+          setOpen({ spanId, label });
+        }}
+      />
 
       {summary.paragraphs.length > 0 && (
         <HighlightsPanel

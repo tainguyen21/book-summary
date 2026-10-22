@@ -10,6 +10,25 @@ import type { SummarySentence } from "../../lib/library-types";
 type Open = { paragraph: number; sentence: number };
 
 /**
+ * A short marker for a sentence's source numbers: consecutive runs become
+ * ranges ("3–7,9"), and past two runs the rest is elided. The quote card and
+ * the marker's accessible name still list every source.
+ */
+export function markerLabel(orders: number[]): string {
+  const runs: [number, number][] = [];
+  for (const order of [...new Set(orders)].sort((a, b) => a - b)) {
+    const last = runs.at(-1);
+    if (last && order === last[1] + 1) {
+      last[1] = order;
+    } else {
+      runs.push([order, order]);
+    }
+  }
+  const pieces = runs.map(([start, end]) => (start === end ? `${start}` : `${start}–${end}`));
+  return pieces.length > 2 ? `${pieces.slice(0, 2).join(",")},…` : pieces.join(",");
+}
+
+/**
  * The summary with numbered source markers after each cited sentence.
  * Activating a marker expands a quote card after its paragraph showing the
  * verbatim words from the book (progressive disclosure: no floating layer,
@@ -21,6 +40,7 @@ export function CitedSummaryBody({
   onViewInContext,
   highlighted,
   cardFooter,
+  idPrefix = "",
 }: {
   paragraphs: SummarySentence[][];
   labelFor(location: Record<string, unknown>): string;
@@ -29,6 +49,8 @@ export function CitedSummaryBody({
   highlighted?: ReadonlySet<string>;
   /** Extra controls at the end of an open quote card (highlight and note). */
   cardFooter?(paragraph: number, sentence: number): ReactNode;
+  /** Keeps element ids unique when several bodies share a page. */
+  idPrefix?: string;
 }) {
   const [open, setOpen] = useState<Open>();
   const [hovered, setHovered] = useState<string>();
@@ -57,7 +79,7 @@ export function CitedSummaryBody({
       {paragraphs.map((sentences, paragraphIndex) => {
         const openSentence =
           open?.paragraph === paragraphIndex ? sentences[open.sentence] : undefined;
-        const cardId = `quote-card-${paragraphIndex}`;
+        const cardId = `quote-card-${idPrefix}${paragraphIndex}`;
 
         return (
           <div className="reader-paragraph" key={paragraphIndex}>
@@ -85,7 +107,7 @@ export function CitedSummaryBody({
                           }
                         }}
                         type="button"
-                        id={`cite-${paragraphIndex}-${sentenceIndex}`}
+                        id={`cite-${idPrefix}${paragraphIndex}-${sentenceIndex}`}
                         className="reader-cite"
                         aria-expanded={isOpen}
                         aria-controls={isOpen ? cardId : undefined}
@@ -105,7 +127,7 @@ export function CitedSummaryBody({
                         onFocus={() => setHovered(id)}
                         onBlur={() => setHovered(undefined)}
                       >
-                        {sentence.citations.map((citation) => citation.order).join(",")}
+                        {markerLabel(sentence.citations.map((citation) => citation.order))}
                       </button>
                     )}{" "}
                   </span>
