@@ -9,3 +9,4 @@ allowBuilds:
 # Security fixes the direct dependencies don't pull in yet (CI Trivy scan).
 overrides:
   fastify: ^5.12.7
+  zod: ^4.6.6
