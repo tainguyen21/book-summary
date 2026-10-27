@@ -158,6 +158,13 @@ already-running process does not reread env-from secrets.
   polling behavior were corrected in `e8bbcba`.
 - CI/CD: reusable verification, scoped image caches, digest-based deployments,
   and a shared migration-before-application gate were added in `cc02451`.
+- Book `b99fa886-adc7-418d-a067-7db021f674c7`: Gemini stopped one evidence
+  chunk with finish reason `RECITATION`, which surfaced as the permanent
+  `missing_structured_provider_output` and failed the whole book. A refused
+  chunk is now retried once with a paraphrase prompt and skipped
+  (`chunk_skipped`) if refused again. The daily budget is one global cap,
+  so a long book can need a temporary cap raise on the live ConfigMap; the
+  next deploy restores the repository value.
 
 ## Boundaries And Remaining Work
 
