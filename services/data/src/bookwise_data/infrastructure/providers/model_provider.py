@@ -68,6 +68,15 @@ _EVIDENCE_PARAPHRASE_INSTRUCTIONS = (
 )
 
 
+def _prompt_json(value: Any) -> str:
+    """JSON for a prompt, with non-ASCII text left readable.
+
+    ASCII escapes for Vietnamese text multiplied the input tokens.
+    """
+
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
 def _evidence_instructions(paraphrase: bool) -> str:
     return _EVIDENCE_PARAPHRASE_INSTRUCTIONS if paraphrase else _EVIDENCE_INSTRUCTIONS
 
@@ -240,7 +249,7 @@ class OpenAICompatibleProvider:
         prompt = (
             f"{_evidence_instructions(paraphrase)} Return JSON matching this schema.\n\n"
             f"Schema: {json.dumps(schema.model_json_schema(), sort_keys=True)}\n\n"
-            f"Source chunk: {json.dumps(chunk, ensure_ascii=True, sort_keys=True)}"
+            f"Source chunk: {_prompt_json(chunk)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.EVIDENCE)
 
@@ -252,7 +261,7 @@ class OpenAICompatibleProvider:
         prompt = (
             f"{_SUMMARY_INSTRUCTIONS} Return JSON matching this schema.\n\n"
             f"Schema: {json.dumps(schema.model_json_schema(), sort_keys=True)}\n\n"
-            f"Evidence: {json.dumps(evidence, ensure_ascii=True, sort_keys=True)}"
+            f"Evidence: {_prompt_json(evidence)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
@@ -264,7 +273,7 @@ class OpenAICompatibleProvider:
         prompt = (
             f"{_PART_TITLE_INSTRUCTIONS} Return JSON matching this schema.\n\n"
             f"Schema: {json.dumps(schema.model_json_schema(), sort_keys=True)}\n\n"
-            f"Parts: {json.dumps(parts, ensure_ascii=True, sort_keys=True)}"
+            f"Parts: {_prompt_json(parts)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
@@ -474,7 +483,7 @@ class VertexAIProvider:
     ) -> TModel:
         prompt = (
             f"{_evidence_instructions(paraphrase)} Return JSON matching the response schema.\n\n"
-            f"Source chunk: {json.dumps(chunk, ensure_ascii=True, sort_keys=True)}"
+            f"Source chunk: {_prompt_json(chunk)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.EVIDENCE)
 
@@ -485,7 +494,7 @@ class VertexAIProvider:
     ) -> TModel:
         prompt = (
             f"{_SUMMARY_INSTRUCTIONS} Return JSON matching the response schema.\n\n"
-            f"Evidence: {json.dumps(evidence, ensure_ascii=True, sort_keys=True)}"
+            f"Evidence: {_prompt_json(evidence)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
@@ -496,7 +505,7 @@ class VertexAIProvider:
     ) -> TModel:
         prompt = (
             f"{_PART_TITLE_INSTRUCTIONS} Return JSON matching the response schema.\n\n"
-            f"Parts: {json.dumps(parts, ensure_ascii=True, sort_keys=True)}"
+            f"Parts: {_prompt_json(parts)}"
         )
         return self._generate_json(prompt, schema, UsageOperation.SUMMARY)
 
