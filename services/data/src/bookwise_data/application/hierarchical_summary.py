@@ -9,6 +9,7 @@ until one group fits, so every call stays bounded and citations stay grounded.
 from __future__ import annotations
 
 import dataclasses
+import itertools
 import math
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -22,11 +23,16 @@ from bookwise_data.domain.generation import (
     InvalidGenerationOutput,
     PartTitlesOutput,
     SummaryDraft,
+    SummaryParagraph,
+    SummaryRefsOutput,
+    SummarySentence,
     accepted_summary_section,
     canonical_hash,
 )
 
 DEFAULT_SUMMARY_GROUP_RECORDS = 120
+# Keeps each sentence's quote list readable when it cites a whole part.
+MAX_SENTENCE_CITATIONS = 12
 
 SummaryRecord = dict[str, Any]
 # Summarizes one group; receives the group's records and their input hash.
@@ -47,6 +53,73 @@ def evidence_records(evidence: Sequence[GeneratedEvidence]) -> list[SummaryRecor
         }
         for item in evidence
     ]
+
+
+def summary_prompt_records(records: Sequence[SummaryRecord]) -> list[dict[str, str]]:
+    """Records as the summary prompt sees them: a short ref, not span UUIDs.
+
+    A span UUID costs about 35 output tokens, so citing a long book's parts by
+    span ID ran past the output limit.
+    """
+
+    return [
+        {
+            "ref": _record_ref(index),
+            "statement": record["statement"],
+            "evidence_type": record["evidence_type"],
+        }
+        for index, record in enumerate(records, start=1)
+    ]
+
+
+def draft_from_refs(
+    records: Sequence[SummaryRecord],
+    output: SummaryRefsOutput,
+) -> SummaryDraft:
+    """Resolve each sentence's record refs to the records' source spans.
+
+    Spans are taken in turn from each cited record, so every record keeps a
+    citation when a sentence hits ``MAX_SENTENCE_CITATIONS``. Unknown refs are
+    dropped.
+    """
+
+    spans_by_ref = {
+        _record_ref(index): record["source_span_ids"]
+        for index, record in enumerate(records, start=1)
+    }
+
+    def spans(refs: list[str]) -> list[str]:
+        cited = [
+            spans_by_ref[ref]
+            for ref in dict.fromkeys(ref.strip() for ref in refs)
+            if ref in spans_by_ref
+        ]
+        interleaved = dict.fromkeys(
+            span
+            for row in itertools.zip_longest(*cited)
+            for span in row
+            if span is not None
+        )
+        return list(interleaved)[:MAX_SENTENCE_CITATIONS]
+
+    return SummaryDraft(
+        paragraphs=[
+            SummaryParagraph(
+                sentences=[
+                    SummarySentence(
+                        text=sentence.text,
+                        source_span_ids=spans(sentence.record_refs),
+                    )
+                    for sentence in paragraph.sentences
+                ]
+            )
+            for paragraph in output.paragraphs
+        ]
+    )
+
+
+def _record_ref(index: int) -> str:
+    return f"r{index}"
 
 
 def balanced_groups(
