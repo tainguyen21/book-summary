@@ -575,7 +575,8 @@ class VertexAIProvider:
                 contents=prompt,
                 config=genai_types.GenerateContentConfig(
                     system_instruction="Return valid JSON only.",
-                    temperature=0,
+                    # Gemini 3 keeps its default temperature (1.0): Google warns
+                    # lower values can loop until the output limit truncates JSON.
                     max_output_tokens=self._max_output_tokens,
                     response_mime_type="application/json",
                     response_schema=schema,
