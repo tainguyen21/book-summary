@@ -165,6 +165,13 @@ already-running process does not reread env-from secrets.
   (`chunk_skipped`) if refused again. The daily budget is one global cap,
   so a long book can need a temporary cap raise on the live ConfigMap; the
   next deploy restores the repository value.
+- Same book, next failure: the final summary ended with `MAX_TOKENS` at the
+  32,768-token output limit. Each part summary carried every span it cited,
+  and the model had to list those span UUIDs, about 35 output tokens each.
+  Moving Vertex to its default temperature (`de83f48`) did not help; the
+  cause was structural. The summary prompt now cites records by short ref
+  (`r1`, `r2`, ...), and code resolves refs to spans, at most 12 per
+  sentence.
 
 ## Boundaries And Remaining Work
 
