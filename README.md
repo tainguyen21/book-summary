@@ -313,7 +313,8 @@ context: `command_id`, `book_id`, `run_id`, `command_type`,
 `processing_version`, `outcome`, `error_class`, `error_code`, and
 `duration_ms`. Startup also records `batch_limit`, `poll_interval_seconds`,
 `model_provider`, and `generation_model`; shutdown records the `signal`;
-resumed generation records `chunks_reused` and `chunk_count`; a claim reopened
+resumed generation records `chunks_reused` and `chunk_count`; a skipped chunk
+records `chunk_sequence_number`; a claim reopened
 by an owner's retry records `retry`; budget events
 record `spent_usd` and `cap_usd`, and startup also records the cap and
 `budget_timezone`.
@@ -332,6 +333,7 @@ record `spent_usd` and `cap_usd`, and startup also records the cap and
 | `usage_record_failed` | ERROR | A usage row could not be written; generation continues |
 | `evidence_resumed` | INFO | A retried summary run reused saved evidence for finished chunks |
 | `evidence_checkpoint_failed` | WARNING | An evidence checkpoint could not be loaded or saved; generation continues without it |
+| `chunk_skipped` | WARNING | The model refused a chunk as recitation, even when asked to paraphrase; it is recorded as a rejected validation outcome and the rest of the book is summarized |
 | `budget_paused` | WARNING | A summary run hit the daily cap and was paused; includes `spent_usd` and `cap_usd` |
 | `budget_hold_started` / `budget_hold_ended` | WARNING / INFO | Summary claiming stopped or resumed because of the daily cap |
 
