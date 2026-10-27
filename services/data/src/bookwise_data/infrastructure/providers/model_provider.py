@@ -83,10 +83,10 @@ _SUMMARY_INSTRUCTIONS = (
     "numbers, names, outcomes, caveats, and limitations, but be concise: "
     "combine related records into single sentences, group them by theme, "
     "avoid repetition, and stay under about 600 words. Return the summary as "
-    "paragraphs of sentences. For each sentence, list in its source_span_ids "
-    "the source_span_id values of the evidence records it states; use an "
+    "paragraphs of sentences. For each sentence, list in its record_refs the "
+    "ref values (such as r12) of the evidence records it states; use an "
     "empty list only for a pure transition. Write plain prose for readers: "
-    "never put ids, brackets, or citation markers in sentence text. Write the "
+    "never put refs, ids, brackets, or citation markers in sentence text. Write the "
     "summary in the language of the evidence statements, which is the book's "
     "language; do not translate it."
 )

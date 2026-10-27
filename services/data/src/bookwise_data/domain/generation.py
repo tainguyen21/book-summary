@@ -161,8 +161,25 @@ class SummaryParagraph(BaseModel):
     sentences: list[SummarySentence] = Field(min_length=1)
 
 
+class SummaryRefSentence(BaseModel):
+    """One summary sentence and the short refs of the records it states."""
+
+    text: str = Field(min_length=1, max_length=2000)
+    record_refs: list[str]
+
+
+class SummaryRefParagraph(BaseModel):
+    sentences: list[SummaryRefSentence] = Field(min_length=1)
+
+
+class SummaryRefsOutput(BaseModel):
+    """Summary returned by a model provider; record refs resolve to spans in code."""
+
+    paragraphs: list[SummaryRefParagraph] = Field(min_length=1)
+
+
 class SummaryDraft(BaseModel):
-    """Structured summary returned by a model provider before validation.
+    """Structured summary with record refs resolved to source spans.
 
     Sentences carry their own citations; ``body`` and ``source_span_ids`` are
     derived so the flat citation checks keep working unchanged.

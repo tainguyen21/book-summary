@@ -20,11 +20,13 @@ from bookwise_data.application.hierarchical_summary import (
     DEFAULT_SUMMARY_GROUP_RECORDS,
     SummaryRecord,
     balanced_groups,
+    draft_from_refs,
     evidence_records,
     group_input_hash,
     part_title_inputs,
     reduce_records,
     section_citations,
+    summary_prompt_records,
     summary_sections,
     titled_sections,
 )
@@ -44,6 +46,7 @@ from bookwise_data.domain.generation import (
     ProviderRequestError,
     SourceSpanChunkLimitError,
     SummaryDraft,
+    SummaryRefsOutput,
     ValidationStatus,
     accepted_evidence_from_output,
     accepted_summary_from_output,
@@ -113,9 +116,9 @@ class GenerationProvider(Protocol):
     def generate_summary(
         self,
         evidence: list[dict[str, object]],
-        schema: type[SummaryDraft],
-    ) -> SummaryDraft:
-        """Generate a structured summary from accepted evidence."""
+        schema: type[SummaryRefsOutput],
+    ) -> SummaryRefsOutput:
+        """Generate a structured summary that cites records by short ref."""
 
     def generate_part_titles(
         self,
@@ -447,7 +450,7 @@ class GenerateSummary:
         self._require_lease(heartbeat)
         self._require_budget()
         try:
-            summary_output = provider.generate_summary(records, SummaryDraft)
+            summary_output = self._summarize(provider, records)
         except Exception as error:
             raise self._failure(
                 error,
@@ -668,7 +671,7 @@ class GenerateSummary:
             self._require_lease(heartbeat)
             self._require_budget()
             try:
-                draft = provider.generate_summary(group, SummaryDraft)
+                draft = self._summarize(provider, group)
             except Exception as error:
                 raise self._failure(
                     error,
@@ -735,6 +738,16 @@ class GenerateSummary:
             return provider.generate_evidence(
                 payload, EvidenceExtractionOutput, paraphrase=True
             )
+
+    @staticmethod
+    def _summarize(
+        provider: GenerationProvider,
+        records: list[SummaryRecord],
+    ) -> SummaryDraft:
+        output = provider.generate_summary(
+            summary_prompt_records(records), SummaryRefsOutput
+        )
+        return draft_from_refs(records, output)
 
     def _require_budget(self) -> None:
         """Stop before a paid provider call once today's budget is spent."""
