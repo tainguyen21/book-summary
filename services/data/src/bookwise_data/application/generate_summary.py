@@ -32,6 +32,7 @@ from bookwise_data.domain.commands import ClaimedCommand
 from bookwise_data.domain.generation import (
     AcceptedGeneration,
     EmbeddingTargetType,
+    EvidenceChunk,
     EvidenceExtractionOutput,
     GeneratedEvidence,
     GeneratedSummarySection,
@@ -39,6 +40,7 @@ from bookwise_data.domain.generation import (
     GenerationValidationOutcome,
     InvalidGenerationOutput,
     PartTitlesOutput,
+    ProviderRecitationError,
     ProviderRequestError,
     SourceSpanChunkLimitError,
     SummaryDraft,
@@ -104,8 +106,9 @@ class GenerationProvider(Protocol):
         self,
         chunk: dict[str, object],
         schema: type[EvidenceExtractionOutput],
+        paraphrase: bool = False,
     ) -> EvidenceExtractionOutput:
-        """Generate structured evidence for one chunk."""
+        """Generate structured evidence for one chunk; paraphrase avoids quoting."""
 
     def generate_summary(
         self,
@@ -344,11 +347,32 @@ class GenerateSummary:
                 evidence_output = (
                     saved_output
                     if saved_output is not None
-                    else provider.generate_evidence(
-                        source_chunk_payload(chunk),
-                        EvidenceExtractionOutput,
-                    )
+                    else self._extract_evidence(chunk, provider)
                 )
+            except ProviderRecitationError as error:
+                # Refused even when paraphrased: summarize the rest of the book.
+                self._record_failure(
+                    command,
+                    self._failure(
+                        error,
+                        "evidence_extraction",
+                        source.document.id,
+                        chunk.source_node_id,
+                        chunk.sequence_number,
+                        chunk.input_hash,
+                        provider,
+                    ),
+                )
+                log_event(
+                    worker_logger(),
+                    logging.WARNING,
+                    "chunk_skipped",
+                    "Skipped a chunk the model refused to process.",
+                    error_code=error.code,
+                    chunk_sequence_number=chunk.sequence_number,
+                    **command_context(command),
+                )
+                continue
             except Exception as error:
                 raise self._failure(
                     error,
@@ -402,6 +426,19 @@ class GenerateSummary:
 
         if checkpoints:
             checkpoints.log_resumed(len(chunks))
+        if not evidence:
+            raise self._failure(
+                InvalidGenerationOutput(
+                    "no_usable_evidence",
+                    "The model refused every part of the book.",
+                ),
+                "evidence_extraction",
+                source.document.id,
+                None,
+                None,
+                None,
+                provider,
+            )
         root_node = min(source.nodes, key=lambda node: node.sequence_number)
         summary_hash = summary_input_hash(source.document.id, root_node.id, evidence)
         records, parts = self._reduce_for_summary(
@@ -682,6 +719,22 @@ class GenerateSummary:
             provider.generation_model,
             getattr(provider, "evidence_prompt_version", "unversioned"),
         )
+
+    def _extract_evidence(
+        self,
+        chunk: EvidenceChunk,
+        provider: GenerationProvider,
+    ) -> EvidenceExtractionOutput:
+        """Extract a chunk's evidence, paraphrasing once if quoting was refused."""
+
+        payload = source_chunk_payload(chunk)
+        try:
+            return provider.generate_evidence(payload, EvidenceExtractionOutput)
+        except ProviderRecitationError:
+            self._require_budget()
+            return provider.generate_evidence(
+                payload, EvidenceExtractionOutput, paraphrase=True
+            )
 
     def _require_budget(self) -> None:
         """Stop before a paid provider call once today's budget is spent."""

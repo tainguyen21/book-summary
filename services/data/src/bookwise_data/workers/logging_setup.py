@@ -39,6 +39,7 @@ _ALLOWED_CONTEXT_KEYS = frozenset(
         "signal",
         "chunks_reused",
         "chunk_count",
+        "chunk_sequence_number",
         "spent_usd",
         "cap_usd",
         "budget_timezone",

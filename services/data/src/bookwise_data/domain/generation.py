@@ -74,6 +74,10 @@ class ProviderOutputError(PermanentProcessingError):
         self.output_hash = output_hash
 
 
+class ProviderRecitationError(ProviderOutputError):
+    """The provider withheld its output because it would recite the source."""
+
+
 class ProviderRequestError(Exception):
     """A retryable provider transport or capacity failure."""
 
