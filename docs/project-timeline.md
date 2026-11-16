@@ -45,6 +45,7 @@ Last updated: October 18, 2026
 | October 18, 2026 | Command palette | ⌘K / Ctrl+K (or "Quick find") jumps to a book, a library view, search inside books (`/search?q=`), a prefilled library question (`/search?ask=`, not sent), or upload. Verified locally; deployed in `9d3bc4e`. |
 | October 18, 2026 | Ask the library and claim-matched quotes | `/search` answers one question across all ready books, naming the book behind each claim (`POST /v1/ask`, cache in migration `016`). Quote cards on answers now show the passage sentence that matches the claim instead of the passage's first evidence quote. Verified locally against live Vertex; deployed in `9d3bc4e`. |
 | October 17, 2026 | Ask a book | A book page answers questions from that book only, streamed with numbered markers that open verified quotes, and says so when the book doesn't cover it. Answers are cached per book and source document (migration `015`), and new answers count toward the daily budget. Verified locally in the browser against live Vertex (first text in about 7 s, cached repeats instant). Deployed in `9b047b2`; in production a question on a one-page PDF streamed its first text in about 2.5 s. |
+| November 16, 2026 | Database replacement | The original Cloud SQL instance was a 30-day free trial that Google suspended on November 1, so the API could not reach PostgreSQL for about 15 days. Production moved to a new paid instance, `bookwise-postgres-2` (PostgreSQL 18, `db-f1-micro`), starting empty by decision. Deployed in `408f8d5`; `/v1/ready` reports the database and storage ready. |
 
 ## In Progress
 
@@ -55,8 +56,11 @@ Everything above is deployed to production. Still unconfirmed:
    live Vertex AI, not through the production browser flow.
 2. The usage ledger, daily budget pause, and cost card have not yet been
    observed with production traffic.
-3. Cloud SQL has no backups: it is a free-trial instance, and automated
-   backups and point-in-time recovery are off by decision.
+3. Cloud SQL has no backups: automated backups and point-in-time recovery are
+   off on `bookwise-postgres-2`, as they were by decision on the earlier
+   free-trial instance.
+4. The signed-in library flow has not been checked in a browser since the
+   November 16 database switch.
 
 See [agent handoff](agent-handoff.md) for verification limits and
 [new-device setup](new-device-setup.md) for the migration checklist.

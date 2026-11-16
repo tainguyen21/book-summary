@@ -51,22 +51,30 @@ starting shape for the initial one-Pod environment; choose the database name,
 region, and password policy to match your organization:
 
 ```powershell
-gcloud sql instances create bookwise-postgres `
-  --database-version=POSTGRES_16 `
-  --cpu=1 `
-  --memory=3840MiB `
-  --region=asia-southeast1 `
+gcloud sql instances create bookwise-postgres-2 `
+  --database-version=POSTGRES_18 `
+  --edition=enterprise `
+  --tier=db-f1-micro `
+  --zone=asia-southeast1-c `
   --availability-type=zonal `
   --storage-type=SSD `
-  --storage-size=20 `
+  --storage-size=10 `
+  --database-flags=cloudsql.iam_authentication=on `
   --project=bookwise-509408
 gcloud sql databases create bookwise_next `
-  --instance=bookwise-postgres `
+  --instance=bookwise-postgres-2 `
   --project=bookwise-509408
 ```
 
+This is the shape production runs on. Shared-core tiers are not covered by
+the Cloud SQL SLA. Do not use a Cloud SQL free-trial instance: it is suspended
+after 30 days.
+
+Then create the `app_rw`, `data_rw`, and `migration_admin` users with
+`gcloud sql users create`; the migrations grant their privileges.
+
 The Kubernetes configuration uses the Cloud SQL connection name
-`bookwise-509408:asia-southeast1:bookwise-postgres`. If you choose a different
+`bookwise-509408:asia-southeast1:bookwise-postgres-2`. If you choose a different
 instance name, update `CLOUD_SQL_INSTANCE` in
 `kubernetes/base/configmap.yaml`.
 

@@ -38,19 +38,25 @@ bookwise-s3-presigned-url-expiry=600
 The audience must exactly match the Auth0 API identifier and the GitHub
 `NEXT_PUBLIC_AUTH0_AUDIENCE` variable. It is not the public API URL.
 
-Create a secret without putting its value on the command line:
+Create a secret without putting its value on the command line. Write the
+value to a temporary file rather than piping it: a PowerShell pipe appends a
+line break, which ends up inside the database name and makes the migration
+Job fail with `database ... does not exist`.
 
 ```powershell
 $value = Read-Host "Secret value" -AsSecureString
 $plain = [System.Net.NetworkCredential]::new("", $value).Password
-$plain | gcloud secrets create bookwise-app-database-url --data-file=-
+$file = [System.IO.Path]::GetTempFileName()
+[System.IO.File]::WriteAllText($file, $plain, [System.Text.UTF8Encoding]::new($false))
+gcloud secrets create bookwise-app-database-url --data-file=$file
+Remove-Item -LiteralPath $file -Force
 $plain = $null
 ```
 
-For an existing secret:
+For an existing secret, use the same steps with:
 
 ```powershell
-$plain | gcloud secrets versions add bookwise-app-database-url --data-file=-
+gcloud secrets versions add bookwise-app-database-url --data-file=$file
 ```
 
 Public Auth0 SPA values are GitHub repository variables because they are

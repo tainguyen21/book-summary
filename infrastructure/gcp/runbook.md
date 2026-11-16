@@ -25,8 +25,11 @@ Create the Cloud SQL instance and database if they do not exist. The expected
 connection name is:
 
 ```text
-bookwise-509408:asia-southeast1:bookwise-postgres
+bookwise-509408:asia-southeast1:bookwise-postgres-2
 ```
+
+Do not create it as a Cloud SQL free-trial instance: Google suspends a trial
+instance after 30 days, which takes the database offline.
 
 Create the Secret Manager values described in
 `infrastructure/gcp/secrets/README.md`. The database URLs must use

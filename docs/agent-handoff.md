@@ -1,10 +1,21 @@
 # Agent Handoff
 
-Prepared October 14, 2026; updated October 18, 2026. Read `AGENTS.md` first and use
+Prepared October 14, 2026; updated November 16, 2026. Read `AGENTS.md` first and use
 `new-device-setup.md` for installation. This is a source-grounded handoff,
 not a guarantee that live configuration will remain unchanged.
 
 ## Current Git And Verification Snapshot
+
+November 16, 2026 update:
+
+- `408f8d5` is deployed. Deploy run `43823820754` passed on its second
+  attempt, all migrations ran on an empty database, and `/v1/ready` reported
+  the database and storage ready.
+- Production now uses the Cloud SQL instance `bookwise-postgres-2`. It started
+  empty: books, summaries, and usage history from before November 16 were not
+  carried over, by the owner's decision.
+- The signed-in library flow has not been checked in a browser since the
+  switch.
 
 October 18, 2026 update:
 
@@ -101,7 +112,7 @@ filename, or raw-exception logging.
 | GCP project | `bookwise-509408` (number `867491686139`) |
 | Region / namespace | `asia-southeast1` / `bookwise` |
 | GKE | `bookwise-autopilot`; deployments `bookwise-web`, `bookwise-api`, `bookwise-worker` |
-| Cloud SQL | `bookwise-postgres`, DB `bookwise_next`; connection `bookwise-509408:asia-southeast1:bookwise-postgres` |
+| Cloud SQL | `bookwise-postgres-2` (PostgreSQL 18, Enterprise, `db-f1-micro`, 10 GB SSD), DB `bookwise_next`; connection `bookwise-509408:asia-southeast1:bookwise-postgres-2` |
 | SQL access | API and worker sidecar proxies at `127.0.0.1:5432` |
 | Artifact Registry | `asia-southeast1-docker.pkg.dev/bookwise-509408/bookwise` |
 | GCS | Private `bookwise-509408-storage`; reviewed CORS in `infrastructure/gcp/storage-cors.json` |
@@ -140,6 +151,20 @@ already-running process does not reread env-from secrets.
 
 ## Recent Incidents And Fixes
 
+- Database outage, November 1–16, 2026: the original `bookwise-postgres` was a
+  Cloud SQL 30-day free-trial instance. Google suspended it when the trial
+  ended, so `/v1/ready` returned 503 with `database: failed` and the proxy
+  sidecars logged `Error 409 ... invalidState`. Nobody was alerted because
+  `create-alerts.ps1` had not been run. The fix was a new paid instance,
+  `bookwise-postgres-2`, with new users and secrets. The suspended instance
+  still exists, costs nothing, and Google schedules it for deletion about 90
+  days after the trial ended.
+- Trailing line break in a secret: piping a string to
+  `gcloud secrets versions add --data-file=-` from PowerShell appends CRLF.
+  The deploy workflow strips only the line feed, so the database name became
+  `bookwise_next` plus a carriage return and the migration Job failed with
+  `database ... does not exist`. Write secret values from a file instead; see
+  `infrastructure/gcp/secrets/README.md`.
 - TLS 525: Cloudflare proxying prevented Google-managed certificate validation.
   DNS-only routing resolved that incident. Recheck DNS/certificate state before
   changing infrastructure.
