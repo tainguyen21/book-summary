@@ -29,6 +29,6 @@ data:
   BOOKWISE_BUDGET_TIMEZONE: Asia/Saigon
   PROCESSING_BATCH_LIMIT: "1"
   PROCESSING_POLL_INTERVAL_SECONDS: "2"
-  CLOUD_SQL_INSTANCE: bookwise-509408:asia-southeast1:bookwise-postgres
+  CLOUD_SQL_INSTANCE: bookwise-509408:asia-southeast1:bookwise-postgres-2
   PORT: "3001"
   WEB_ORIGIN: https://tai-dev-web.cloud
